@@ -3,7 +3,6 @@ use_lld = true
 is_debug = false
 symbol_level = 0
 remove_webcore_debug_symbols = true
-exclude_unwind_tables = true
 proprietary_codecs = true
 ffmpeg_branding = "Chrome"
 enable_widevine = true
