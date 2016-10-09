@@ -1,7 +1,3 @@
-# Build arguments go here. Examples:
-#   is_component_build = true
-#   is_debug = false
-# See "gn args <out_dir> --list" for available build arguments.
 is_clang = true
 use_lld = true
 is_debug = false
