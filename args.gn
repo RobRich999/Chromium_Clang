@@ -1,0 +1,17 @@
+# Build arguments go here. Examples:
+#   is_component_build = true
+#   is_debug = false
+# See "gn args <out_dir> --list" for available build arguments.
+is_clang = true
+use_lld = true
+is_debug = false
+symbol_level = 0
+remove_webcore_debug_symbols = true
+exclude_unwind_tables = true
+proprietary_codecs = true
+ffmpeg_branding = "Chrome"
+enable_widevine = true
+google_api_key = "no"
+google_default_client_id = "no"
+google_default_client_secret = "no"
+use_official_google_api_keys = false
