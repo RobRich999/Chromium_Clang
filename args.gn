@@ -6,6 +6,7 @@ remove_webcore_debug_symbols = true
 proprietary_codecs = true
 ffmpeg_branding = "Chrome"
 enable_widevine = true
+visual_studio_version = "2015"
 google_api_key = "no"
 google_default_client_id = "no"
 google_default_client_secret = "no"
