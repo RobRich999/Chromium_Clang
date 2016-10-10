@@ -1,6 +1,7 @@
 is_clang = true
 use_lld = true
 current_cpu = "x64"
+target_cpu = "x64"
 is_debug = false
 symbol_level = 0
 remove_webcore_debug_symbols = true
