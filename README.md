@@ -4,6 +4,6 @@ Chromium web browser for Windows built with the open source Clang/LLVM compiler.
 
 Links to latest build releases:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v61.0.3136.0-r480453-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v61.0.3141.0-r482161-win64
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v61.0.3136.0-r480453-win32
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v61.0.3141.0-r482161-win32
