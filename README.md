@@ -2,7 +2,7 @@
 
 The Chromium web browser for Windows built with the open source Clang compiler and LLD linker.
 
-The 64-bit builds now feature ThinLTO link time optimization.
+The 64-bit builds now feature whole-program analysis and cross-module optimization via ThinLTO link time optimization.
 
 https://clang.llvm.org/docs/ThinLTO.html
 
