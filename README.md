@@ -6,6 +6,6 @@ The 64-bit builds now feature whole-program analysis and cross-module optimizati
 
 https://clang.llvm.org/docs/ThinLTO.html
 
-Links to latest build releases:
+Link to latest build release:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v62.0.3202.0-r498989-win64
