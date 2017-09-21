@@ -8,4 +8,4 @@ https://clang.llvm.org/docs/ThinLTO.html
 
 Link to latest build release:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v63.0.3219.0-r502527-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v63.0.3221.0-r503271-win64
