@@ -10,4 +10,4 @@ Builds starting at r506010 now feature modified compiler optimizations via build
 
 Link to latest build release:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v63.0.3234.0-r506675-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v64.0.3242.0-r508955-win64
