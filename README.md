@@ -12,4 +12,4 @@ Builds starting at rr513698 now feature LLVM's new pass maanager, NewGVN, and pa
 
 Link to latest build release:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v64.0.3258.0-r513698-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v64.0.3259.0-r514058-win64
