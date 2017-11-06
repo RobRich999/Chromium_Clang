@@ -8,7 +8,7 @@ https://clang.llvm.org/docs/ThinLTO.html
 
 Builds starting at r506010 now feature modified compiler optimizations via build configuration modifications.
 
-Builds starting at rr513698 could feature LLVM's new pass maanager, NewGVN, and partial inlining as part of ongoing testing. The compiler notes will indicate which, if any of these features are enabled.
+Builds starting at r513698 could feature LLVM's new pass manager, NewGVN, and partial inlining as part of ongoing testing. The compiler notes will indicate which, if any of these features are enabled.
 
 Link to latest build release:
 
