@@ -10,7 +10,7 @@ Builds starting at r506010 now feature modified compiler optimizations via build
 
 Builds starting at r513698 could feature LLVM's new pass manager, NewGVN, and partial inlining as part of ongoing testing of build configuration modifications. The compiler notes will indicate which, if any of these features are enabled.
 
-Builds starting at r520637 now feature certain control-flow integrity schemes.
+Builds starting at r520637 now feature certain control-flow integrity (CFI) schemes.
 
 https://clang.llvm.org/docs/ControlFlowIntegrity.html
 
