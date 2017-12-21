@@ -14,7 +14,7 @@ Builds start at r525689 now feature Control Flow Integrity (CFI) exploit mitigta
 
 https://clang.llvm.org/docs/ControlFlowIntegrity.html
 
-Implementation of various compiler options are subject to change depending upon performance, code size, and similar paramaters.
+Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
 Link to latest build release:
 
