@@ -10,12 +10,8 @@ Builds starting at r506010 now feature modified compiler optimizations via build
 
 Builds starting at r513698 could feature LLVM's new pass manager, NewGVN, and partial inlining as part of ongoing testing of build configuration modifications. The compiler notes will indicate which, if any of these features are enabled.
 
-Builds start at r525689 now feature Control Flow Integrity (CFI) exploit mitigtation enhancement.
-
-https://clang.llvm.org/docs/ControlFlowIntegrity.html
-
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
 Link to latest build release:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v65.0.3302.0-r526000-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v65.0.3303.0-r526153-win64
