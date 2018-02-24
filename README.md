@@ -8,7 +8,7 @@ https://clang.llvm.org/docs/ThinLTO.html
 
 Builds starting at r506010 now feature modified compiler optimizations via build configuration modifications.
 
-Builds starting at r513698 could feature LLVM's new pass manager, NewGVN, and partial inlining as part of ongoing testing of build configuration modifications. The compiler notes will indicate which, if any of these features are enabled.
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v66.0.3354.0-r538960-win64ing testing of build configuration modifications. The compiler notes will indicate which, if any of these features are enabled.
 
 Builds starting at r530764 now feature increased inline expansion optimization of select code targets.
 
@@ -16,4 +16,4 @@ Implementation of various options are subject to change depending upon performan
 
 Link to latest build release:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v66.0.3347.0-r536553-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v66.0.3354.0-r538960-win64
