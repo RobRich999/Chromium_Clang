@@ -12,4 +12,4 @@ Implementation of various options are subject to change depending upon performan
 
 Link to latest build release:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v68.0.3397.0-r550611-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v68.0.3398.0-r550916-win64
