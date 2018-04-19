@@ -12,15 +12,15 @@ http://polly.llvm.org/
 
 The latest build release includes the following Polly configuration options:
 
-"-mllvm", "-polly",
-"-mllvm", "-polly-detect-profitability-min-per-loop-insts=40",
-"-mllvm", "-polly-invariant-load-hoisting",
-"-mllvm", "-polly-optree-normalize-phi",
-"-mllvm", "-polly-precise-fold-accesses",
-"-mllvm", "-polly-precise-inbounds",
-"-mllvm", "-polly-run-dce",
-"-mllvm", "-polly-vectorizer=stripmine",
-"-Xclang", "-Rpass-analysis=polly",
+"-mllvm", "-polly",  
+"-mllvm", "-polly-detect-profitability-min-per-loop-insts=40",  
+"-mllvm", "-polly-invariant-load-hoisting",  
+"-mllvm", "-polly-optree-normalize-phi",  
+"-mllvm", "-polly-precise-fold-accesses",  
+"-mllvm", "-polly-precise-inbounds",  
+"-mllvm", "-polly-run-dce",  
+"-mllvm", "-polly-vectorizer=stripmine",  
+"-Xclang", "-Rpass-analysis=polly",  
 
 The V8 JavaScript engine includes the added configuration option:
 
