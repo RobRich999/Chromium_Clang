@@ -1,6 +1,6 @@
 # Chromium_Clang
 
-The Chromium web browser for Windows built with the open source Clang compiler and LLD linker using the Polly "high-level loop and data-locality optimizer" for LLVM.
+The Chromium web browser for Windows built with the open source Clang compiler and LLD linker using the Polly "high-level loop and data-locality optimizer" for LLVM, starting with build revision 551871.
 
 About polyhedral optimization in general:
 
