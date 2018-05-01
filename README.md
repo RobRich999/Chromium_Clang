@@ -12,7 +12,7 @@ http://polly.llvm.org/
 
 Link to latest build release:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v68.0.3414.0-r554652-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v68.0.3416.0-r554843-win64
 
 The latest build release includes the following LLVM and Polly configuration options:
 
