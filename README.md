@@ -10,6 +10,6 @@ Implementation of various options are subject to change depending upon performan
 
 Links to latest build releases:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v71.0.3551.0-r590835-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v71.0.3557.0-r592621-win64
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v71.0.3551.0-r590835-win32
