@@ -12,4 +12,4 @@ Links to latest build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v72.0.3612.0-r608640-win64
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v72.0.3603.0-r605443-win32
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v72.0.3612.0-r608640-win32
