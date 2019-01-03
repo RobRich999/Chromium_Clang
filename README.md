@@ -2,7 +2,7 @@
 
 The Chromium web browser for Windows built with the open source Clang compiler and LLD linker.
 
-Additional features of the build include modified compiler optimizations, including whole-program analysis and cross-module optimization using "thin" link time optimization (ThinLTO), via build configuration modifications.
+Additional features of the build include modified compiler optimizations, including profile-guided optimization of performance-targeted code paths, plus whole-program analysis and cross-module optimization using "thin" link time optimization (ThinLTO), via build configuration modifications. A processor with AVX support is required.
 
 Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
 
