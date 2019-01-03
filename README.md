@@ -4,11 +4,11 @@ The Chromium web browser for Windows built with the open source Clang compiler a
 
 Additional features of the build include modified compiler optimizations, plus whole-program analysis and cross-module optimization using "thin" link time optimization (ThinLTO), via build configuration modifications.
 
-Builds marked with the "+avx" targ requred a processor with AVX instruction set support.
+Builds marked with the "+avx" tag requred a processor with AVX instruction set support.
 
 Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
 
-Builds marked with the "+pgo" targ utilize profile-guided optimization of performance-targeted code paths.
+Builds marked with the "+pgo" tag utilize profile-guided optimization of performance-targeted code paths.
 
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
