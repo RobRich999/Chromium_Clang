@@ -8,7 +8,7 @@ Build marked withe "+fulllto" tag utilize whole-program analysis and cross-modul
 
 Build marked withe "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
 
-Builds marked with the "+pgo" tag utilize profile-guided optimization of performance-targeted code paths.
+Builds marked with the "+pgo" tag utilize profile-guided optimization.
 
 Builld marked with the "+polly" tag utilize the Polly "high-level loop and data-locality optimizer and optimization infrastructure for LLVM."
 
@@ -22,4 +22,4 @@ Links to latest build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v73.0.3667.0-r621140-win64
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v73.0.3660.0-r619562-win32
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v73.0.3677.0-r624317-win32
