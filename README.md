@@ -14,6 +14,8 @@ Builld marked with the "+polly" tag utilize the Polly "high-level loop and data-
 
 Builds marked with the "+avx" tag require a processor with AVX instruction set support.
 
+Builds marked with the "+avx2" tag require a processor with AVX2 instruction set support.
+
 Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
 
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
