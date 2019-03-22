@@ -24,4 +24,4 @@ Links to latest build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v75.0.3741.0-r643164-win64
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v75.0.3735.0-r641309-win32
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v75.0.3741.0-r643164-win32
