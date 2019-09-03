@@ -16,6 +16,8 @@ Builds marked with the "+avx" tag require processors with AVX instruction set su
 
 Builds marked with the "+avx2" tag require processors with AVX2 instruction set support.
 
+Builds marked with the "+fma" tag require processors with FMA instruction set support.
+
 Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
 
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
@@ -24,6 +26,8 @@ Links to latest build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v78.0.3896.0-r691374-win64
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v78.0.3896.0-r691405-win64-avx2
-
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v78.0.3897.0-r691469-win32
+
+Intel Haswell or later processors with AVX2, FMA, etc. instrusction set support required for special AVX2 test build releases:
+
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v78.0.3896.0-r691405-win64-avx2
