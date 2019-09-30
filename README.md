@@ -28,6 +28,6 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v79.0.3928.0-r701008-w
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v79.0.3928.0-r701008-win32
 
-Intel Haswell or later processors with AVX2, FMA, etc. instrusction set support required for special AVX2 test build releases:
+Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special AVX2 test build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v78.0.3896.0-r691405-win64-avx2
