@@ -26,7 +26,7 @@ Links to latest build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3960.0-r712060-win64
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3952.0-r709764-win32
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3960.0-r712060-win32
 
 Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special AVX2 test build releases:
 
