@@ -24,7 +24,7 @@ Implementation of various options are subject to change depending upon performan
 
 Links to latest build releases:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3965.0-r714294-win64
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3968.0-r715223-win64
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3965.0-r714294-win32
 
