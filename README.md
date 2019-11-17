@@ -30,4 +30,4 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3968.0-r715567-w
 
 Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special AVX2 test build releases:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3953.0-r710251-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3970.0-r716030-win64-avx2
