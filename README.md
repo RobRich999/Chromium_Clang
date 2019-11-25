@@ -20,6 +20,8 @@ Builds marked with the "+fma" tag require processors with FMA instruction set su
 
 Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
 
+Builds marked with the "+sse2" tag require processors with SSE2 instruction set support. AVX support is not required.
+
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
 Links to latest build releases:
@@ -28,7 +30,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3977.0-r718491-w
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3977.0-r718491-win64-sse2 (sse2)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3968.0-r715567-win32
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3977.0-r718491-win32 (sse2)
 
 Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special AVX2 test build releases:
 
