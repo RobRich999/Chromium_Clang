@@ -8,6 +8,8 @@ Build marked withe "+fulllto" tag utilize whole-program analysis and cross-modul
 
 Build marked withe "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
 
+Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
+
 Builds marked with the "+pgo" tag utilize profile-guided optimization.
 
 Builld marked with the "+polly" tag utilize the Polly "high-level loop and data-locality optimizer and optimization infrastructure for LLVM."
@@ -17,8 +19,6 @@ Builds marked with the "+avx" tag require processors with AVX instruction set su
 Builds marked with the "+avx2" tag require processors with AVX2 instruction set support.
 
 Builds marked with the "+fma" tag require processors with FMA instruction set support.
-
-Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
 
 Builds marked with the "+sse2" tag require processors with SSE2 instruction set support. AVX support is not required.
 
