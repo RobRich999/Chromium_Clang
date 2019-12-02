@@ -26,12 +26,11 @@ Implementation of various options are subject to change depending upon performan
 
 Links to latest build releases:
 
-
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3982.0-r720336-win64 (avx | recommended)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3982.0-r720336-win64-sse2 (sse2)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3977.0-r718491-win32 (sse2)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v80.0.3982.0-r720336-win32 (sse2)
 
 Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special AVX2 test build releases:
 
