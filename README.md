@@ -28,7 +28,7 @@ Links to latest build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v81.0.4027.0-r730470-win64 (avx | recommended)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v81.0.4017.0-r728360-win64-sse2 (sse2 | legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v81.0.4027.0-r730470-win64-sse2 (sse2 | legacy)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v81.0.4017.0-r728360-win32 (sse2 | Windows 32-bit legacy)
 
