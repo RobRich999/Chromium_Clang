@@ -30,8 +30,8 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v82.0.4076.0-r746049-w
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v82.0.4076.0-r746049-win64-sse2 (sse2 | Win64 legacy)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v82.0.4071.0-r744783-win32 (sse2 | Win32 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v82.0.4076.0-r746049-win32 (sse2 | Win32 legacy)
 
 Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special AVX2 test build releases:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v82.0.4071.0-r744852-win64-avx2 (avx2+fma | Win64 experimental)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v82.0.4076.0-r746179-win64-avx2 (avx2+fma | Win64 experimental)
