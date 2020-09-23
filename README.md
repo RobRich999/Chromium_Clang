@@ -4,9 +4,9 @@ The Chromium web browser for Windows built with the open source Clang compiler a
 
 Additional features of the build include modified compiler and linker optimizations via build configuration modifications.
 
-Build marked withe "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
+Build marked with the "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
 
-Build marked withe "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
+Build marked with the "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
 
 Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
 
