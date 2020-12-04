@@ -1,6 +1,6 @@
 # Chromium_Clang
 
-The Chromium web browser for Windows built with the open source Clang compiler and LLD linker.
+The Chromium web browser for Windows and Linux built with the open source Clang compiler and LLD linker.
 
 Additional features of the build include modified compiler and linker optimizations via build configuration modifications.
 
@@ -36,6 +36,6 @@ Intel Haswell or later processors with AVX2, FMA, etc. instruction set support r
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4342.0-r831760-win64-avx2 (avx2+fma | Win64 experimental)
 
-Link to latest Linux 64-bit build release in deb package format:
+Link to latest Linux build release in deb package format:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4344.0-r833256-linux64-deb (avx | Linux64)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4344.0-r833256-linux64-deb (avx | Linux 64-bit)
