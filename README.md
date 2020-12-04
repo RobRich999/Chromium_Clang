@@ -24,7 +24,7 @@ Builds marked with the "+sse2" tag require processors with SSE2 instruction set 
 
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
-Links to latest build releases:
+Links to latest Windows build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4343.0-r832360-win64 (avx | Win64 recommended)
 
@@ -32,6 +32,10 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4343.0-r832360-w
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4343.0-r832360-win32 (sse2 | Win32 legacy)
 
-Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special AVX2 build releases:
+Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special Windows AVX2 build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4342.0-r831760-win64-avx2 (avx2+fma | Win64 experimental)
+
+Link to latest Linux 64-bit build release in deb package format:
+
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4344.0-r833256-linux64-deb (avx | Linux64)
