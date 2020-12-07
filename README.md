@@ -38,4 +38,4 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4342.0-r831760-w
 
 Link to latest Linux build release in deb package format:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4344.0-r833256-linux64-deb (avx | Linux 64-bit)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4349.0-r834134-linux64-deb (sse2 | Linux 64-bit)
