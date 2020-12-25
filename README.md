@@ -34,7 +34,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4349.0-r834217-w
 
 Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special Windows AVX2 build releases:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4350.0-r834747-win64-avx2 (avx2+fma | Win64 experimental)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4367.0-r839243-win64-avx2 (avx2+fma | Win64 experimental)
 
 Link to latest Linux build release in deb package format:
 
