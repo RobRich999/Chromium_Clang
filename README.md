@@ -22,6 +22,10 @@ Builds marked with the "+fma" tag require processors with FMA instruction set su
 
 Builds marked with the "+sse2" tag require processors with SSE2 instruction set support. AVX support is not required.
 
+Builds marked with the "+sse3" tag require processors with SSE3 instruction set support. AVX support is not required.
+
+*As of v89 builds, SSE3 support is the project's own minimum requirement for Chromium on x86 platforms.*
+
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
 Links to latest Windows build releases:
