@@ -24,7 +24,7 @@ Builds marked with the "+sse2" tag require processors with SSE2 instruction set 
 
 Builds marked with the "+sse3" tag require processors with SSE3 instruction set support. AVX support is not required.
 
-*As of v89 builds, SSE3 support is the Chromium project's own minimum requirement on x86 platforms.*
+*As of v89 builds SSE3 support is the Chromium project's own minimum SIMD requirement on x86 platforms.*
 
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
