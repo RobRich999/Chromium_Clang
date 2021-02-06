@@ -8,8 +8,6 @@ Build marked with the "+fulllto" tag utilize whole-program analysis and cross-mo
 
 Build marked with the "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
 
-Builds marked with the "+npm" tag utilize the LLVM "new pass manager" for building.
-
 Builds marked with the "+pgo" tag utilize profile-guided optimization.
 
 Builld marked with the "+polly" tag utilize the Polly "high-level loop and data-locality optimizer and optimization infrastructure for LLVM."
@@ -24,7 +22,7 @@ Builds marked with the "+sse2" tag require processors with SSE2 instruction set 
 
 Builds marked with the "+sse3" tag require processors with SSE3 instruction set support. AVX support is not required.
 
-*As of v89 builds SSE3 support is the Chromium project's own minimum SIMD requirement on x86 platforms.*
+*SSE3 support is the Chromium project's own minimum SIMD requirement on x86 platforms as of v89 builds.*
 
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
@@ -42,6 +40,6 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v89.0.4387.0-r842692-w
 
 Link to latest Linux build releases in deb package format:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v90.0.4403.0-r848298-linux64-deb-avx (Linux 64 recommended)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v90.0.4410.0-r851257-linux64-deb-avx (Linux 64 recommended)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v90.0.4403.0-r848298-linux64-deb-sse3 (Linux 64 legacy)
