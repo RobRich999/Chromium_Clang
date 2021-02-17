@@ -38,8 +38,8 @@ Intel Haswell or later processors with AVX2, FMA, etc. instruction set support r
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v90.0.4417.0-r853576-win64-avx2 (Win64 experimental)
 
-Link to latest Linux build releases in deb package format:
+Links to latest Linux build releases in deb package format:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v90.0.4410.0-r851257-linux64-deb-avx (Linux 64 recommended)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v90.0.4421.0-r854458-linux64-deb-avx (Linux 64 recommended)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v90.0.4410.0-r851257-linux64-deb-sse3 (Linux 64 legacy)
