@@ -40,6 +40,6 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v93.0.4557.0-r896373-w
 
 Links to latest Linux build releases in deb package format:
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v93.0.4546.0-r893354-linux64-deb-avx (Linux 64 recommended)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v93.0.4558.0-r896600-linux64-deb-avx (Linux 64 recommended)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v93.0.4546.0-r893354-linux64-deb-sse3 (Linux 64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v93.0.4558.0-r896600-linux64-deb-sse3 (Linux 64 legacy)
