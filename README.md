@@ -30,9 +30,9 @@ Links to latest Windows build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v94.0.4581.0-r903172-win64-avx (Win64 recommended)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v94.0.4580.0-r902848-win64-sse3 (Win64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v94.0.4581.0-r903172-win64-avx3 (Win64 legacy)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v94.0.4580.0-r902848-win32-sse3 (Win32 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v94.0.4581.0-r903176-win64-sse3 (Win32 legacy)
 
 Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special Windows AVX2 build releases:
 
