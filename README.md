@@ -2,7 +2,7 @@
 
 The Chromium web browser for Windows and Linux built with the open source Clang compiler and LLD linker.
 
-Additional features of the build include modified compiler and linker optimizations via build configuration modifications.
+Additional features of the builds include modified compiler and linker optimizations via build configuration modifications.
 
 Build marked with the "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
 
