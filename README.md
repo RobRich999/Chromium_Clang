@@ -4,9 +4,13 @@ The Chromium web browser for Windows and Linux built with the open source Clang 
 
 Additional features of the builds include modified compiler and linker optimizations via build configuration modifications.
 
+Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
+
+****
+
 Build marked with the "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
 
-Build marked with the "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
+Builds marked with the "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
 
 Builds marked with the "+pgo" tag utilize profile-guided optimization.
 
@@ -23,8 +27,6 @@ Builds marked with the "+sse2" tag require processors with SSE2 instruction set 
 Builds marked with the "+sse3" tag require processors with SSE3 instruction set support. AVX support is not required.
 
 *SSE3 support is the Chromium project's own minimum SIMD requirement on x86 platforms as of v89 builds.*
-
-Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
 ****
 
