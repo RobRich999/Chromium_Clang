@@ -32,7 +32,7 @@ Builds marked with the "+sse3" tag require processors with SSE3 instruction set 
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-win64-avx(Win64 recommended)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-win64-avx (Win64 recommended*)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4630.0-r917189-win64-sse3 (Win64 legacy)
 
@@ -43,7 +43,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-w
 
 **Links to latest Linux build releases in deb package format:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-linux64-deb-avx (Linux 64 recommended)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-linux64-deb-avx (Linux 64 recommended*)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-linux64-deb-sse3 (Linux 64 legacy)
 
@@ -53,3 +53,9 @@ Intel Haswell or later processors with AVX2, FMA, etc. instruction set support r
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-win64-avx2 (Win64 experimental)  
 *^Win64 AVX2 builds discontinued pending further review.*
+
+****
+
+*Primary reason for AVX build recommendation:
+
+https://john-h-k.github.io/VexTransitionPenalties.html
