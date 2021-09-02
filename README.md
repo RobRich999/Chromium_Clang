@@ -27,7 +27,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-l
 
 ****
 
-Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special Windows AVX2 build releases:
+**Discontinued, paused, etc. builds:**
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-win64-avx2 (Win64 experimental)  
 *^Win64 AVX2 builds discontinued pending further review.*
