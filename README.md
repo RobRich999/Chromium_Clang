@@ -56,6 +56,6 @@ Builds marked with the "+sse3" tag require processors with SSE3 instruction set 
 
 ****
 
-*Primary reason for AVX build recommendation:
+** *Primary reason for AVX build recommendation:**
 
 https://john-h-k.github.io/VexTransitionPenalties.html
