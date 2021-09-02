@@ -26,6 +26,8 @@ Builds marked with the "+sse3" tag require processors with SSE3 instruction set 
 
 Implementation of various options are subject to change depending upon performance, stability, and similar paramaters.
 
+****
+
 Links to latest Windows build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-win64-avx (Win64 recommended)
@@ -34,12 +36,16 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4619.0-r914152-w
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-win32-sse3 (Win32 legacy | **likely to soon be discontinued**)
 
-Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special Windows AVX2 build releases:
-
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-win64-avx2 (Win64 experimental | **discontinued pending further review**)
+****
 
 Links to latest Linux build releases in deb package format:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-linux64-deb-avx (Linux 64 recommended)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-linux64-deb-sse3 (Linux 64 legacy)
+
+****
+
+Intel Haswell or later processors with AVX2, FMA, etc. instruction set support required for special Windows AVX2 build releases:
+
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-win64-avx2 (Win64 experimental | **discontinued pending further review**)
