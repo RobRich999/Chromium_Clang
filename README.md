@@ -34,7 +34,7 @@ Links to latest Windows build releases:
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-win64-avx (Win64 recommended)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4619.0-r914152-win64-sse3 (Win64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4630.0-r917189-win64-sse3 (Win64 legacy)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-win32-sse3 (Win32 legacy | **likely to soon be discontinued**)
 
