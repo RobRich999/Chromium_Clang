@@ -34,7 +34,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-w
 
 ****
 
-**Optimization-related build taggs:**
+**Optimization-related build tags:**
 
 Build marked with the "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
 
