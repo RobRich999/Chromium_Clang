@@ -30,7 +30,7 @@ Builds marked with the "+sse3" tag require processors with SSE3 instruction set 
 
 ****
 
-Links to latest Windows build releases:
+**Links to latest Windows build releases:**
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-win64-avx(Win64 recommended)
 
@@ -41,7 +41,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-w
 
 ****
 
-Links to latest Linux build releases in deb package format:
+**Links to latest Linux build releases in deb package format:**
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-linux64-deb-avx (Linux 64 recommended)
 
