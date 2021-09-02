@@ -34,6 +34,8 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-w
 
 ****
 
+**Optimization-related build taggs:**
+
 Build marked with the "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
 
 Builds marked with the "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
@@ -56,6 +58,6 @@ Builds marked with the "+sse3" tag require processors with SSE3 instruction set 
 
 ****
 
-** *Primary reason for AVX build recommendation:**
+***Primary reason for AVX build recommendation:**
 
 https://john-h-k.github.io/VexTransitionPenalties.html
