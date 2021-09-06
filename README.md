@@ -21,7 +21,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916758-w
 
 **Links to latest Linux build releases in deb package format:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4634.0-r918442-linux64-avx (Linux 64 recommended*)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4634.0-r918442-linux64-deb-avx (Linux 64 recommended*)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4621.0-r914881-linux64-deb-sse3 (Linux 64 legacy)
 
@@ -36,7 +36,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-w
 
 **Optimization-related build tags:**
 
-Build marked with the "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
+Builds marked with the "+fulllto" tag utilize whole-program analysis and cross-module optimization using "full" link time optimization.
 
 Builds marked with the "+thinlto" tag utilize whole-program analysis and cross-module optimization using "thin" link time optimization.
 
