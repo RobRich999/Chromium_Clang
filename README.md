@@ -14,7 +14,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v96.0.4646.0-r922556-w
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v96.0.4646.0-r922556-win64-sse3 (Win64 legacy)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v96.0.4640.0-r920497-win32-sse3 (Win32 legacy)  
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v96.0.4640.0-r920508-win32-sse3 (Win32 legacy)  
 *^Win32 builds likely to soon be discontinued.*
 
 ****
