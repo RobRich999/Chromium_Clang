@@ -12,7 +12,7 @@ Implementation of various options are subject to change depending upon performan
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4691.0-r937977-win64-avx (Win64 recommended*)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4688.0-r936774-win64-sse3 (Win64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4691.0-r937977-win64-sse3 (Win64 legacy)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4670.0-r931446-win32-sse3 (Win32 legacy)  
 *^Win32 build update intervals could be delayed pending ongoing review of potential phase out.*
