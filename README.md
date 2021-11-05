@@ -21,9 +21,9 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4691.0-r937977-w
 
 **Links to latest Linux build releases in deb package format:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4679.0-r934175-linux64-deb-avx (Linux 64 recommended*)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4690.0-r937500-linux64-deb-avx (Linux 64 recommended*)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4679.0-r934175-linux64-deb-sse3 (Linux 64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4690.0-r937500-linux64-deb-sse3 (Linux 64 legacy)
 
 ****
 
