@@ -10,6 +10,8 @@ Implementation of various options are subject to change depending upon performan
 
 **Links to latest Windows build releases:**
 
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v98.0.4715.0-r943497-win64-avx2 (Win64 experimental*)
+
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v98.0.4715.0-r943497-win64-avx (Win64 recommended*)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v98.0.4715.0-r943497-win64-sse3 (Win64 legacy)
@@ -29,8 +31,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v97.0.4690.0-r937500-l
 
 **Links to discontinued, paused, etc. builds:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v95.0.4629.0-r916760-win64-avx2 (Win64 experimental)  
-*^Win64 AVX2 builds discontinued pending further review.*
+n/a
 
 ****
 
@@ -58,6 +59,6 @@ Builds marked with the "+sse3" tag require processors with SSE3 instruction set 
 
 ****
 
-***Primary reason for AVX build recommendation:**
+***Primary reason for AVX/AVX2 build recommendation:**
 
 https://john-h-k.github.io/VexTransitionPenalties.html
