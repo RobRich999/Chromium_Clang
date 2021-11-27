@@ -10,7 +10,7 @@ Implementation of various options are subject to change depending upon performan
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v98.0.4715.0-r943497-win64-avx2 (Win64 experimental*)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v98.0.4729.0-r945375-win64-avx2 (Win64 experimental*)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v98.0.4715.0-r943497-win64-avx (Win64 recommended*)
 
