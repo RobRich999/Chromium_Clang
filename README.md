@@ -25,7 +25,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4762.0-r950864-w
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4762.0-r950862-linux64-deb-avx (Linux 64 recommended*)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v98.0.4747.0-r948311-linux64-deb-sse3 (Linux 64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4762.0-r950862-linux64-deb-sse3 (Linux 64 legacy)
 
 ****
 
