@@ -43,7 +43,7 @@ Builds marked with the "+thinlto" tag utilize whole-program analysis and cross-m
 
 Builds marked with the "+pgo" tag utilize profile-guided optimization.
 
-Builld marked with the "+polly" tag utilize the Polly "high-level loop and data-locality optimizer and optimization infrastructure for LLVM."
+Builds marked with the "+polly" tag utilize the Polly "high-level loop and data-locality optimizer and optimization infrastructure for LLVM."
 
 Builds marked with the "+avx" tag require processors with AVX instruction set support.
 
