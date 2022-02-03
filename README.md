@@ -10,11 +10,11 @@ Implementation of various options are subject to change depending upon performan
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4844.0-r961552-win64-avx2 (Win64 experimental*)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-avx2 (Win64 experimental*)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4844.0-r961558-win64-avx (Win64 recommended*)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-avx (Win64 recommended*)
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4844.0-r961558-win64-sse3 (Win64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-sse3 (Win64 legacy)
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4844.0-r961558-win32-sse3 (Win32 legacy)  
 *^Win32 build update intervals could be delayed pending ongoing review of potential phase out.*
