@@ -1,8 +1,6 @@
-# Project discontinued on 02/20/2022.
+# FYI: Project discontinued on 02/20/2022.
 
-****
-
-# Chromium_Clang
+**Chromium_Clang:**
 
 The Chromium web browser for Windows and Linux built with the open source Clang compiler and LLD linker.
 
