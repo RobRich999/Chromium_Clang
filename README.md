@@ -59,4 +59,4 @@ https://john-h-k.github.io/VexTransitionPenalties.html
 
 ****
 
-Typical third-party build disclaimer. No warranties. No guarantees. Your mileage may vary. Use at your own risk.
+<sub>*Typical third-party build disclaimer. No warranties. No guarantees. Your mileage may vary. Use at your own risk.*</sub>
