@@ -18,7 +18,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v107.0.5266.0-r1040126
 
 **Links to latest Linux build releases in deb package format:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v107.0.5266.0-r1040126-linux64-dev-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v107.0.5266.0-r1040126-linux64-deb-avx
 
 ****
 
