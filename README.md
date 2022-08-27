@@ -1,5 +1,3 @@
-# FYI: Project discontinued on 02/20/2022.
-
 **Chromium_Clang:**
 
 The Chromium web browser for Windows and Linux built with the open source Clang compiler and LLD linker.
@@ -12,24 +10,15 @@ Implementation of various options are subject to change depending upon performan
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-avx2 (Win64 experimental*)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v107.0.5266.0-r1040126-win64-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-avx (Win64 recommended*)
-
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-sse3 (Win64 legacy)
-
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v99.0.4844.0-r961558-win32-sse3 (Win32 legacy)  
-*^Win32 build update intervals could be delayed pending ongoing review of potential phase out.*
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-avx
 
 ****
 
 **Links to latest Linux build releases in deb package format:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4882.0-r969688-linux64-deb-avx2 (Linux 64 experimental*) 
-
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4882.0-r969688-linux64-deb-avx (Linux 64 recommended*)
-
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4882.0-r969688-linux64-deb-sse3 (Linux 64 legacy)
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4882.0-r969688-linux64-deb-avx
 
 ****
 
@@ -55,14 +44,14 @@ Builds marked with the "+avx2" tag require processors with AVX2 instruction set 
 
 Builds marked with the "+fma" tag require processors with FMA instruction set support.
 
-Builds marked with the "+sse2" tag require processors with SSE2 instruction set support. AVX support is not required.
+Builds marked with the "+sse2" tag (deprecated) require processors with SSE2 instruction set support. AVX support is not required.
 
-Builds marked with the "+sse3" tag require processors with SSE3 instruction set support. AVX support is not required.
+Builds marked with the "+sse3" tag (deprecated) require processors with SSE3 instruction set support. AVX support is not required.
 
 *SSE3 support is the Chromium project's own minimum SIMD requirement on x86 platforms as of v89 builds.*
 
 ****
 
-***Primary reason for AVX/AVX2 build recommendation:**
+**Primary reason for AVX/AVX2 build recommendation:**
 
 https://john-h-k.github.io/VexTransitionPenalties.html
