@@ -12,7 +12,7 @@ Implementation of various options are subject to change depending upon performan
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v107.0.5266.0-r1040126-win64-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v100.0.4863.0-r965290-win64-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v107.0.5266.0-r1040126-win64-avx
 
 ****
 
