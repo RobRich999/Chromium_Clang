@@ -55,3 +55,8 @@ Builds marked with the "+sse3" tag (deprecated) require processors with SSE3 ins
 **Primary reason for AVX/AVX2 build recommendation:**
 
 https://john-h-k.github.io/VexTransitionPenalties.html
+
+
+****
+
+Typical third-party build disclaimer. No warranties. No guarantees. Your mileage may vary. Use at your own risk.
