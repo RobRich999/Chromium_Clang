@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ecb5138a3a503..e00c93bcda441 100644
+index ecb5138a3a503..21b973f251490 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -545,7 +545,7 @@ config("compiler") {
@@ -93,16 +93,7 @@ index ecb5138a3a503..e00c93bcda441 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -700,8 +738,6 @@ config("compiler") {
-         # of import_instr_limit 30 with a binary size hit smaller than ~2 MiB.
-         import_instr_limit = 5
-       }
--
--      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
-     }
- 
-     # TODO(https://crbug.com/1211155): investigate why this isn't effective on
-@@ -861,7 +897,7 @@ config("compiler") {
+@@ -861,7 +899,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -111,7 +102,7 @@ index ecb5138a3a503..e00c93bcda441 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -884,7 +920,7 @@ config("thinlto_optimize_max") {
+@@ -884,7 +922,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -120,7 +111,7 @@ index ecb5138a3a503..e00c93bcda441 100644
      }
  
      if (is_win) {
-@@ -916,7 +952,7 @@ config("compiler_cpu_abi") {
+@@ -916,7 +954,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -129,7 +120,7 @@ index ecb5138a3a503..e00c93bcda441 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2076,7 +2112,7 @@ config("optimize") {
+@@ -2076,7 +2114,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -138,7 +129,7 @@ index ecb5138a3a503..e00c93bcda441 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2099,9 +2135,9 @@ config("optimize") {
+@@ -2099,9 +2137,9 @@ config("optimize") {
      cflags = [ "-O2" ] + common_optimize_on_cflags
    }
    if (optimize_for_size) {
@@ -150,7 +141,7 @@ index ecb5138a3a503..e00c93bcda441 100644
    }
    ldflags = common_optimize_on_ldflags
  }
-@@ -2167,9 +2203,9 @@ config("optimize_max") {
+@@ -2167,9 +2205,9 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -162,7 +153,7 @@ index ecb5138a3a503..e00c93bcda441 100644
    }
  }
  
-@@ -2202,7 +2238,7 @@ config("optimize_speed") {
+@@ -2202,7 +2240,7 @@ config("optimize_speed") {
      } else {
        cflags = [ "-O3" ] + common_optimize_on_cflags
      }
