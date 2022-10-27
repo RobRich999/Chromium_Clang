@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ecb5138a3a503..0861370fa996e 100644
+index ecb5138a3a503..e00c93bcda441 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -545,7 +545,7 @@ config("compiler") {
@@ -11,7 +11,7 @@ index ecb5138a3a503..0861370fa996e 100644
      }
    }
  
-@@ -644,9 +644,29 @@ config("compiler") {
+@@ -644,9 +644,28 @@ config("compiler") {
        "-fsplit-lto-unit",
      ]
  
@@ -41,7 +41,7 @@ index ecb5138a3a503..0861370fa996e 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -665,6 +685,32 @@ config("compiler") {
+@@ -665,6 +684,25 @@ config("compiler") {
      } else {
        ldflags += [ "-flto=thin" ]
  
@@ -62,17 +62,21 @@ index ecb5138a3a503..0861370fa996e 100644
 +        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
 +        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
 +        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
-+        "-Wl,-mllvm,-polly",
-+        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
-+        "-Wl,-mllvm,-polly-invariant-load-hoisting",
-+        "-Wl,-mllvm,-polly-vectorizer=stripmine",
-+        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
 +      ]
 +
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -681,12 +727,12 @@ config("compiler") {
+@@ -673,7 +711,7 @@ config("compiler") {
+       # and let it use all cores.
+       # TODO(thakis): Check if '=0' (that is, number of cores, instead
+       # of "all" which means number of hardware threads) is faster.
+-      ldflags += [ "-Wl,--thinlto-jobs=all" ]
++      # ldflags += [ "-Wl,--thinlto-jobs=all" ]
+       if (is_apple) {
+         ldflags += [
+           "-Wl,-cache_path_lto," +
+@@ -681,12 +719,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -89,7 +93,16 @@ index ecb5138a3a503..0861370fa996e 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -861,7 +907,7 @@ config("compiler") {
+@@ -700,8 +738,6 @@ config("compiler") {
+         # of import_instr_limit 30 with a binary size hit smaller than ~2 MiB.
+         import_instr_limit = 5
+       }
+-
+-      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
+     }
+ 
+     # TODO(https://crbug.com/1211155): investigate why this isn't effective on
+@@ -861,7 +897,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -98,7 +111,7 @@ index ecb5138a3a503..0861370fa996e 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -884,7 +930,7 @@ config("thinlto_optimize_max") {
+@@ -884,7 +920,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -107,7 +120,7 @@ index ecb5138a3a503..0861370fa996e 100644
      }
  
      if (is_win) {
-@@ -916,7 +962,7 @@ config("compiler_cpu_abi") {
+@@ -916,7 +952,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -116,7 +129,7 @@ index ecb5138a3a503..0861370fa996e 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2076,7 +2122,7 @@ config("optimize") {
+@@ -2076,7 +2112,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -125,7 +138,7 @@ index ecb5138a3a503..0861370fa996e 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2099,9 +2145,9 @@ config("optimize") {
+@@ -2099,9 +2135,9 @@ config("optimize") {
      cflags = [ "-O2" ] + common_optimize_on_cflags
    }
    if (optimize_for_size) {
@@ -137,7 +150,7 @@ index ecb5138a3a503..0861370fa996e 100644
    }
    ldflags = common_optimize_on_ldflags
  }
-@@ -2167,9 +2213,9 @@ config("optimize_max") {
+@@ -2167,9 +2203,9 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -149,7 +162,7 @@ index ecb5138a3a503..0861370fa996e 100644
    }
  }
  
-@@ -2202,7 +2248,7 @@ config("optimize_speed") {
+@@ -2202,7 +2238,7 @@ config("optimize_speed") {
      } else {
        cflags = [ "-O3" ] + common_optimize_on_cflags
      }
