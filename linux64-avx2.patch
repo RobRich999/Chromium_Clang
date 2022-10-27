@@ -1,0 +1,266 @@
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index ecb5138a3a503..0861370fa996e 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -545,7 +545,7 @@ config("compiler") {
+     if (is_win) {
+       cflags += [ "/clang:-ffp-contract=off" ]
+     } else {
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
+     }
+   }
+ 
+@@ -644,9 +644,29 @@ config("compiler") {
+       "-fsplit-lto-unit",
+     ]
+ 
++    cflags += [
++        "-mllvm", "-adce-remove-loops",
++        "-mllvm", "-enable-cse-in-irtranslator",
++        "-mllvm", "-enable-cse-in-legalizer",
++        "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
++        "-mllvm", "-loop-rotate-multi",
++        "-mllvm", "-enable-loopinterchange",
++        "-mllvm", "-enable-loop-distribute",
++        "-mllvm", "-enable-loop-flatten",
++        "-mllvm", "-enable-loop-versioning-licm",
++        "-mllvm", "-interleave-small-loop-scalar-reduction",
++        "-mllvm", "-enable-interleaved-mem-accesses",
++        "-mllvm", "-enable-masked-interleaved-mem-accesses",
++        "-mllvm", "-enable-gvn-hoist",
++        "-mllvm", "-gvn-hoist-max-bbs=-1",
++        "-mllvm", "-gvn-hoist-max-depth=-1",
++        "-mllvm", "-gvn-hoist-max-chain-length=-1",
++        "-mllvm", "-enable-nontrivial-unswitch",
++    ]
++
+     # Limit the size of the ThinLTO cache to the lesser of 10% of
+     # available disk space, 40GB and 100000 files.
+-    cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
++    # cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
+ 
+     # An import limit of 30 has better performance (per speedometer) and lower
+     # binary size than the default setting of 100.
+@@ -665,6 +685,32 @@ config("compiler") {
+     } else {
+       ldflags += [ "-flto=thin" ]
+ 
++      ldflags += [
++        "-Wl,-mllvm,-adce-remove-loops",
++        "-Wl,-mllvm,-enable-cse-in-irtranslator",
++        "-Wl,-mllvm,-enable-cse-in-legalizer",
++        "-Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening",
++        "-Wl,-mllvm,-loop-rotate-multi",
++        "-Wl,-mllvm,-enable-loopinterchange",
++        "-Wl,-mllvm,-enable-loop-distribute",
++        "-Wl,-mllvm,-enable-loop-flatten",
++        "-Wl,-mllvm,-enable-loop-versioning-licm",
++        "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
++        "-Wl,-mllvm,-enable-interleaved-mem-accesses",
++        "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
++        "-Wl,-mllvm,-enable-gvn-hoist",
++        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
++        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
++        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
++        "-Wl,-mllvm,-enable-nontrivial-unswitch",
++        "-Wl,-mllvm,-polly",
++        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
++        "-Wl,-mllvm,-polly-invariant-load-hoisting",
++        "-Wl,-mllvm,-polly-loopfusion-greedy",
++        "-Wl,-mllvm,-polly-vectorizer=stripmine",
++        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
++      ]
++
+       # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
+       # usage in crbug.com/1038040. Note this will increase build time in
+       # Chrome OS.
+@@ -681,12 +727,12 @@ config("compiler") {
+           "-Wcrl,object_path_lto",
+         ]
+       } else {
+-        ldflags +=
+-            [ "-Wl,--thinlto-cache-dir=" +
+-              rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
++        # ldflags +=
++        #     [ "-Wl,--thinlto-cache-dir=" +
++        #       rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
+       }
+ 
+-      ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
++      # ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
+ 
+       if (is_chromeos) {
+         # ARM was originally set lower than x86 to keep the size
+@@ -861,7 +907,7 @@ config("compiler") {
+ # building with ThinLTO, no optimization is performed in the link step.
+ config("thinlto_optimize_default") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+-    lto_opt_level = 0
++    lto_opt_level = 2
+ 
+     if (is_win) {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+@@ -884,7 +930,7 @@ config("thinlto_optimize_max") {
+     if (thin_lto_enable_optimizations) {
+       lto_opt_level = 2
+     } else {
+-      lto_opt_level = 0
++      lto_opt_level = 2
+     }
+ 
+     if (is_win) {
+@@ -916,7 +962,7 @@ config("compiler_cpu_abi") {
+     if (current_cpu == "x64") {
+       cflags += [
+         "-m64",
+-        "-msse3",
++        "-march=haswell", "-maes", "-mvaes",
+       ]
+       ldflags += [ "-m64" ]
+     } else if (current_cpu == "x86") {
+@@ -2076,7 +2122,7 @@ config("optimize") {
+   } else if (optimize_for_size) {
+     # Favor size over speed.
+     if (is_clang) {
+-      cflags = [ "-Oz" ] + common_optimize_on_cflags
++      cflags = [ "-O2" ] + common_optimize_on_cflags
+ 
+       if (use_ml_inliner && is_a_target_toolchain) {
+         cflags += [
+@@ -2099,9 +2145,9 @@ config("optimize") {
+     cflags = [ "-O2" ] + common_optimize_on_cflags
+   }
+   if (optimize_for_size) {
+-    rustflags = [ "-Copt-level=s" ]
++    rustflags = [ "-Copt-level=s", "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes", ]
+   } else {
+-    rustflags = [ "-Copt-level=3" ]
++    rustflags = [ "-Copt-level=3", "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes", ]
+   }
+   ldflags = common_optimize_on_ldflags
+ }
+@@ -2167,9 +2213,9 @@ config("optimize_max") {
+     } else if (optimize_for_fuzzing) {
+       cflags = [ "-O1" ] + common_optimize_on_cflags
+     } else {
+-      cflags = [ "-O2" ] + common_optimize_on_cflags
++      cflags = [ "-O3" ] + common_optimize_on_cflags
+     }
+-    rustflags = [ "-Copt-level=3" ]
++    rustflags = [ "-Copt-level=3", "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes", ]
+   }
+ }
+ 
+@@ -2202,7 +2248,7 @@ config("optimize_speed") {
+     } else {
+       cflags = [ "-O3" ] + common_optimize_on_cflags
+     }
+-    rustflags = [ "-Copt-level=3" ]
++    rustflags = [ "-Copt-level=3", "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes", ]
+   }
+ }
+ 
+diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
+index c1db53387a9c8..d848f17dee293 100755
+--- a/chrome/installer/linux/debian/postinst
++++ b/chrome/installer/linux/debian/postinst
+@@ -54,17 +54,8 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
+ update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
+   /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
+ 
+-@@include@@../common/apt.include
++# @@include@@../common/apt.include
+ 
+ @@include@@../common/symlinks.include
+ 
+ remove_udev_symlinks
+-
+-## MAIN ##
+-if [ ! -e "$DEFAULTS_FILE" ]; then
+-  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
+-  echo 'repo_reenable_on_distupgrade="true"' >> "$DEFAULTS_FILE"
+-fi
+-
+-# Run the cron job immediately to perform repository configuration.
+-nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
+diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
+index 3e1cadc8296ca..aa5848db6913f 100755
+--- a/chrome/installer/linux/debian/postrm
++++ b/chrome/installer/linux/debian/postrm
+@@ -15,22 +15,8 @@ fi
+ 
+ @@include@@../common/variables.include
+ 
+-@@include@@../common/apt.include
++# @@include@@../common/apt.include
+ 
+ @@include@@../common/symlinks.include
+ 
+ remove_udev_symlinks
+-
+-# Only remove the defaults file if it is not empty. An empty file was probably
+-# put there by the sysadmin to disable automatic repository configuration, as
+-# per the instructions on the package download page.
+-if [ -s "$DEFAULTS_FILE" ]; then
+-  # Make sure the package defaults are removed before the repository config,
+-  # otherwise it could result in the repository config being removed, but the
+-  # package defaults remain and are set to not recreate the repository config.
+-  # In that case, future installs won't recreate it and won't get auto-updated.
+-  rm "$DEFAULTS_FILE" || exit 1
+-fi
+-# Remove any Google repository added by the package.
+-clean_sources_lists
+-uninstall_key
+diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
+index 28417a4ce1649..cdc8d87026d92 100644
+--- a/media/base/media_switches.cc
++++ b/media/base/media_switches.cc
+@@ -914,7 +914,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+ // TODO(b/159825227): remove when the direct video decoder is fully launched.
+ BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
+              "UseChromeOSDirectVideoDecoder",
+-             base::FEATURE_ENABLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ // Limit the number of concurrent hardware decoder instances on ChromeOS.
+ BASE_FEATURE(kLimitConcurrentDecoderInstances,
+diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
+index 78195a324a07b..0d012608862aa 100644
+--- a/media/filters/ffmpeg_video_decoder.cc
++++ b/media/filters/ffmpeg_video_decoder.cc
+@@ -40,7 +40,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+     case VideoCodec::kUnknown:
+     case VideoCodec::kVC1:
+     case VideoCodec::kMPEG2:
+-    case VideoCodec::kHEVC:
+     case VideoCodec::kVP9:
+     case VideoCodec::kAV1:
+     case VideoCodec::kDolbyVision:
+@@ -52,6 +51,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+       // No extra threads for these codecs.
+       break;
+ 
++    case VideoCodec::kHEVC:
+     case VideoCodec::kH264:
+     case VideoCodec::kVP8:
+       // Normalize to three threads for 1080p content, then scale linearly
+diff --git a/third_party/blink/renderer/core/BUILD.gn b/third_party/blink/renderer/core/BUILD.gn
+index a42b76b65e9b0..900050ba368c4 100644
+--- a/third_party/blink/renderer/core/BUILD.gn
++++ b/third_party/blink/renderer/core/BUILD.gn
+@@ -385,10 +385,10 @@ blink_core_sources("core_hot") {
+   # TODO(ajwong) this is of mirror
+   # https://source.chromium.org/chromium/chromium/src/+/master:third_party/blink/renderer/core/core.gni;l=26
+   # to undo the configs which is fragile. Find a better way.
+-  if (!is_debug && optimize_for_size) {
+-    configs -= [ "//build/config/compiler:default_optimization" ]
+-    configs += [ "//build/config/compiler:optimize_speed" ]
+-  }
++  # if (!is_debug && optimize_for_size) {
++  #   configs -= [ "//build/config/compiler:default_optimization" ]
++      configs += [ "//build/config/compiler:optimize_speed" ]
++  # }
+ 
+   deps = [
+     "//build:chromeos_buildflags",
