@@ -32,7 +32,6 @@ index ecb5138a3a503..0861370fa996e 100644
 +        "-mllvm", "-gvn-hoist-max-bbs=-1",
 +        "-mllvm", "-gvn-hoist-max-depth=-1",
 +        "-mllvm", "-gvn-hoist-max-chain-length=-1",
-+        "-mllvm", "-enable-nontrivial-unswitch",
 +    ]
 +
      # Limit the size of the ThinLTO cache to the lesser of 10% of
@@ -63,11 +62,9 @@ index ecb5138a3a503..0861370fa996e 100644
 +        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
 +        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
 +        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
-+        "-Wl,-mllvm,-enable-nontrivial-unswitch",
 +        "-Wl,-mllvm,-polly",
 +        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
-+        "-Wl,-mllvm,-polly-loopfusion-greedy",
 +        "-Wl,-mllvm,-polly-vectorizer=stripmine",
 +        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
 +      ]
