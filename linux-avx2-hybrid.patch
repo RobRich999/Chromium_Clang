@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index bf8269f00ecf8..17e779607b715 100644
+index bf8269f00ecf8..3c219944cdcc2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -545,7 +545,7 @@ config("compiler") {
@@ -10,62 +10,38 @@ index bf8269f00ecf8..17e779607b715 100644
 +      # cflags += [ "-ffp-contract=off" ]
      }
    }
- 
-@@ -638,9 +638,30 @@ config("compiler") {
+
+@@ -638,9 +638,18 @@ config("compiler") {
        "-fsplit-lto-unit",
      ]
- 
+
 +    cflags += [
-+        "-mllvm", "-adce-remove-loops",
-+        "-mllvm", "-enable-cse-in-irtranslator",
-+        "-mllvm", "-enable-cse-in-legalizer",
-+        "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
 +        "-mllvm", "-loop-rotate-multi",
 +        "-mllvm", "-enable-loopinterchange",
 +        "-mllvm", "-enable-loop-distribute",
 +        "-mllvm", "-enable-loop-flatten",
 +        "-mllvm", "-enable-loop-versioning-licm",
 +        "-mllvm", "-interleave-small-loop-scalar-reduction",
-+        "-mllvm", "-enable-interleaved-mem-accesses",
-+        "-mllvm", "-enable-masked-interleaved-mem-accesses",
-+        "-mllvm", "-enable-gvn-hoist",
-+        "-mllvm", "-gvn-hoist-max-bbs=-1",
-+        "-mllvm", "-gvn-hoist-max-depth=-1",
-+        "-mllvm", "-gvn-hoist-max-chain-length=-1",
-+        "-mllvm", "-enable-ext-tsp-block-placement",
-+        "-mllvm", "-enable-constraint-elimination",
 +    ]
 +
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
 -    cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
 +    # cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
- 
+
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -659,6 +680,32 @@ config("compiler") {
+@@ -659,6 +668,20 @@ config("compiler") {
      } else {
        ldflags += [ "-flto=thin" ]
- 
+
 +      ldflags += [
-+        "-Wl,-mllvm,-adce-remove-loops",
-+        "-Wl,-mllvm,-enable-cse-in-irtranslator",
-+        "-Wl,-mllvm,-enable-cse-in-legalizer",
-+        "-Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening",
 +        "-Wl,-mllvm,-loop-rotate-multi",
 +        "-Wl,-mllvm,-enable-loopinterchange",
 +        "-Wl,-mllvm,-enable-loop-distribute",
 +        "-Wl,-mllvm,-enable-loop-flatten",
 +        "-Wl,-mllvm,-enable-loop-versioning-licm",
 +        "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
-+        "-Wl,-mllvm,-enable-interleaved-mem-accesses",
-+        "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
-+        "-Wl,-mllvm,-enable-gvn-hoist",
-+        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
-+        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
-+        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
-+        "-Wl,-mllvm,-enable-ext-tsp-block-placement",
-+        "-Wl,-mllvm,-enable-constraint-elimination",
 +        "-Wl,-mllvm,-polly",
 +        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
@@ -76,7 +52,7 @@ index bf8269f00ecf8..17e779607b715 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -679,12 +726,12 @@ config("compiler") {
+@@ -679,12 +702,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -87,116 +63,104 @@ index bf8269f00ecf8..17e779607b715 100644
 +        #     [ "-Wl,--thinlto-cache-dir=" +
 +        #       rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
        }
- 
+
 -      ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
 +      # ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
- 
+
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -859,7 +906,7 @@ config("compiler") {
+@@ -835,6 +858,8 @@ config("compiler") {
+     # For deterministic builds, keep the local machine's current working
+     # directory from appearing in build outputs.
+     "-Zremap-cwd-prefix=.",
++
++    "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,+vaes",
+   ]
+   if (rust_abi_target != "") {
+     rustflags += [ "--target=$rust_abi_target" ]
+@@ -859,7 +884,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 2
- 
++    lto_opt_level = 3
+
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -882,13 +929,15 @@ config("thinlto_optimize_max") {
+@@ -880,15 +905,17 @@ config("thinlto_optimize_default") {
+ config("thinlto_optimize_max") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
-       lto_opt_level = 2
+-      lto_opt_level = 2
++      lto_opt_level = 3
      } else {
 -      lto_opt_level = 0
-+      lto_opt_level = 2
++      lto_opt_level = 3
      }
- 
+
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-enable-pre=false", ]
-+      cflags = [ "-march=haswell", "-ffp-contract=fast", ]
++      ldflags += [ "-Wl,-mllvm,-enable-pre=false" ]
++      cflags = [ "-march=haswell", "-mavx2", "-mfma", "-ffp-contract=fast", ]
      }
    }
  }
-@@ -914,7 +963,8 @@ config("compiler_cpu_abi") {
+@@ -914,7 +941,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        # "-msse3",
 +        "-mtune=haswell", "-mavx", "-maes", "-mvaes",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2020,7 +2070,7 @@ if (is_win) {
+@@ -2016,11 +2043,12 @@ if (is_win) {
+       # can be removed at link time with --gc-sections.
+       "-fdata-sections",
+       "-ffunction-sections",
++      "-funique-section-names"
+     ]
      if ((!is_nacl || is_nacl_saigo) && is_clang) {
        # We don't care about unique section names, this makes object files a bit
        # smaller.
 -      common_optimize_on_cflags += [ "-fno-unique-section-names" ]
-+      common_optimize_on_cflags += [ "-funique-section-names" ]
++      # common_optimize_on_cflags += [ "-fno-unique-section-names" ]
      }
- 
+
      common_optimize_on_ldflags += [
-@@ -2097,9 +2147,9 @@ config("optimize") {
-     cflags = [ "-O2" ] + common_optimize_on_cflags
+@@ -2074,7 +2102,7 @@ config("optimize") {
+   } else if (optimize_for_size) {
+     # Favor size over speed.
+     if (is_clang) {
+-      cflags = [ "-Oz" ] + common_optimize_on_cflags
++      cflags = [ "-O3" ] + common_optimize_on_cflags
+
+       if (use_ml_inliner && is_a_target_toolchain) {
+         cflags += [
+@@ -2094,10 +2122,10 @@ config("optimize") {
+     # - Investigate -Oz here, maybe just for ARM?
+     cflags = [ "-Os" ] + common_optimize_on_cflags
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
    }
    if (optimize_for_size) {
 -    rustflags = [ "-Copt-level=s" ]
-+    rustflags = [ "-Copt-level=s", "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,+vaes", ]
++    rustflags = [ "-Copt-level=3" ]
    } else {
--    rustflags = [ "-Copt-level=3" ]
-+    rustflags = [ "-Copt-level=3", "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,+vaes", ]
+     rustflags = [ "-Copt-level=3" ]
    }
-   ldflags = common_optimize_on_ldflags
- }
-@@ -2165,9 +2215,9 @@ config("optimize_max") {
+@@ -2165,7 +2193,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
 -      cflags = [ "-O2" ] + common_optimize_on_cflags
 +      cflags = [ "-O3" ] + common_optimize_on_cflags
      }
--    rustflags = [ "-Copt-level=3" ]
-+    rustflags = [ "-Copt-level=3", "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,+vaes", ]
+     rustflags = [ "-Copt-level=3" ]
    }
- }
- 
-@@ -2200,7 +2250,33 @@ config("optimize_speed") {
-     } else {
-       cflags = [ "-O3" ] + common_optimize_on_cflags
-     }
--    rustflags = [ "-Copt-level=3" ]
-+    rustflags = [ "-Copt-level=3", "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,+vaes", ]
-+  }
-+}
-+
-+config("optimize_fast") {
-+  if (is_nacl && is_nacl_irt) {
-+    # The NaCl IRT is a special case and always wants its own config.
-+    # Various components do:
-+    #   if (!is_debug) {
-+    #     configs -= [ "//build/config/compiler:default_optimization" ]
-+    #     configs += [ "//build/config/compiler:optimize_max" ]
-+    #   }
-+    # So this config has to have the selection logic just like
-+    # "default_optimization", below.
-+    configs = [ "//build/config/nacl:irt_optimize" ]
-+  } else {
-+    ldflags = common_optimize_on_ldflags
-+    if (is_win) {
-+      # Favor speed over size, /O2 must be before the common flags.
-+      # /O2 implies /Ot, /Oi, and /GF.
-+      cflags = [ "/O2" ] + common_optimize_on_cflags
-+    } else if (optimize_for_fuzzing) {
-+      cflags = [ "-O1" ] + common_optimize_on_cflags
-+    } else {
-+      cflags = [ "-O3", "-ffast-math", ] + common_optimize_on_cflags
-+    }
-+    rustflags = [ "-Copt-level=3", "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,+vaes", ]
-   }
- }
- 
 diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
 index c1db53387a9c8..d848f17dee293 100755
 --- a/chrome/installer/linux/debian/postinst
@@ -204,12 +168,12 @@ index c1db53387a9c8..d848f17dee293 100755
 @@ -54,17 +54,8 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
  update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
    /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
- 
+
 -@@include@@../common/apt.include
 +# @@include@@../common/apt.include
- 
+
  @@include@@../common/symlinks.include
- 
+
  remove_udev_symlinks
 -
 -## MAIN ##
@@ -225,14 +189,14 @@ index 3e1cadc8296ca..aa5848db6913f 100755
 --- a/chrome/installer/linux/debian/postrm
 +++ b/chrome/installer/linux/debian/postrm
 @@ -15,22 +15,8 @@ fi
- 
+
  @@include@@../common/variables.include
- 
+
 -@@include@@../common/apt.include
 +# @@include@@../common/apt.include
- 
+
  @@include@@../common/symlinks.include
- 
+
  remove_udev_symlinks
 -
 -# Only remove the defaults file if it is not empty. An empty file was probably
@@ -258,7 +222,7 @@ index 28417a4ce1649..cdc8d87026d92 100644
               "UseChromeOSDirectVideoDecoder",
 -             base::FEATURE_ENABLED_BY_DEFAULT);
 +             base::FEATURE_DISABLED_BY_DEFAULT);
- 
+
  // Limit the number of concurrent hardware decoder instances on ChromeOS.
  BASE_FEATURE(kLimitConcurrentDecoderInstances,
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
@@ -276,13 +240,13 @@ index 78195a324a07b..0d012608862aa 100644
 @@ -52,6 +51,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
- 
+
 +    case VideoCodec::kHEVC:
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/third_party/blink/renderer/core/BUILD.gn b/third_party/blink/renderer/core/BUILD.gn
-index a42b76b65e9b0..01e478c99bb88 100644
+index a42b76b65e9b0..8fa1dd02bce43 100644
 --- a/third_party/blink/renderer/core/BUILD.gn
 +++ b/third_party/blink/renderer/core/BUILD.gn
 @@ -385,10 +385,10 @@ blink_core_sources("core_hot") {
@@ -291,12 +255,11 @@ index a42b76b65e9b0..01e478c99bb88 100644
    # to undo the configs which is fragile. Find a better way.
 -  if (!is_debug && optimize_for_size) {
 -    configs -= [ "//build/config/compiler:default_optimization" ]
--    configs += [ "//build/config/compiler:optimize_speed" ]
--  }
 +  # if (!is_debug && optimize_for_size) {
-+    # configs -= [ "//build/config/compiler:default_optimization" ]
-+    configs += [ "//build/config/compiler:optimize_fast" ]
++  #   configs -= [ "//build/config/compiler:default_optimization" ]
+     configs += [ "//build/config/compiler:optimize_speed" ]
+-  }
 +  # }
- 
+
    deps = [
      "//build:chromeos_buildflags",
