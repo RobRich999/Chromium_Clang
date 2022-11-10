@@ -130,7 +130,7 @@ index bf8269f00ecf8..419d35707bed9 100644
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=haswell", "-maes", "-mvaes",
++        "-march=native", "-maes", "-mvaes",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
