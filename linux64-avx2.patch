@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3eede98ae4e1d..ad3d083b9a6d7 100644
+index 3eede98ae4e1d..433e4d82bc23a 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -556,7 +556,7 @@ config("compiler") {
@@ -75,15 +75,6 @@ index 3eede98ae4e1d..ad3d083b9a6d7 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -682,7 +728,7 @@ config("compiler") {
-       # and let it use all cores.
-       # TODO(thakis): Check if '=0' (that is, number of cores, instead
-       # of "all" which means number of hardware threads) is faster.
--      ldflags += [ "-Wl,--thinlto-jobs=all" ]
-+      ldflags += [ "-Wl,--thinlto-jobs=12" ]
-       if (is_apple) {
-         _object_path_suffix = ""
-         if (is_ios) {
 @@ -694,12 +740,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
