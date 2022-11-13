@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3eede98ae4e1d..d4d8a217d70d5 100644
+index 3eede98ae4e1d..871e12ef5d8c9 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -556,7 +556,7 @@ config("compiler") {
@@ -41,7 +41,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -674,6 +693,31 @@ config("compiler") {
+@@ -674,6 +693,30 @@ config("compiler") {
      } else {
        ldflags += [ "-flto=thin" ]
  
@@ -65,7 +65,6 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
 +        "-Wl,-mllvm,-polly",
 +        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
-+        "-Wl,-mllvm,-polly-run-dce",
 +        "-Wl,-mllvm,-polly-vectorizer=stripmine",
 +        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
 +      ]
@@ -73,7 +72,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -694,12 +738,12 @@ config("compiler") {
+@@ -694,12 +737,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -90,7 +89,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -861,6 +905,8 @@ config("compiler") {
+@@ -861,6 +904,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -99,7 +98,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -885,7 +931,7 @@ config("compiler") {
+@@ -885,7 +930,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -108,7 +107,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -908,13 +954,14 @@ config("thinlto_optimize_max") {
+@@ -908,13 +953,14 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -124,7 +123,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
      }
    }
  }
-@@ -940,7 +987,7 @@ config("compiler_cpu_abi") {
+@@ -940,7 +986,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -133,7 +132,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2042,11 +2089,12 @@ if (is_win) {
+@@ -2042,11 +2088,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -147,7 +146,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2100,7 +2148,7 @@ config("optimize") {
+@@ -2100,7 +2147,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -156,7 +155,7 @@ index 3eede98ae4e1d..d4d8a217d70d5 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2191,7 +2239,7 @@ config("optimize_max") {
+@@ -2191,7 +2238,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
