@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3eede98ae4e1d..54fbb17838849 100644
+index bd039fc85de1a..8f615a89bdf22 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -653,9 +653,28 @@ config("compiler") {
@@ -32,7 +32,7 @@ index 3eede98ae4e1d..54fbb17838849 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -667,13 +686,55 @@ config("compiler") {
+@@ -667,13 +686,52 @@ config("compiler") {
        ldflags += [
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
@@ -61,9 +61,6 @@ index 3eede98ae4e1d..54fbb17838849 100644
 +        "-mllvm:-gvn-hoist-max-bbs=-1",
 +        "-mllvm:-gvn-hoist-max-depth=-1",
 +        "-mllvm:-gvn-hoist-max-chain-length=-1",
-+        # "-mllvm:-enable-nontrivial-unswitch",
-+        # "-mllvm:-enable-ext-tsp-block-placement",
-+        # "-mllvm:-enable-constraint-elimination",
        ]
 +
      } else {
@@ -91,7 +88,7 @@ index 3eede98ae4e1d..54fbb17838849 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -694,12 +755,12 @@ config("compiler") {
+@@ -694,12 +752,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -108,16 +105,16 @@ index 3eede98ae4e1d..54fbb17838849 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -861,6 +922,8 @@ config("compiler") {
+@@ -861,6 +919,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+avx,+aes,+vaes",
++    "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -885,7 +948,7 @@ config("compiler") {
+@@ -885,7 +945,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -126,7 +123,7 @@ index 3eede98ae4e1d..54fbb17838849 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -908,7 +971,7 @@ config("thinlto_optimize_max") {
+@@ -908,7 +968,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -135,7 +132,7 @@ index 3eede98ae4e1d..54fbb17838849 100644
      }
  
      if (is_win) {
-@@ -940,7 +1003,7 @@ config("compiler_cpu_abi") {
+@@ -946,7 +1006,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -144,7 +141,7 @@ index 3eede98ae4e1d..54fbb17838849 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2100,7 +2163,7 @@ config("optimize") {
+@@ -2106,7 +2166,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -153,7 +150,7 @@ index 3eede98ae4e1d..54fbb17838849 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2191,7 +2254,7 @@ config("optimize_max") {
+@@ -2197,7 +2257,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -162,7 +159,7 @@ index 3eede98ae4e1d..54fbb17838849 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2557,7 +2620,7 @@ config("minimal_symbols") {
+@@ -2570,7 +2630,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -212,7 +209,7 @@ index a5075393b1231..aa58de3327783 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index c47d83f0c0641..3d8fd8f583907 100644
+index 75e0c270b7248..5f1d20a244c3c 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
 @@ -201,35 +201,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
@@ -251,7 +248,7 @@ index c47d83f0c0641..3d8fd8f583907 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -405,7 +377,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -396,7 +368,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -261,10 +258,10 @@ index c47d83f0c0641..3d8fd8f583907 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 78195a324a07b..0d012608862aa 100644
+index 7673e9c7f081c..896d2755fb0a4 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -40,7 +40,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -39,7 +39,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -272,7 +269,7 @@ index 78195a324a07b..0d012608862aa 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -52,6 +51,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -51,6 +50,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
  
