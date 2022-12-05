@@ -1,17 +1,17 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3eede98ae4e1d..871e12ef5d8c9 100644
+index 7183544eaa8e9..e491059c98f3e 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -556,7 +556,7 @@ config("compiler") {
-     if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
+@@ -554,7 +554,7 @@ config("compiler") {
  
-@@ -653,9 +653,28 @@ config("compiler") {
+     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
+     if (is_win) {
+-      cflags += [ "/clang:-ffp-contract=off" ]
++      cflags += [ "/clang:-ffp-contract=fast" ]
+     } else {
+       cflags += [ "-ffp-contract=off" ]
+     }
+@@ -663,9 +663,28 @@ config("compiler") {
        "-fsplit-lto-unit",
      ]
  
@@ -24,7 +24,7 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
 +        "-mllvm", "-enable-loopinterchange",
 +        "-mllvm", "-enable-loop-distribute",
 +        "-mllvm", "-enable-loop-flatten",
-+        "-mllvm", "-enable-loop-versioning-licm",
++        # "-mllvm", "-enable-loop-versioning-licm",
 +        "-mllvm", "-interleave-small-loop-scalar-reduction",
 +        "-mllvm", "-enable-interleaved-mem-accesses",
 +        "-mllvm", "-enable-masked-interleaved-mem-accesses",
@@ -41,7 +41,37 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -674,6 +693,30 @@ config("compiler") {
+@@ -677,13 +696,58 @@ config("compiler") {
+       ldflags += [
+         "/opt:lldltojobs=all",
+         "-mllvm:-import-instr-limit=$import_instr_limit",
+-        "/lldltocache:" +
+-            rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
+-        "/lldltocachepolicy:$cache_policy",
++        # "/lldltocache:" +
++        #     rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
++        # "/lldltocachepolicy:$cache_policy",
++      ]
++
++      ldflags += [
++        "-mllvm:-adce-remove-loops",
++        "-mllvm:-enable-cse-in-irtranslator",
++        "-mllvm:-enable-cse-in-legalizer",
++        "-mllvm:-scalar-evolution-use-expensive-range-sharpening",
++        "-mllvm:-loop-rotate-multi",
++        "-mllvm:-enable-loopinterchange",
++        "-mllvm:-enable-loop-distribute",
++        "-mllvm:-enable-loop-flatten",
++        # "-mllvm:-enable-loop-versioning-licm",
++        "-mllvm:-interleave-small-loop-scalar-reduction",
++        "-mllvm:-enable-interleaved-mem-accesses",
++        "-mllvm:-enable-masked-interleaved-mem-accesses",
++        "-mllvm:-enable-gvn-hoist",
++        "-mllvm:-gvn-hoist-max-bbs=-1",
++        "-mllvm:-gvn-hoist-max-depth=-1",
++        "-mllvm:-gvn-hoist-max-chain-length=-1",
+       ]
++
      } else {
        ldflags += [ "-flto=thin" ]
  
@@ -54,7 +84,7 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
 +        "-Wl,-mllvm,-enable-loopinterchange",
 +        "-Wl,-mllvm,-enable-loop-distribute",
 +        "-Wl,-mllvm,-enable-loop-flatten",
-+        "-Wl,-mllvm,-enable-loop-versioning-licm",
++        # "-Wl,-mllvm,-enable-loop-versioning-licm",
 +        "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
 +        "-Wl,-mllvm,-enable-interleaved-mem-accesses",
 +        "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
@@ -62,17 +92,18 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
 +        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
 +        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
 +        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
-+        "-Wl,-mllvm,-polly",
-+        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
-+        "-Wl,-mllvm,-polly-invariant-load-hoisting",
-+        "-Wl,-mllvm,-polly-vectorizer=stripmine",
-+        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
++        "-mllvm:-polly",
++        "-mllvm:-polly-detect-profitability-min-per-loop-insts=40",
++        "-mllvm:-polly-invariant-load-hoisting",
++        "-mllvm:-polly-run-dce",
++        "-mllvm:-polly-vectorizer=stripmine",
++        # "-mllvm:-pass-remarks-analysis=polly",
 +      ]
 +
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -694,12 +737,12 @@ config("compiler") {
+@@ -704,12 +768,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -89,16 +120,16 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -861,6 +904,8 @@ config("compiler") {
+@@ -875,6 +939,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+   "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes",
++    "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -885,7 +930,7 @@ config("compiler") {
+@@ -899,7 +965,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -107,7 +138,7 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -908,13 +953,14 @@ config("thinlto_optimize_max") {
+@@ -922,11 +988,12 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -117,36 +148,20 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
++      ldflags += [ "-mllvm:-enable-pre=false" ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-enable-pre=false", ]
      }
-   }
- }
-@@ -940,7 +986,7 @@ config("compiler_cpu_abi") {
+@@ -960,7 +1027,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=haswell", "-maes", "-mvaes",
++        "-march=native",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2042,11 +2088,12 @@ if (is_win) {
-       # can be removed at link time with --gc-sections.
-       "-fdata-sections",
-       "-ffunction-sections",
-+      "-funique-section-names"
-     ]
-     if ((!is_nacl || is_nacl_saigo) && is_clang) {
-       # We don't care about unique section names, this makes object files a bit
-       # smaller.
--      common_optimize_on_cflags += [ "-fno-unique-section-names" ]
-+      # common_optimize_on_cflags += [ "-fno-unique-section-names" ]
-     }
- 
-     common_optimize_on_ldflags += [
-@@ -2100,7 +2147,7 @@ config("optimize") {
+@@ -2098,7 +2165,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -155,7 +170,7 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2191,7 +2238,7 @@ config("optimize_max") {
+@@ -2197,7 +2264,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -164,70 +179,55 @@ index 3eede98ae4e1d..871e12ef5d8c9 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
-index c1db53387a9c8..d848f17dee293 100755
---- a/chrome/installer/linux/debian/postinst
-+++ b/chrome/installer/linux/debian/postinst
-@@ -54,17 +54,8 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
- update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
-   /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
+@@ -2570,7 +2637,7 @@ config("minimal_symbols") {
+ # names in the final debug information.
+ config("no_symbols") {
+   if (is_win) {
+-    ldflags = [ "/DEBUG" ]
++    ldflags = [ "/DEBUG:NONE" ]
  
--@@include@@../common/apt.include
-+# @@include@@../common/apt.include
+     # All configs using /DEBUG should include this:
+     configs = [ ":win_pdbaltpath" ]
+diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
+index a5075393b1231..f7b896c2f5da7 100644
+--- a/build/config/win/BUILD.gn
++++ b/build/config/win/BUILD.gn
+@@ -89,7 +89,7 @@ config("compiler") {
  
- @@include@@../common/symlinks.include
+   cflags += [
+     # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
+-    "/Zc:sizedDealloc-",
++    # "/Zc:sizedDealloc-",
+   ]
  
- remove_udev_symlinks
--
--## MAIN ##
--if [ ! -e "$DEFAULTS_FILE" ]; then
--  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
--  echo 'repo_reenable_on_distupgrade="true"' >> "$DEFAULTS_FILE"
--fi
--
--# Run the cron job immediately to perform repository configuration.
--nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
-diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
-index 3e1cadc8296ca..aa5848db6913f 100755
---- a/chrome/installer/linux/debian/postrm
-+++ b/chrome/installer/linux/debian/postrm
-@@ -15,22 +15,8 @@ fi
+   if (is_clang) {
+@@ -130,7 +130,7 @@ config("compiler") {
+     # microarchitecture. MSVC only supports a subset of architectures, and the
+     # next step after SSE2 will be AVX.
+     if (current_cpu == "x86" || current_cpu == "x64") {
+-      cflags += [ "-msse3" ]
++      cflags += [ "/arch:AVX2", "-maes", "-mvaes", ]
+     }
  
- @@include@@../common/variables.include
+     if (exec_script("//build/win/use_ansi_codes.py", [], "trim string") ==
+@@ -192,7 +192,7 @@ config("compiler") {
+     if (use_lld) {
+       # String tail merging leads to smaller binaries, but they don't compress
+       # as well, leading to increased mini_installer size (crbug.com/838449).
+-      ldflags += [ "/OPT:NOLLDTAILMERGE" ]
++      # ldflags += [ "/OPT:NOLLDTAILMERGE" ]
+     }
  
--@@include@@../common/apt.include
-+# @@include@@../common/apt.include
+     # TODO(siggi): Is this of any use anymore?
+@@ -200,7 +200,7 @@ config("compiler") {
+     # PDB file by about 5%) but does not otherwise alter the output binary. It
+     # is enabled opportunistically for builds where it is not prohibited (not
+     # supported when incrementally linking, or using /debug:fastlink).
+-    ldflags += [ "/PROFILE" ]
++    # ldflags += [ "/PROFILE" ]
+   }
  
- @@include@@../common/symlinks.include
- 
- remove_udev_symlinks
--
--# Only remove the defaults file if it is not empty. An empty file was probably
--# put there by the sysadmin to disable automatic repository configuration, as
--# per the instructions on the package download page.
--if [ -s "$DEFAULTS_FILE" ]; then
--  # Make sure the package defaults are removed before the repository config,
--  # otherwise it could result in the repository config being removed, but the
--  # package defaults remain and are set to not recreate the repository config.
--  # In that case, future installs won't recreate it and won't get auto-updated.
--  rm "$DEFAULTS_FILE" || exit 1
--fi
--# Remove any Google repository added by the package.
--clean_sources_lists
--uninstall_key
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index faca71c745490..f6e0ad6b4bd4e 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -922,7 +922,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
- // TODO(b/159825227): remove when the direct video decoder is fully launched.
- BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
-              "UseChromeOSDirectVideoDecoder",
--             base::FEATURE_ENABLED_BY_DEFAULT);
-+             base::FEATURE_DISABLED_BY_DEFAULT);
- 
- // Limit the number of concurrent hardware decoder instances on ChromeOS.
- BASE_FEATURE(kLimitConcurrentDecoderInstances,
+   # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 75e0c270b7248..5f1d20a244c3c 100644
 --- a/media/base/supported_types.cc
@@ -278,10 +278,10 @@ index 75e0c270b7248..5f1d20a244c3c 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 78195a324a07b..0d012608862aa 100644
+index 7673e9c7f081c..896d2755fb0a4 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -40,7 +40,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -39,7 +39,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -289,7 +289,7 @@ index 78195a324a07b..0d012608862aa 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -52,6 +51,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -51,6 +50,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
  
