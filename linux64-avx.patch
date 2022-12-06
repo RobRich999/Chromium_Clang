@@ -1,16 +1,7 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 6119aa066a982..740761255174d 100644
+index 6119aa066a982..345f141b402ac 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -556,7 +556,7 @@ config("compiler") {
-     if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
- 
 @@ -663,9 +663,27 @@ config("compiler") {
        "-fsplit-lto-unit",
      ]
