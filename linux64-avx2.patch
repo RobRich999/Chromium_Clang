@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 6119aa066a982..24287fa901c34 100644
+index 50be57ff8550e..a3c27baf258e0 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -556,7 +556,7 @@ config("compiler") {
+@@ -565,7 +565,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/clang:-ffp-contract=off" ]
      } else {
@@ -11,7 +11,7 @@ index 6119aa066a982..24287fa901c34 100644
      }
    }
  
-@@ -663,9 +663,27 @@ config("compiler") {
+@@ -672,9 +672,27 @@ config("compiler") {
        "-fsplit-lto-unit",
      ]
  
@@ -40,7 +40,7 @@ index 6119aa066a982..24287fa901c34 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -684,6 +702,30 @@ config("compiler") {
+@@ -693,6 +711,30 @@ config("compiler") {
      } else {
        ldflags += [ "-flto=thin" ]
  
@@ -71,7 +71,16 @@ index 6119aa066a982..24287fa901c34 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -704,12 +746,12 @@ config("compiler") {
+@@ -701,7 +743,7 @@ config("compiler") {
+       # and let it use all cores.
+       # TODO(thakis): Check if '=0' (that is, number of cores, instead
+       # of "all" which means number of hardware threads) is faster.
+-      ldflags += [ "-Wl,--thinlto-jobs=all" ]
++      ldflags += [ "-Wl,--thinlto-jobs=12" ]
+       if (is_apple) {
+         _object_path_suffix = ""
+         if (is_ios) {
+@@ -713,12 +755,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -88,7 +97,7 @@ index 6119aa066a982..24287fa901c34 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -875,6 +917,9 @@ config("compiler") {
+@@ -884,6 +926,9 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -98,7 +107,7 @@ index 6119aa066a982..24287fa901c34 100644
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -899,7 +944,7 @@ config("compiler") {
+@@ -908,7 +953,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -107,7 +116,7 @@ index 6119aa066a982..24287fa901c34 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -922,7 +967,7 @@ config("thinlto_optimize_max") {
+@@ -931,7 +976,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -116,7 +125,7 @@ index 6119aa066a982..24287fa901c34 100644
      }
  
      if (is_win) {
-@@ -960,7 +1005,7 @@ config("compiler_cpu_abi") {
+@@ -969,7 +1014,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -125,7 +134,7 @@ index 6119aa066a982..24287fa901c34 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2034,11 +2079,12 @@ if (is_win) {
+@@ -2043,11 +2088,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -139,7 +148,7 @@ index 6119aa066a982..24287fa901c34 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2098,7 +2144,7 @@ config("optimize") {
+@@ -2107,7 +2153,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -148,7 +157,7 @@ index 6119aa066a982..24287fa901c34 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2112,7 +2158,7 @@ config("optimize") {
+@@ -2121,7 +2167,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -157,7 +166,7 @@ index 6119aa066a982..24287fa901c34 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2197,7 +2243,7 @@ config("optimize_max") {
+@@ -2206,7 +2252,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -217,6 +226,19 @@ index 3e1cadc8296ca..e2334ee836ce8 100755
 -# Remove any Google repository added by the package.
 -clean_sources_lists
 -uninstall_key
+diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
+index 213ed63c55ef2..9f124e3d42fbc 100644
+--- a/media/base/media_switches.cc
++++ b/media/base/media_switches.cc
+@@ -954,7 +954,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+ // TODO(b/159825227): remove when the direct video decoder is fully launched.
+ BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
+              "UseChromeOSDirectVideoDecoder",
+-             base::FEATURE_ENABLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
+ 
+ // Limit the number of concurrent hardware decoder instances on ChromeOS.
+ BASE_FEATURE(kLimitConcurrentDecoderInstances,
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 75e0c270b7248..5f1d20a244c3c 100644
 --- a/media/base/supported_types.cc
