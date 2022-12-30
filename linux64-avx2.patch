@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 50be57ff8550e..a3c27baf258e0 100644
+index 50be57ff8550e..3d404892c9cc0 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -565,7 +565,7 @@ config("compiler") {
@@ -71,15 +71,6 @@ index 50be57ff8550e..a3c27baf258e0 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -701,7 +743,7 @@ config("compiler") {
-       # and let it use all cores.
-       # TODO(thakis): Check if '=0' (that is, number of cores, instead
-       # of "all" which means number of hardware threads) is faster.
--      ldflags += [ "-Wl,--thinlto-jobs=all" ]
-+      ldflags += [ "-Wl,--thinlto-jobs=12" ]
-       if (is_apple) {
-         _object_path_suffix = ""
-         if (is_ios) {
 @@ -713,12 +755,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
@@ -97,17 +88,16 @@ index 50be57ff8550e..a3c27baf258e0 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -884,6 +926,9 @@ config("compiler") {
+@@ -884,6 +926,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=haswell",
-+    "-Ctarget-feature=+aes,+vaes",
++    "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -908,7 +953,7 @@ config("compiler") {
+@@ -908,7 +952,7 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -116,7 +106,7 @@ index 50be57ff8550e..a3c27baf258e0 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -931,7 +976,7 @@ config("thinlto_optimize_max") {
+@@ -931,13 +975,14 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -125,6 +115,13 @@ index 50be57ff8550e..a3c27baf258e0 100644
      }
  
      if (is_win) {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,-mllvm,-enable-pre=false", ]
+     }
+   }
+ }
 @@ -969,7 +1014,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
@@ -138,7 +135,7 @@ index 50be57ff8550e..a3c27baf258e0 100644
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
-+      "-funique-section-names",
++      "-funique-section-names"
      ]
      if ((!is_nacl || is_nacl_saigo) && is_clang) {
        # We don't care about unique section names, this makes object files a bit
@@ -157,7 +154,13 @@ index 50be57ff8550e..a3c27baf258e0 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2121,7 +2167,7 @@ config("optimize") {
+@@ -2116,12 +2162,12 @@ config("optimize") {
+         ]
+       }
+     } else {
+-      cflags = [ "-Os" ] + common_optimize_on_cflags
++      cflags = [ "-O2" ] + common_optimize_on_cflags
+     }
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -199,10 +202,10 @@ index c1db53387a9c8..d848f17dee293 100755
 -# Run the cron job immediately to perform repository configuration.
 -nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
-index 3e1cadc8296ca..e2334ee836ce8 100755
+index 3e1cadc8296ca..aa5848db6913f 100755
 --- a/chrome/installer/linux/debian/postrm
 +++ b/chrome/installer/linux/debian/postrm
-@@ -15,22 +15,6 @@ fi
+@@ -15,22 +15,8 @@ fi
  
  @@include@@../common/variables.include
  
@@ -210,8 +213,8 @@ index 3e1cadc8296ca..e2334ee836ce8 100755
 +# @@include@@../common/apt.include
  
  @@include@@../common/symlinks.include
--
--remove_udev_symlinks
+ 
+ remove_udev_symlinks
 -
 -# Only remove the defaults file if it is not empty. An empty file was probably
 -# put there by the sysadmin to disable automatic repository configuration, as
@@ -227,18 +230,23 @@ index 3e1cadc8296ca..e2334ee836ce8 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 213ed63c55ef2..9f124e3d42fbc 100644
+index 213ed63c55ef2..001b417326186 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -954,7 +954,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
- // TODO(b/159825227): remove when the direct video decoder is fully launched.
- BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
-              "UseChromeOSDirectVideoDecoder",
--             base::FEATURE_ENABLED_BY_DEFAULT);
-+             base::FEATURE_DISABLED_BY_DEFAULT);
+@@ -621,11 +621,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
- // Limit the number of concurrent hardware decoder instances on ChromeOS.
- BASE_FEATURE(kLimitConcurrentDecoderInstances,
+ BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
+              "VaapiVideoDecodeLinuxGL",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ BASE_FEATURE(kVaapiVideoEncodeLinux,
+              "VaapiVideoEncoder",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
+ // Intended for manual usage only in order to gague the status of newer driver
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 75e0c270b7248..5f1d20a244c3c 100644
 --- a/media/base/supported_types.cc
