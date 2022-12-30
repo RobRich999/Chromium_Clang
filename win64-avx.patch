@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 50be57ff8550e..138ce7b1ee2ce 100644
+index 50be57ff8550e..0a3a210e98d36 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -672,9 +672,27 @@ config("compiler") {
@@ -119,7 +119,7 @@ index 50be57ff8550e..138ce7b1ee2ce 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+avx,+aes,+vaes",
++    "-Ctarget-feature=+avx,+aes,+vaes,-pclmul",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
@@ -207,7 +207,7 @@ index 50be57ff8550e..138ce7b1ee2ce 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index a5075393b1231..35027d1dd8e4f 100644
+index a5075393b1231..2c4ede4efad97 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -89,7 +89,7 @@ config("compiler") {
@@ -224,7 +224,7 @@ index a5075393b1231..35027d1dd8e4f 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mavx", "-maes", "-mvaes", "-mvpclmulqdq", ]
++      cflags += [ "-mavx", "-maes", "-mvaes", "-mpclmul", ]
      }
  
      if (exec_script("//build/win/use_ansi_codes.py", [], "trim string") ==
