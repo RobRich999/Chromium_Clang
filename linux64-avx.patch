@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 50be57ff8550e..ca9fb43c68aa3 100644
+index 8651ba1b7bf7b..ac33ab18f2f54 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -672,9 +672,27 @@ config("compiler") {
+@@ -671,9 +671,27 @@ config("compiler") {
        "-fsplit-lto-unit",
      ]
  
@@ -31,7 +31,7 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -693,6 +711,30 @@ config("compiler") {
+@@ -692,6 +710,30 @@ config("compiler") {
      } else {
        ldflags += [ "-flto=thin" ]
  
@@ -62,7 +62,7 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -713,12 +755,12 @@ config("compiler") {
+@@ -712,12 +754,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -79,16 +79,16 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -884,6 +926,8 @@ config("compiler") {
+@@ -883,6 +925,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
-+    
-+    "-Ctarget-feature=+avx,+aes,+vaes",
++
++    "-Ctarget-feature=+avx,+aes,-pclmul",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -908,7 +952,7 @@ config("compiler") {
+@@ -919,7 +963,7 @@ config("rust_defer_lto_to_linker") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -97,7 +97,7 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -931,13 +975,14 @@ config("thinlto_optimize_max") {
+@@ -944,7 +988,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -106,23 +106,16 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
      }
  
      if (is_win) {
-       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-enable-pre=false", ]
-     }
-   }
- }
-@@ -969,7 +1014,7 @@ config("compiler_cpu_abi") {
+@@ -984,7 +1028,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-mavx", "-maes", "-mvaes",
++        "-mavx", "-maes", "-mvaes", "-mpclmul",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2043,11 +2088,12 @@ if (is_win) {
+@@ -2058,11 +2102,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -136,7 +129,7 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2107,7 +2153,7 @@ config("optimize") {
+@@ -2122,7 +2167,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -145,13 +138,7 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2116,12 +2162,12 @@ config("optimize") {
-         ]
-       }
-     } else {
--      cflags = [ "-Os" ] + common_optimize_on_cflags
-+      cflags = [ "-O2" ] + common_optimize_on_cflags
-     }
+@@ -2136,7 +2181,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -160,7 +147,7 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2206,7 +2252,7 @@ config("optimize_max") {
+@@ -2221,7 +2266,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -169,62 +156,11 @@ index 50be57ff8550e..ca9fb43c68aa3 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
-index c1db53387a9c8..d848f17dee293 100755
---- a/chrome/installer/linux/debian/postinst
-+++ b/chrome/installer/linux/debian/postinst
-@@ -54,17 +54,8 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
- update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
-   /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
- 
--@@include@@../common/apt.include
-+# @@include@@../common/apt.include
- 
- @@include@@../common/symlinks.include
- 
- remove_udev_symlinks
--
--## MAIN ##
--if [ ! -e "$DEFAULTS_FILE" ]; then
--  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
--  echo 'repo_reenable_on_distupgrade="true"' >> "$DEFAULTS_FILE"
--fi
--
--# Run the cron job immediately to perform repository configuration.
--nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
-diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
-index 3e1cadc8296ca..aa5848db6913f 100755
---- a/chrome/installer/linux/debian/postrm
-+++ b/chrome/installer/linux/debian/postrm
-@@ -15,22 +15,8 @@ fi
- 
- @@include@@../common/variables.include
- 
--@@include@@../common/apt.include
-+# @@include@@../common/apt.include
- 
- @@include@@../common/symlinks.include
- 
- remove_udev_symlinks
--
--# Only remove the defaults file if it is not empty. An empty file was probably
--# put there by the sysadmin to disable automatic repository configuration, as
--# per the instructions on the package download page.
--if [ -s "$DEFAULTS_FILE" ]; then
--  # Make sure the package defaults are removed before the repository config,
--  # otherwise it could result in the repository config being removed, but the
--  # package defaults remain and are set to not recreate the repository config.
--  # In that case, future installs won't recreate it and won't get auto-updated.
--  rm "$DEFAULTS_FILE" || exit 1
--fi
--# Remove any Google repository added by the package.
--clean_sources_lists
--uninstall_key
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 213ed63c55ef2..001b417326186 100644
+index 9ce7e06919d5d..771ea3d7ae006 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -621,11 +621,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -684,7 +684,7 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -233,11 +169,15 @@ index 213ed63c55ef2..001b417326186 100644
  
  BASE_FEATURE(kVaapiVideoEncodeLinux,
               "VaapiVideoEncoder",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
+@@ -1023,7 +1023,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+ // TODO(b/159825227): remove when the direct video decoder is fully launched.
+ BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
+              "UseChromeOSDirectVideoDecoder",
+-             base::FEATURE_ENABLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
  
- // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
- // Intended for manual usage only in order to gague the status of newer driver
+ // Limit the number of concurrent hardware decoder instances on ChromeOS.
+ BASE_FEATURE(kLimitConcurrentDecoderInstances,
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 75e0c270b7248..5f1d20a244c3c 100644
 --- a/media/base/supported_types.cc
@@ -288,7 +228,7 @@ index 75e0c270b7248..5f1d20a244c3c 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 7673e9c7f081c..896d2755fb0a4 100644
+index 0945657d7ea32..81fc73d3f41c1 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -39,7 +39,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -307,3 +247,63 @@ index 7673e9c7f081c..896d2755fb0a4 100644
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
+diff --git a/tools/clang/scripts/build.py b/tools/clang/scripts/build.py
+index 4b3346bfd8682..86349c80f0b67 100755
+--- a/tools/clang/scripts/build.py
++++ b/tools/clang/scripts/build.py
+@@ -383,6 +383,9 @@ def BuildLibXml2():
+           '-DLIBXML2_WITH_XPATH=OFF',
+           '-DLIBXML2_WITH_XPTR=OFF',
+           '-DLIBXML2_WITH_ZLIB=OFF',
++      '-DCMAKE_ASM_FLAGS_RELEASE=-O2 -DNDEBUG -w -march=native',
++      '-DCMAKE_C_FLAGS_RELEASE=-O2 -DNDEBUG -w -march=native',
++      '-DCMAKE_CXX_FLAGS_RELEASE=-O2 -DNDEBUG -w -march=native',
+           '..',
+       ],
+       msvc_arch='x64')
+@@ -582,7 +585,7 @@ def main():
+       help='path to MLGO inliner model to embed. Setting to '
+       '\'default\', will download an official model which was '
+       'trained for Chrome on Android',
+-      default='default' if sys.platform.startswith('linux') else '')
++      default='default' if sys.platform.startswith('foo') else '')
+   parser.add_argument('--with-android', type=gn_arg, nargs='?', const=True,
+                       help='build the Android ASan runtime (linux only)',
+                       default=sys.platform.startswith('linux'))
+@@ -687,7 +690,7 @@ def main():
+   ldflags = []
+ 
+   targets = 'AArch64;ARM;Mips;PowerPC;RISCV;SystemZ;WebAssembly;X86'
+-  projects = 'clang;lld;clang-tools-extra'
++  projects = 'clang;lld;clang-tools-extra;polly'
+   if args.bolt:
+     projects += ';bolt'
+ 
+@@ -721,6 +724,9 @@ def main():
+       '-DLLVM_ENABLE_CURL=OFF',
+       # Build libclang.a as well as libclang.so
+       '-DLIBCLANG_BUILD_STATIC=ON',
++      '-DCMAKE_ASM_FLAGS_RELEASE=-O2 -DNDEBUG -w -march=native',
++      '-DCMAKE_C_FLAGS_RELEASE=-O2 -DNDEBUG -w -march=native',
++      '-DCMAKE_CXX_FLAGS_RELEASE=-O2 -DNDEBUG -w -march=native',
+   ]
+ 
+   if sys.platform == 'darwin':
+@@ -864,7 +870,7 @@ def main():
+         '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags),
+         '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags),
+         # Ignore args.disable_asserts for the bootstrap compiler.
+-        '-DLLVM_ENABLE_ASSERTIONS=ON',
++        '-DLLVM_ENABLE_ASSERTIONS=OFF',
+     ]
+     # PGO needs libclang_rt.profile but none of the other compiler-rt stuff.
+     bootstrap_args.extend([
+@@ -1001,7 +1007,7 @@ def main():
+   if args.bolt:
+     ldflags += ['-Wl,--emit-relocs', '-Wl,-znow']
+ 
+-  default_tools = ['plugins', 'blink_gc_plugin', 'translation_unit']
++  default_tools = []
+   chrome_tools = list(set(default_tools + args.extra_tools))
+   if cc is not None:  base_cmake_args.append('-DCMAKE_C_COMPILER=' + cc)
+   if cxx is not None: base_cmake_args.append('-DCMAKE_CXX_COMPILER=' + cxx)
