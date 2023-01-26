@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 50be57ff8550e..0a3a210e98d36 100644
+index ef3285ae74e1b..555e6cb08202c 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -672,9 +672,27 @@ config("compiler") {
+@@ -671,9 +671,27 @@ config("compiler") {
        "-fsplit-lto-unit",
      ]
  
@@ -31,7 +31,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -686,13 +704,62 @@ config("compiler") {
+@@ -685,13 +703,62 @@ config("compiler") {
        ldflags += [
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
@@ -97,7 +97,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
        # Chrome OS.
-@@ -713,12 +780,12 @@ config("compiler") {
+@@ -712,12 +779,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -114,16 +114,16 @@ index 50be57ff8550e..0a3a210e98d36 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -884,6 +951,8 @@ config("compiler") {
+@@ -887,6 +954,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+avx,+aes,+vaes,-pclmul",
++    "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,-pclmul",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -908,7 +977,7 @@ config("compiler") {
+@@ -923,10 +992,11 @@ config("rust_defer_lto_to_linker") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -132,7 +132,11 @@ index 50be57ff8550e..0a3a210e98d36 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -931,11 +1000,12 @@ config("thinlto_optimize_max") {
++      ldflags += [ "-mllvm:-enable-pre=false", ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
+     }
+@@ -948,7 +1018,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -141,12 +145,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
      }
  
      if (is_win) {
-       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-enable-pre=false", ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-     }
-@@ -969,7 +1039,7 @@ config("compiler_cpu_abi") {
+@@ -988,7 +1058,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -155,7 +154,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2092,7 +2162,7 @@ config("optimize") {
+@@ -2111,7 +2181,7 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -164,7 +163,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
        rustflags = [ "-Copt-level=s" ]
      } else {
        # PGO requires all translation units to be compiled with /O2. The actual
-@@ -2107,7 +2177,7 @@ config("optimize") {
+@@ -2126,7 +2196,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -173,7 +172,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2116,12 +2186,12 @@ config("optimize") {
+@@ -2135,12 +2205,12 @@ config("optimize") {
          ]
        }
      } else {
@@ -188,7 +187,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2206,7 +2276,7 @@ config("optimize_max") {
+@@ -2225,7 +2295,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -197,7 +196,7 @@ index 50be57ff8550e..0a3a210e98d36 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2579,7 +2649,7 @@ config("minimal_symbols") {
+@@ -2600,7 +2670,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -247,10 +246,10 @@ index a5075393b1231..2c4ede4efad97 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 75e0c270b7248..5f1d20a244c3c 100644
+index c22b9ce775e6b..0d94795888f30 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -201,35 +201,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -204,35 +204,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -286,7 +285,7 @@ index 75e0c270b7248..5f1d20a244c3c 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -396,7 +368,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -399,7 +371,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -296,7 +295,7 @@ index 75e0c270b7248..5f1d20a244c3c 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 7673e9c7f081c..896d2755fb0a4 100644
+index 0945657d7ea32..81fc73d3f41c1 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -39,7 +39,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -315,3 +314,63 @@ index 7673e9c7f081c..896d2755fb0a4 100644
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
+diff --git a/tools/clang/scripts/build.py b/tools/clang/scripts/build.py
+index aef9ce88912a8..8aabae0c631a5 100755
+--- a/tools/clang/scripts/build.py
++++ b/tools/clang/scripts/build.py
+@@ -383,6 +383,9 @@ def BuildLibXml2():
+           '-DLIBXML2_WITH_XPATH=OFF',
+           '-DLIBXML2_WITH_XPTR=OFF',
+           '-DLIBXML2_WITH_ZLIB=OFF',
++      '-DCMAKE_ASM_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native -pipe',
++      '-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native -pipe',
++      '-DCMAKE_CXX_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native -pipe',
+           '..',
+       ],
+       msvc_arch='x64')
+@@ -582,7 +585,7 @@ def main():
+       help='path to MLGO inliner model to embed. Setting to '
+       '\'default\', will download an official model which was '
+       'trained for Chrome on Android',
+-      default='default' if sys.platform.startswith('linux') else '')
++      default='default' if sys.platform.startswith('foo') else '')
+   parser.add_argument('--with-android', type=gn_arg, nargs='?', const=True,
+                       help='build the Android ASan runtime (linux only)',
+                       default=sys.platform.startswith('linux'))
+@@ -696,7 +699,7 @@ def main():
+   ldflags = []
+ 
+   targets = 'AArch64;ARM;Mips;PowerPC;RISCV;SystemZ;WebAssembly;X86'
+-  projects = 'clang;lld;clang-tools-extra'
++  projects = 'clang;lld;clang-tools-extra;polly'
+   if args.bolt:
+     projects += ';bolt'
+ 
+@@ -730,6 +733,9 @@ def main():
+       '-DLLVM_ENABLE_CURL=OFF',
+       # Build libclang.a as well as libclang.so
+       '-DLIBCLANG_BUILD_STATIC=ON',
++      '-DCMAKE_ASM_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native',
++      '-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native',
++      '-DCMAKE_CXX_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native',
+   ]
+ 
+   if sys.platform == 'darwin':
+@@ -873,7 +879,7 @@ def main():
+         '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags),
+         '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags),
+         # Ignore args.disable_asserts for the bootstrap compiler.
+-        '-DLLVM_ENABLE_ASSERTIONS=ON',
++        '-DLLVM_ENABLE_ASSERTIONS=OFF',
+     ]
+     # PGO needs libclang_rt.profile but none of the other compiler-rt stuff.
+     bootstrap_args.extend([
+@@ -1010,7 +1016,7 @@ def main():
+   if args.bolt:
+     ldflags += ['-Wl,--emit-relocs', '-Wl,-znow']
+ 
+-  default_tools = ['plugins', 'blink_gc_plugin', 'translation_unit']
++  default_tools = []
+   chrome_tools = list(set(default_tools + args.extra_tools))
+   if cc is not None:  base_cmake_args.append('-DCMAKE_C_COMPILER=' + cc)
+   if cxx is not None: base_cmake_args.append('-DCMAKE_CXX_COMPILER=' + cxx)
