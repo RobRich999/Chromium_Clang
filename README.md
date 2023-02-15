@@ -20,7 +20,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v111.0.5561.0-r1097176
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v111.0.5560.0-r1096680-linux64-deb-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v111.0.5561.0-r1097179-linux64-deb-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v112.0.5598.0-r1105559-linux64-deb-avx
 
 ****
 
