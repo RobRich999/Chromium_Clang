@@ -78,7 +78,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+   "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes,+vaes",
++   "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
@@ -105,7 +105,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=haswell", "-maes", "-mvaes",
++        "-march=haswell", "-maes",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
