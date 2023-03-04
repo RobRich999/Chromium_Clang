@@ -202,7 +202,7 @@ index 692e7adf56d39..22f47b81d1903 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mavx", "-maes", "-mvaes", "-mpclmul", ]
++      cflags += [ "-mavx", "-maes", "-mpclmul", ]
      }
  
      if (exec_script("//build/win/use_ansi_codes.py", [], "trim string") ==
