@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 4e6708bddf9bb..cdf3e7e25a564 100644
+index c23ba227544d4..648e6994a2c7e 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -671,11 +671,18 @@ config("compiler") {
@@ -22,7 +22,7 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -687,12 +694,39 @@ config("compiler") {
+@@ -687,12 +694,38 @@ config("compiler") {
        ldflags += [
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
@@ -45,7 +45,6 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
 +        "-mllvm:-polly-vectorizer=stripmine",
 +        # "-mllvm:-pass-remarks-analysis=polly",
        ]
-+
      } else {
 -      ldflags += [ "-flto=thin" ]
 +      ldflags += [
@@ -62,12 +61,12 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
 +        "-Wl,-mllvm,-polly-vectorizer=stripmine",
 +        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
-+      ]
++     ]
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -714,12 +748,12 @@ config("compiler") {
-           "-Wcrl,object_path_lto" + _object_path_suffix,
+@@ -710,12 +743,12 @@ config("compiler") {
+           "-Wcrl,object_path_lto",
          ]
        } else {
 -        ldflags +=
@@ -83,16 +82,16 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -894,6 +928,8 @@ config("compiler") {
+@@ -891,6 +924,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+mavx,+aes,-pclmul",
++    "-Ctarget-feature=+avx,+aes,-pclmul",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -930,7 +966,7 @@ config("rust_defer_lto_to_linker") {
+@@ -923,7 +958,7 @@ config("rust_defer_lto_to_linker") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -101,7 +100,7 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -955,7 +991,7 @@ config("thinlto_optimize_max") {
+@@ -948,7 +983,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -110,7 +109,7 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
      }
  
      if (is_win) {
-@@ -995,7 +1031,7 @@ config("compiler_cpu_abi") {
+@@ -988,7 +1023,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -119,11 +118,11 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2070,11 +2106,12 @@ if (is_win) {
+@@ -2072,11 +2107,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
-+      "-funique-section-names"
++      "-funique-section-names",
      ]
      if ((!is_nacl || is_nacl_saigo) && is_clang) {
        # We don't care about unique section names, this makes object files a bit
@@ -133,7 +132,7 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2119,7 +2156,7 @@ config("optimize") {
+@@ -2121,7 +2157,7 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -142,22 +141,16 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
        rustflags = [ "-Copt-level=s" ]
      } else {
        # PGO requires all translation units to be compiled with /O2. The actual
-@@ -2134,7 +2171,7 @@ config("optimize") {
+@@ -2136,7 +2172,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
 -      cflags = [ "-Oz" ] + common_optimize_on_cflags
-+      cflags = [ "-O2" ] + common_optimize_on_cflags
++      cflags = [ "-O2	" ] + common_optimize_on_cflags
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2143,12 +2180,12 @@ config("optimize") {
-         ]
-       }
-     } else {
--      cflags = [ "-Os" ] + common_optimize_on_cflags
-+      cflags = [ "-O2" ] + common_optimize_on_cflags
-     }
+@@ -2150,7 +2186,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -166,7 +159,7 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2233,7 +2270,7 @@ config("optimize_max") {
+@@ -2235,7 +2271,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -175,7 +168,7 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2611,7 +2648,7 @@ config("minimal_symbols") {
+@@ -2615,7 +2651,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -185,7 +178,7 @@ index 4e6708bddf9bb..cdf3e7e25a564 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 692e7adf56d39..22f47b81d1903 100644
+index 692e7adf56d39..eec7446985b25 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -87,7 +87,7 @@ config("compiler") {
@@ -202,7 +195,7 @@ index 692e7adf56d39..22f47b81d1903 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mavx", "-maes", "-mpclmul", ]
++      cflags += [ "-mavx", "-maes", "-mvaes", ]
      }
  
      if (exec_script("//build/win/use_ansi_codes.py", [], "trim string") ==
@@ -267,10 +260,10 @@ index 2ebbdf92cda05..24f074f9d5057 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 430075ac4b01c..5fd9e25248204 100644
+index 2064152ab5440..b23b83190a2b1 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -39,7 +39,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -73,7 +73,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -278,7 +271,7 @@ index 430075ac4b01c..5fd9e25248204 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -51,6 +50,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -85,6 +84,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
  
