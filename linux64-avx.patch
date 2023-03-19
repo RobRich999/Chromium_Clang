@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 4e6708bddf9bb..3d69d8d8f920e 100644
+index c23ba227544d4..128e9b6d3ead2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -671,11 +671,18 @@ config("compiler") {
@@ -22,11 +22,9 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -691,8 +698,23 @@ config("compiler") {
-             rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
+@@ -692,7 +699,21 @@ config("compiler") {
          "/lldltocachepolicy:$cache_policy",
        ]
-+
      } else {
 -      ldflags += [ "-flto=thin" ]
 +      ldflags += [
@@ -43,12 +41,12 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
 +        "-Wl,-mllvm,-polly-vectorizer=stripmine",
 +        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
-+      ]
++     ]
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -714,12 +736,12 @@ config("compiler") {
-           "-Wcrl,object_path_lto" + _object_path_suffix,
+@@ -710,12 +731,12 @@ config("compiler") {
+           "-Wcrl,object_path_lto",
          ]
        } else {
 -        ldflags +=
@@ -64,16 +62,16 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -894,6 +916,8 @@ config("compiler") {
+@@ -891,6 +912,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+   "-Ctarget-feature=+avx,+aes,+vaes",
++    "-Ctarget-feature=+avx,+aes,-pclmul",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -930,7 +954,7 @@ config("rust_defer_lto_to_linker") {
+@@ -923,7 +946,7 @@ config("rust_defer_lto_to_linker") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -82,7 +80,7 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -955,7 +979,7 @@ config("thinlto_optimize_max") {
+@@ -948,7 +971,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -91,7 +89,7 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
      }
  
      if (is_win) {
-@@ -995,7 +1019,7 @@ config("compiler_cpu_abi") {
+@@ -988,7 +1011,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -100,7 +98,7 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2070,11 +2094,12 @@ if (is_win) {
+@@ -2072,11 +2095,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -114,16 +112,7 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2119,7 +2144,7 @@ config("optimize") {
-     if (chrome_pgo_phase != 2) {
-       # Favor size over speed, /O1 must be before the common flags.
-       # /O1 implies /Os and /GF.
--      cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
-+      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-       rustflags = [ "-Copt-level=s" ]
-     } else {
-       # PGO requires all translation units to be compiled with /O2. The actual
-@@ -2134,7 +2159,7 @@ config("optimize") {
+@@ -2136,7 +2160,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -132,7 +121,7 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2143,12 +2168,12 @@ config("optimize") {
+@@ -2145,12 +2169,12 @@ config("optimize") {
          ]
        }
      } else {
@@ -147,7 +136,7 @@ index 4e6708bddf9bb..3d69d8d8f920e 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2233,7 +2258,7 @@ config("optimize_max") {
+@@ -2235,7 +2259,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -206,7 +195,7 @@ index 3e1cadc8296ca..32fbab915001f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index d250ce6e9396c..d1e9492e40c15 100644
+index 84f4d2cd5ccde..dbe0db7d3efc0 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -687,7 +687,7 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
@@ -223,7 +212,7 @@ index d250ce6e9396c..d1e9492e40c15 100644
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
               "UseChromeOSDirectVideoDecoder",
 -             base::FEATURE_ENABLED_BY_DEFAULT);
-+             base::FEATURE_DISBLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
  
  // Limit the number of concurrent hardware decoder instances on ChromeOS.
  BASE_FEATURE(kLimitConcurrentDecoderInstances,
@@ -270,10 +259,10 @@ index 2ebbdf92cda05..24f074f9d5057 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 430075ac4b01c..5fd9e25248204 100644
+index 2064152ab5440..b23b83190a2b1 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -39,7 +39,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -73,7 +73,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -281,7 +270,7 @@ index 430075ac4b01c..5fd9e25248204 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -51,6 +50,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -85,6 +84,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
  
