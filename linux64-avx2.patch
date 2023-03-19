@@ -1,16 +1,16 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 4e6708bddf9bb..ab4c68132eb5d 100644
+index 4e6708bddf9bb..e7f0ae2ba6720 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -569,7 +569,7 @@ config("compiler") {
-     if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
+@@ -567,7 +567,7 @@ config("compiler") {
  
+     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
+     if (is_win) {
+-      cflags += [ "/clang:-ffp-contract=off" ]
++      cflags += [ "/clang:-ffp-contract=fast" ]
+     } else {
+       cflags += [ "-ffp-contract=off" ]
+     }
 @@ -671,11 +671,18 @@ config("compiler") {
      cflags += [
        "-flto=thin",
@@ -31,9 +31,28 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -691,8 +698,23 @@ config("compiler") {
-             rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
-         "/lldltocachepolicy:$cache_policy",
+@@ -687,12 +694,39 @@ config("compiler") {
+       ldflags += [
+         "/opt:lldltojobs=all",
+         "-mllvm:-import-instr-limit=$import_instr_limit",
+-        "/lldltocache:" +
+-            rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
+-        "/lldltocachepolicy:$cache_policy",
++        # "/lldltocache:" +
++        #     rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
++        # "/lldltocachepolicy:$cache_policy",
++        "-mllvm:-enable-gvn-hoist",
++        "-mllvm:-enable-loopinterchange",
++        "-mllvm:-enable-loop-distribute",
++        "-mllvm:-enable-loop-flatten",
++        "-mllvm:-interleave-small-loop-scalar-reduction",
++        "-mllvm:-loop-rotate-multi",
++        "-mllvm:-scalar-evolution-use-expensive-range-sharpening",
++        "-mllvm:-polly",
++        "-mllvm:-polly-detect-profitability-min-per-loop-insts=40",
++        "-mllvm:-polly-invariant-load-hoisting",
++        "-mllvm:-polly-vectorizer=stripmine",
++        # "-mllvm:-pass-remarks-analysis=polly",
        ]
 +
      } else {
@@ -56,7 +75,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -714,12 +736,12 @@ config("compiler") {
+@@ -714,12 +748,12 @@ config("compiler") {
            "-Wcrl,object_path_lto" + _object_path_suffix,
          ]
        } else {
@@ -73,16 +92,16 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -894,6 +916,8 @@ config("compiler") {
+@@ -894,6 +928,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+   "-Ctarget-cpu=haswell", "-Ctarget-feature=+aes",
++   "-Ctune-cpu=haswell", "-Ctarget-feature=+avx,+aes,-pclmul",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -930,7 +954,7 @@ config("rust_defer_lto_to_linker") {
+@@ -930,7 +966,7 @@ config("rust_defer_lto_to_linker") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -91,7 +110,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -955,7 +979,7 @@ config("thinlto_optimize_max") {
+@@ -955,7 +991,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -100,20 +119,20 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
      }
  
      if (is_win) {
-@@ -995,7 +1019,7 @@ config("compiler_cpu_abi") {
+@@ -995,7 +1031,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=haswell", "-maes",
++        "-march=native",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2070,11 +2094,12 @@ if (is_win) {
+@@ -2070,11 +2106,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
-+      "-funique-section-names",
++      "-funique-section-names"
      ]
      if ((!is_nacl || is_nacl_saigo) && is_clang) {
        # We don't care about unique section names, this makes object files a bit
@@ -123,7 +142,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2119,7 +2144,7 @@ config("optimize") {
+@@ -2119,7 +2156,7 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -132,7 +151,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
        rustflags = [ "-Copt-level=s" ]
      } else {
        # PGO requires all translation units to be compiled with /O2. The actual
-@@ -2134,7 +2159,7 @@ config("optimize") {
+@@ -2134,7 +2171,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -141,7 +160,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2143,12 +2168,12 @@ config("optimize") {
+@@ -2143,12 +2180,12 @@ config("optimize") {
          ]
        }
      } else {
@@ -156,7 +175,7 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2233,7 +2258,7 @@ config("optimize_max") {
+@@ -2233,7 +2270,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -165,77 +184,55 @@ index 4e6708bddf9bb..ab4c68132eb5d 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
-index c1db53387a9c8..631fe61eefa72 100755
---- a/chrome/installer/linux/debian/postinst
-+++ b/chrome/installer/linux/debian/postinst
-@@ -54,17 +54,6 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
- update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
-   /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
+@@ -2611,7 +2648,7 @@ config("minimal_symbols") {
+ # names in the final debug information.
+ config("no_symbols") {
+   if (is_win) {
+-    ldflags = [ "/DEBUG" ]
++    ldflags = [ "/DEBUG:NONE" ]
  
--@@include@@../common/apt.include
--
- @@include@@../common/symlinks.include
+     # All configs using /DEBUG should include this:
+     configs = [ ":win_pdbaltpath" ]
+diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
+index 692e7adf56d39..4f8fa2f58f587 100644
+--- a/build/config/win/BUILD.gn
++++ b/build/config/win/BUILD.gn
+@@ -87,7 +87,7 @@ config("compiler") {
  
- remove_udev_symlinks
--
--## MAIN ##
--if [ ! -e "$DEFAULTS_FILE" ]; then
--  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
--  echo 'repo_reenable_on_distupgrade="true"' >> "$DEFAULTS_FILE"
--fi
--
--# Run the cron job immediately to perform repository configuration.
--nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
-diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
-index 3e1cadc8296ca..32fbab915001f 100755
---- a/chrome/installer/linux/debian/postrm
-+++ b/chrome/installer/linux/debian/postrm
-@@ -15,22 +15,6 @@ fi
+   cflags += [
+     # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
+-    "/Zc:sizedDealloc-",
++    # "/Zc:sizedDealloc-",
+   ]
  
- @@include@@../common/variables.include
+   if (is_clang) {
+@@ -128,7 +128,7 @@ config("compiler") {
+     # microarchitecture. MSVC only supports a subset of architectures, and the
+     # next step after SSE2 will be AVX.
+     if (current_cpu == "x86" || current_cpu == "x64") {
+-      cflags += [ "-msse3" ]
++      cflags += [ "/arch:AVX2", "-maes", "-mvaes", ]
+     }
  
--@@include@@../common/apt.include
--
- @@include@@../common/symlinks.include
+     if (exec_script("//build/win/use_ansi_codes.py", [], "trim string") ==
+@@ -193,7 +193,7 @@ config("compiler") {
+     if (use_lld) {
+       # String tail merging leads to smaller binaries, but they don't compress
+       # as well, leading to increased mini_installer size (crbug.com/838449).
+-      ldflags += [ "/OPT:NOLLDTAILMERGE" ]
++      # ldflags += [ "/OPT:NOLLDTAILMERGE" ]
+     }
  
- remove_udev_symlinks
--
--# Only remove the defaults file if it is not empty. An empty file was probably
--# put there by the sysadmin to disable automatic repository configuration, as
--# per the instructions on the package download page.
--if [ -s "$DEFAULTS_FILE" ]; then
--  # Make sure the package defaults are removed before the repository config,
--  # otherwise it could result in the repository config being removed, but the
--  # package defaults remain and are set to not recreate the repository config.
--  # In that case, future installs won't recreate it and won't get auto-updated.
--  rm "$DEFAULTS_FILE" || exit 1
--fi
--# Remove any Google repository added by the package.
--clean_sources_lists
--uninstall_key
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index d250ce6e9396c..b048261fbc551 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -687,7 +687,7 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+     # TODO(siggi): Is this of any use anymore?
+@@ -201,7 +201,7 @@ config("compiler") {
+     # PDB file by about 5%) but does not otherwise alter the output binary. It
+     # is enabled opportunistically for builds where it is not prohibited (not
+     # supported when incrementally linking, or using /debug:fastlink).
+-    ldflags += [ "/PROFILE" ]
++    # ldflags += [ "/PROFILE" ]
+   }
  
- BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
-              "VaapiVideoDecodeLinuxGL",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- 
- BASE_FEATURE(kVaapiVideoEncodeLinux,
-              "VaapiVideoEncoder",
-@@ -1038,7 +1038,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
- // TODO(b/159825227): remove when the direct video decoder is fully launched.
- BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
-              "UseChromeOSDirectVideoDecoder",
--             base::FEATURE_ENABLED_BY_DEFAULT);
-+             base::FEATURE_DISABLED_BY_DEFAULT);
- 
- // Limit the number of concurrent hardware decoder instances on ChromeOS.
- BASE_FEATURE(kLimitConcurrentDecoderInstances,
+   # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 2ebbdf92cda05..24f074f9d5057 100644
 --- a/media/base/supported_types.cc
