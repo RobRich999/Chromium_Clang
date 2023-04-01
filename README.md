@@ -40,7 +40,7 @@ Builds marked with the "+pgo" tag utilize profile-guided optimization.
 
 Builds marked with the "+polly" tag utilize the Polly "high-level loop and data-locality optimizer and optimization infrastructure for LLVM."
 
-Builds marked with the "+fast-math" tag utilize aggressive floating-point optimizations for select hot code paths.
+Builds marked with the "+fast-math" tag utilize aggressive floating-point optimizations for various hot code paths.
 
 Builds marked with the "+avx" tag require processors with AVX instruction set support.
 
