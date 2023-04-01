@@ -20,7 +20,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v113.0.5664.0-r1119122
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v114.0.5684.0-r1123588-linux64-deb-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v113.0.5664.0-r1119122-linux64-deb-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v114.0.5688.0-r1124911-linux64-deb-avx
 
 ****
 
@@ -39,6 +39,8 @@ Builds marked with the "+thinlto" tag utilize whole-program analysis and cross-m
 Builds marked with the "+pgo" tag utilize profile-guided optimization.
 
 Builds marked with the "+polly" tag utilize the Polly "high-level loop and data-locality optimizer and optimization infrastructure for LLVM."
+
+Builds marked with the "+fast-math" tag utilize aggressive floating-point optimizations for select hot code paths.
 
 Builds marked with the "+avx" tag require processors with AVX instruction set support.
 
