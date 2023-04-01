@@ -878,3 +878,5 @@ index 2dc93235a96d6..a2343d34bbaca 100755
    WriteStampFile(PACKAGE_VERSION, STAMP_FILE)
    WriteStampFile(PACKAGE_VERSION, FORCE_HEAD_REVISION_FILE)
    print('Clang build was successful.')
+
+.
