@@ -1,0 +1,41 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index b26716cc2a9..cc0a8ddf657 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -1592,9 +1592,9 @@ config("always_turbofanimize") {
+   # TODO(crbug.com/621335) Rework this so that we don't have the confusion
+   # between "optimize_speed" and "optimize_max".
+   if (((is_posix && !is_android) || is_fuchsia) && !using_sanitizer) {
+-    configs += [ "//build/config/compiler:optimize_speed" ]
++    configs += [ "//build/config/compiler:optimize_v8" ]
+   } else {
+-    configs += [ "//build/config/compiler:optimize_max" ]
++    configs += [ "//build/config/compiler:optimize_v8" ]
+   }
+ }
+ 
+@@ -5931,7 +5931,7 @@ if (v8_use_libm_trig_functions) {
+     configs -= [ "//build/config/compiler:chromium_code" ]
+     if (!is_debug) {
+       # Build code using -O3, see: crbug.com/1084371.
+-      configs += [ "//build/config/compiler:optimize_speed" ]
++      configs += [ "//build/config/compiler:optimize_v8" ]
+     }
+   }
+ }
+diff --git a/gni/v8.gni b/gni/v8.gni
+index ad25daa86c4..e97dddd5da6 100644
+--- a/gni/v8.gni
++++ b/gni/v8.gni
+@@ -209,9 +209,9 @@ if (is_debug && !v8_optimized_debug) {
+   # TODO(crbug.com/621335) Rework this so that we don't have the confusion
+   # between "optimize_speed" and "optimize_max".
+   if (is_posix && !is_android && !using_sanitizer) {
+-    v8_add_configs += [ "//build/config/compiler:optimize_speed" ]
++    v8_add_configs += [ "//build/config/compiler:optimize_v8" ]
+   } else {
+-    v8_add_configs += [ "//build/config/compiler:optimize_max" ]
++    v8_add_configs += [ "//build/config/compiler:optimize_v8" ]
+   }
+ }
+ 
