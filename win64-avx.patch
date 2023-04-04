@@ -1,18 +1,37 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index c23ba227544d4..648e6994a2c7e 100644
+index d0b55ce295fdf..ebc244c00c2c4 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -671,11 +671,18 @@ config("compiler") {
+@@ -567,7 +567,7 @@ config("compiler") {
+ 
+     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
+     if (is_win) {
+-      cflags += [ "/clang:-ffp-contract=off" ]
++      cflags += [ "/clang:-ffp-contract=fast" ]
+     } else {
+       cflags += [ "-ffp-contract=off" ]
+     }
+@@ -666,11 +666,28 @@ config("compiler") {
      cflags += [
        "-flto=thin",
        "-fsplit-lto-unit",
++      "-mllvm", "-adce-remove-loops",
++      "-mllvm", "-aggressive-ext-opt",
++      "-mllvm", "-enable-cse-in-irtranslator",
++      "-mllvm", "-enable-cse-in-legalizer",
 +      "-mllvm", "-enable-gvn-hoist",
++      "-mllvm", "-gvn-hoist-max-bbs=-1",
++      "-mllvm", "-gvn-hoist-max-depth=-1",
++      "-mllvm", "-gvn-hoist-max-chain-length=-1",
++      "-mllvm", "-enable-interleaved-mem-accesses",
++      "-mllvm", "-enable-masked-interleaved-mem-accesses",
 +      "-mllvm", "-enable-loopinterchange",
 +      "-mllvm", "-enable-loop-distribute",
 +      "-mllvm", "-enable-loop-flatten",
 +      "-mllvm", "-interleave-small-loop-scalar-reduction",
 +      "-mllvm", "-loop-rotate-multi",
 +      "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
++      "-mllvm", "-extra-vectorizer-passes",
      ]
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
@@ -22,7 +41,7 @@ index c23ba227544d4..648e6994a2c7e 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -687,12 +694,38 @@ config("compiler") {
+@@ -682,12 +699,66 @@ config("compiler") {
        ldflags += [
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
@@ -32,16 +51,30 @@ index c23ba227544d4..648e6994a2c7e 100644
 +        # "/lldltocache:" +
 +        #     rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
 +        # "/lldltocachepolicy:$cache_policy",
++        "-mllvm:-adce-remove-loops",
++        "-mllvm:-aggressive-ext-opt",
++        "-mllvm:-enable-cse-in-irtranslator",
++        "-mllvm:-enable-cse-in-legalizer",
 +        "-mllvm:-enable-gvn-hoist",
++        "-mllvm:-gvn-hoist-max-bbs=-1",
++        "-mllvm:-gvn-hoist-max-depth=-1",
++        "-mllvm:-gvn-hoist-max-chain-length=-1",
++        "-mllvm:-enable-interleaved-mem-accesses",
++        "-mllvm:-enable-masked-interleaved-mem-accesses",
 +        "-mllvm:-enable-loopinterchange",
 +        "-mllvm:-enable-loop-distribute",
 +        "-mllvm:-enable-loop-flatten",
 +        "-mllvm:-interleave-small-loop-scalar-reduction",
 +        "-mllvm:-loop-rotate-multi",
 +        "-mllvm:-scalar-evolution-use-expensive-range-sharpening",
++        "-mllvm:-extra-vectorizer-passes",
 +        "-mllvm:-polly",
++        "-mllvm:-polly-2nd-level-tiling",
 +        "-mllvm:-polly-detect-profitability-min-per-loop-insts=40",
 +        "-mllvm:-polly-invariant-load-hoisting",
++        "-mllvm:-polly-loopfusion-greedy",
++        "-mllvm:-polly-register-tiling",
++        "-mllvm:-polly-run-dce",
 +        "-mllvm:-polly-vectorizer=stripmine",
 +        # "-mllvm:-pass-remarks-analysis=polly",
        ]
@@ -49,23 +82,37 @@ index c23ba227544d4..648e6994a2c7e 100644
 -      ldflags += [ "-flto=thin" ]
 +      ldflags += [
 +        "-flto=thin",
++        "-Wl,-mllvm,-adce-remove-loops",
++        "-Wl,-mllvm,-aggressive-ext-opt",
++        "-Wl,-mllvm,-enable-cse-in-irtranslator",
++        "-Wl,-mllvm,-enable-cse-in-legalizer",
 +        "-Wl,-mllvm,-enable-gvn-hoist",
++        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
++        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
++        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
++        "-Wl,-mllvm,-enable-interleaved-mem-accesses",
++        "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
 +        "-Wl,-mllvm,-enable-loopinterchange",
 +        "-Wl,-mllvm,-enable-loop-distribute",
 +        "-Wl,-mllvm,-enable-loop-flatten",
 +        "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
 +        "-Wl,-mllvm,-loop-rotate-multi",
 +        "-Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening",
++        "-Wl,-mllvm,-extra-vectorizer-passes",
 +        "-Wl,-mllvm,-polly",
++        "-Wl,-mllvm,-polly-2nd-level-tiling",
 +        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
++        "-Wl,-mllvm,-polly-loopfusion-greedy",
++        "-Wl,-mllvm,-polly-register-tiling",
++        "-Wl,-mllvm,-polly-run-dce",
 +        "-Wl,-mllvm,-polly-vectorizer=stripmine",
 +        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
-+     ]
++      ]
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -710,12 +743,12 @@ config("compiler") {
+@@ -705,12 +776,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -82,34 +129,42 @@ index c23ba227544d4..648e6994a2c7e 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -891,6 +924,8 @@ config("compiler") {
+@@ -886,6 +957,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+avx,+aes,-pclmul",
++    "-Ctarget-feature=+avx,+aes",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -923,7 +958,7 @@ config("rust_defer_lto_to_linker") {
+@@ -918,7 +991,7 @@ config("rust_defer_lto_to_linker") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 2
++    lto_opt_level = 3
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -948,7 +983,7 @@ config("thinlto_optimize_max") {
+@@ -941,13 +1014,14 @@ config("thinlto_optimize_default") {
+ config("thinlto_optimize_max") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
-       lto_opt_level = 2
+-      lto_opt_level = 2
++      lto_opt_level = 3
      } else {
 -      lto_opt_level = 0
-+      lto_opt_level = 2
++      lto_opt_level = 3
      }
  
      if (is_win) {
-@@ -988,7 +1023,7 @@ config("compiler_cpu_abi") {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
++      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
+     }
+@@ -983,7 +1057,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -118,7 +173,12 @@ index c23ba227544d4..648e6994a2c7e 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2072,11 +2107,12 @@ if (is_win) {
+@@ -2063,15 +2137,16 @@ if (is_win) {
+     # Aix does not support these.
+ 
+     common_optimize_on_cflags += [
+-      # Put data and code in their own sections, so that unused symbols
++      # P ut data and code in their own sections, so that unused symbols
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -132,25 +192,37 @@ index c23ba227544d4..648e6994a2c7e 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2121,7 +2157,7 @@ config("optimize") {
+@@ -2116,12 +2191,12 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
 -      cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
-+      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
        rustflags = [ "-Copt-level=s" ]
      } else {
        # PGO requires all translation units to be compiled with /O2. The actual
-@@ -2136,7 +2172,7 @@ config("optimize") {
+       # optimization level will be decided based on the profiling data.
+-      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
+ 
+       # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
+       # suggests not using an explicit `-Copt-level` at all, and the default is
+@@ -2131,7 +2206,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
 -      cflags = [ "-Oz" ] + common_optimize_on_cflags
-+      cflags = [ "-O2	" ] + common_optimize_on_cflags
++      cflags = [ "-O3" ] + common_optimize_on_cflags
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2150,7 +2186,7 @@ config("optimize") {
+@@ -2140,12 +2215,12 @@ config("optimize") {
+         ]
+       }
+     } else {
+-      cflags = [ "-Os" ] + common_optimize_on_cflags
++      cflags = [ "-O3" ] + common_optimize_on_cflags
+     }
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -159,16 +231,65 @@ index c23ba227544d4..648e6994a2c7e 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2235,7 +2271,7 @@ config("optimize_max") {
+@@ -2159,7 +2234,7 @@ config("optimize") {
+     # vectorization while otherwise optimizing for size.
+     rustflags = [ "-Copt-level=s" ]
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags
+ 
+     # The `-O3` for clang turns on extra optimizations compared to the standard
+     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
+@@ -2226,11 +2301,11 @@ config("optimize_max") {
+     if (is_win) {
+       # Favor speed over size, /O2 must be before the common flags.
+       # /O2 implies /Ot, /Oi, and /GF.
+-      cflags = [ "/O2" ] + common_optimize_on_cflags
++      cflags = [ "-Xclang", "-O3", "/clang:-ffast-math", "/clang:-fno-finite-math-only", ] + common_optimize_on_cflags
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
 -      cflags = [ "-O2" ] + common_optimize_on_cflags
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
++      cflags = [ "-O3","-ffast-math", "-fno-finite-math-only", ] + common_optimize_on_cflags
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2615,7 +2651,7 @@ config("minimal_symbols") {
+@@ -2259,7 +2334,33 @@ config("optimize_speed") {
+     if (is_win) {
+       # Favor speed over size, /O2 must be before the common flags.
+       # /O2 implies /Ot, /Oi, and /GF.
+-      cflags = [ "/O2" ] + common_optimize_on_cflags
++      cflags = [ "-Xclang", "-O3", "/clang:-ffast-math", "/clang:-fno-finite-math-only", ] + common_optimize_on_cflags
++    } else if (optimize_for_fuzzing) {
++      cflags = [ "-O1" ] + common_optimize_on_cflags
++    } else {
++      cflags = [ "-O3", "-ffast-math", "-fno-finite-math-only", ] + common_optimize_on_cflags
++    }
++    rustflags = [ "-Copt-level=3" ]
++  }
++}
++
++config("optimize_v8") {
++  if (is_nacl && is_nacl_irt) {
++    # The NaCl IRT is a special case and always wants its own config.
++    # Various components do:
++    #   if (!is_debug) {
++    #     configs -= [ "//build/config/compiler:default_optimization" ]
++    #     configs += [ "//build/config/compiler:optimize_max" ]
++    #   }
++    # So this config has to have the selection logic just like
++    # "default_optimization", below.
++    configs = [ "//build/config/nacl:irt_optimize" ]
++  } else {
++    ldflags = common_optimize_on_ldflags
++    if (is_win) {
++      # Favor speed over size, /O2 must be before the common flags.
++      # /O2 implies /Ot, /Oi, and /GF.
++      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags
+     } else if (optimize_for_fuzzing) {
+       cflags = [ "-O1" ] + common_optimize_on_cflags
+     } else {
+@@ -2610,7 +2711,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -178,10 +299,10 @@ index c23ba227544d4..648e6994a2c7e 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 692e7adf56d39..eec7446985b25 100644
+index 9e6816c303387..642746173dc24 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
-@@ -87,7 +87,7 @@ config("compiler") {
+@@ -88,7 +88,7 @@ config("compiler") {
  
    cflags += [
      # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
@@ -190,25 +311,27 @@ index 692e7adf56d39..eec7446985b25 100644
    ]
  
    if (is_clang) {
-@@ -128,7 +128,7 @@ config("compiler") {
+@@ -129,7 +129,7 @@ config("compiler") {
      # microarchitecture. MSVC only supports a subset of architectures, and the
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mavx", "-maes", "-mvaes", ]
++      cflags += [ "-mavx", "-maes", ]
      }
  
-     if (exec_script("//build/win/use_ansi_codes.py", [], "trim string") ==
-@@ -193,7 +193,7 @@ config("compiler") {
+     # Enable ANSI escape codes if something emulating them is around (cmd.exe
+@@ -192,9 +192,7 @@ config("compiler") {
+     ]
+ 
      if (use_lld) {
-       # String tail merging leads to smaller binaries, but they don't compress
-       # as well, leading to increased mini_installer size (crbug.com/838449).
+-      # String tail merging leads to smaller binaries, but they don't compress
+-      # as well, leading to increased mini_installer size (crbug.com/838449).
 -      ldflags += [ "/OPT:NOLLDTAILMERGE" ]
-+      # ldflags += [ "/OPT:NOLLDTAILMERGE" ]
++      ldflags += [ "/OPT:LLDTAILMERGE" ]
      }
  
      # TODO(siggi): Is this of any use anymore?
-@@ -201,7 +201,7 @@ config("compiler") {
+@@ -202,7 +200,7 @@ config("compiler") {
      # PDB file by about 5%) but does not otherwise alter the output binary. It
      # is enabled opportunistically for builds where it is not prohibited (not
      # supported when incrementally linking, or using /debug:fastlink).
@@ -218,7 +341,7 @@ index 692e7adf56d39..eec7446985b25 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 2ebbdf92cda05..24f074f9d5057 100644
+index b079e3d56dea1..1f030e6444b22 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
 @@ -205,28 +205,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
@@ -250,7 +373,7 @@ index 2ebbdf92cda05..24f074f9d5057 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -394,7 +373,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -399,7 +378,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -260,10 +383,10 @@ index 2ebbdf92cda05..24f074f9d5057 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 2064152ab5440..b23b83190a2b1 100644
+index 6b5e48095e4bc..3701bdfef832a 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -73,7 +73,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -74,7 +74,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -271,7 +394,7 @@ index 2064152ab5440..b23b83190a2b1 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -85,6 +84,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -86,6 +85,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
  
@@ -280,18 +403,18 @@ index 2064152ab5440..b23b83190a2b1 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/tools/clang/scripts/build.py b/tools/clang/scripts/build.py
-index b686912d6fb57..ad22de371f064 100755
+index 2dc93235a96d6..c93b190880024 100755
 --- a/tools/clang/scripts/build.py
 +++ b/tools/clang/scripts/build.py
-@@ -357,6 +357,7 @@ def BuildLibXml2():
+@@ -366,6 +366,7 @@ def BuildLibXml2():
            '-DLIBXML2_WITH_XPATH=OFF',
            '-DLIBXML2_WITH_XPTR=OFF',
            '-DLIBXML2_WITH_ZLIB=OFF',
-+          '-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native -pipe -fgraphite -fgraphite-identity -floop-nest-optimize  -fipa-pta',
++          '-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native -pipe -fgraphite -fgraphite-identity -floop-nest-optimize -fipa-pta',
            '..',
        ],
        msvc_arch='x64')
-@@ -513,8 +514,6 @@ def gn_arg(v):
+@@ -522,8 +523,6 @@ def gn_arg(v):
  
  def main():
    parser = argparse.ArgumentParser(description='Build Clang.')
@@ -300,7 +423,7 @@ index b686912d6fb57..ad22de371f064 100755
    parser.add_argument('--build-mac-arm', action='store_true',
                        help='Build arm binaries. Only valid on macOS.')
    parser.add_argument('--disable-asserts', action='store_true',
-@@ -574,13 +573,14 @@ def main():
+@@ -591,13 +590,14 @@ def main():
                        help='don\'t build Fuchsia clang_rt runtime (linux/mac)',
                        dest='with_fuchsia',
                        default=sys.platform in ('linux2', 'darwin'))
@@ -318,16 +441,16 @@ index b686912d6fb57..ad22de371f064 100755
    if args.with_android and not os.path.exists(ANDROID_NDK_DIR):
      print('Android NDK not found at ' + ANDROID_NDK_DIR)
      print('The Android NDK is needed to build a Clang whose -fsanitize=address')
-@@ -661,12 +661,20 @@ def main():
+@@ -678,12 +678,20 @@ def main():
    # LLVM_ENABLE_LLD).
    cc, cxx, lld = None, None, None
  
 -  cflags = []
 -  cxxflags = []
 -  ldflags = []
-+  cflags = [ '-O3 -DNDEBUG -w -march=native -mllvm -enable-gvn-hoist -mllvm -enable-loopinterchange -mllvm -enable-loop-distribute -mllvm -enable-loop-flatten -mllvm -interleave-small-loop-scalar-reduction -mllvm -loop-rotate-multi -mllvm -scalar-evolution-use-expensive-range-sharpening' ]
-+  cxxflags = [ '-O3 -DNDEBUG -w -march=native -mllvm -enable-gvn-hoist -mllvm -enable-loopinterchange -mllvm -enable-loop-distribute -mllvm -enable-loop-flatten -mllvm -interleave-small-loop-scalar-reduction -mllvm -loop-rotate-multi -mllvm -scalar-evolution-use-expensive-range-sharpening' ]
-+  ldflags = [ '-fuse-ld=lld' ]
++  cflags = [ '-O3 -DNDEBUG -w -march=native -fmerge-all-constants -fdata-sections -ffunction-sections -funique-section-names -mllvm -adce-remove-loops -mllvm -aggressive-ext-opt -mllvm -enable-cse-in-irtranslator -mllvm -enable-cse-in-legalizer -mllvm -enable-gvn-hoist -mllvm -gvn-hoist-max-bbs=-1 -mllvm -gvn-hoist-max-depth=-1 -mllvm -gvn-hoist-max-chain-length=-1 -mllvm -enable-interleaved-mem-accesses -mllvm -enable-masked-interleaved-mem-accesses -mllvm -enable-loopinterchange -mllvm -enable-loop-distribute -mllvm -enable-loop-flatten -mllvm -interleave-small-loop-scalar-reduction -mllvm -loop-rotate-multi -mllvm -scalar-evolution-use-expensive-range-sharpening -mllvm -extra-vectorizer-passes' ]
++  cxxflags = [ '-O3 -DNDEBUG -w -march=native -fmerge-all-constants -fdata-sections -ffunction-sections -funique-section-names -mllvm -adce-remove-loops -mllvm -aggressive-ext-opt -mllvm -enable-cse-in-irtranslator -mllvm -enable-cse-in-legalizer -march=native -mllvm -enable-gvn-hoist -mllvm -gvn-hoist-max-bbs=-1 -mllvm -gvn-hoist-max-depth=-1 -mllvm -gvn-hoist-max-chain-length=-1 -mllvm -enable-interleaved-mem-accesses -mllvm -enable-masked-interleaved-mem-accesses -mllvm -enable-loopinterchange -mllvm -enable-loop-distribute -mllvm -enable-loop-flatten -mllvm -interleave-small-loop-scalar-reduction -mllvm -loop-rotate-multi -mllvm -scalar-evolution-use-expensive-range-sharpening -mllvm -extra-vectorizer-passes' ]
++  ldflags = [ '-fuse-ld=lld -Wl,-O2 -Wl,--gc-sections -Wl,--icf=all -Wl,-z,keep-text-section-prefix' ]
 +
 +  if args.x86_only:
 +    targets = 'X86'
@@ -344,7 +467,15 @@ index b686912d6fb57..ad22de371f064 100755
    if args.bolt:
      projects += ';bolt'
  
-@@ -766,21 +774,23 @@ def main():
+@@ -717,6 +725,7 @@ def main():
+       '-DLLVM_ENABLE_CURL=OFF',
+       # Build libclang.a as well as libclang.so
+       '-DLIBCLANG_BUILD_STATIC=ON',
++      '-DLLVM_ENABLE_ZSTD=OFF',
+   ]
+ 
+   if sys.platform == 'darwin':
+@@ -783,21 +792,23 @@ def main():
      sysroot_i386 = os.path.join(LLVM_BUILD_TOOLS_DIR, toolchain_name)
      DownloadAndUnpack(U, sysroot_i386)
  
@@ -383,7 +514,7 @@ index b686912d6fb57..ad22de371f064 100755
  
      # Add the sysroot to base_cmake_args.
      if platform.machine() == 'aarch64':
-@@ -812,79 +822,95 @@ def main():
+@@ -829,79 +840,95 @@ def main():
    cflags += libxml_cflags
    cxxflags += libxml_cflags
  
@@ -548,7 +679,7 @@ index b686912d6fb57..ad22de371f064 100755
  
    if args.pgo:
      print('Building instrumented compiler')
-@@ -894,9 +920,9 @@ def main():
+@@ -911,9 +938,9 @@ def main():
      os.chdir(LLVM_INSTRUMENTED_DIR)
  
      instrument_args = base_cmake_args + [
@@ -556,47 +687,61 @@ index b686912d6fb57..ad22de371f064 100755
 -        '-DCMAKE_C_FLAGS=' + ' '.join(cflags),
 -        '-DCMAKE_CXX_FLAGS=' + ' '.join(cxxflags),
 +        '-DLLVM_ENABLE_PROJECTS=clang;polly',
-+        '-DCMAKE_C_FLAGS=-mllvm -vp-counters-per-site=3 -mllvm -polly -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-vectorizer=stripmine  -Rpass-analysis=polly' + ' '.join(cflags),
-+        '-DCMAKE_CXX_FLAGS=-mllvm -vp-counters-per-site=3 -mllvm -polly -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-vectorizer=stripmine  -Rpass-analysis=polly' + ' '.join(cxxflags),
++        '-DCMAKE_C_FLAGS=-mllvm -vp-counters-per-site=3 -mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-register-tiling -mllvm -polly-run-dce -mllvm -polly-vectorizer=stripmine ' + ' '.join(cflags),
++        '-DCMAKE_CXX_FLAGS=-mllvm -vp-counters-per-site=3 -mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-register-tiling -mllvm -polly-run-dce -mllvm -polly-vectorizer=stripmine ' + ' '.join(cxxflags),
          '-DCMAKE_EXE_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags),
-@@ -939,8 +965,13 @@ def main():
+@@ -956,8 +983,25 @@ def main():
      with open(training_source, 'wb') as f:
        DownloadUrl(CDS_URL + '/' + training_source, f)
      train_cmd = [os.path.join(LLVM_INSTRUMENTED_DIR, 'bin', 'clang++'),
 -                '-target', 'x86_64-unknown-unknown', '-O2', '-g', '-std=c++14',
 -                 '-fno-exceptions', '-fno-rtti', '-w', '-c', training_source]
 +                '-target', 'x86_64-unknown-unknown', '-O3', '-march=native',
-+                '-mllvm', '-polly',
-+                '-mllvm','-polly-detect-profitability-min-per-loop-insts=40',
++                '-fmerge-all-constants', '-fdata-sections', '-ffunction-sections',
++                '-funique-section-names', '-mllvm', '-adce-remove-loops',
++                '-mllvm', '-aggressive-ext-opt', '-mllvm', '-enable-cse-in-irtranslator',
++                '-mllvm', '-enable-cse-in-legalizer', '-mllvm', '-enable-gvn-hoist',
++                '-mllvm', '-gvn-hoist-max-bbs=-1', '-mllvm', '-gvn-hoist-max-depth=-1',
++                '-mllvm', '-gvn-hoist-max-chain-length=-1', '-mllvm', '-enable-interleaved-mem-accesses',
++                '-mllvm', '-enable-masked-interleaved-mem-accesses', '-mllvm', '-enable-loopinterchange',
++                '-mllvm', '-enable-loop-distribute', '-mllvm', '-enable-loop-flatten',
++                '-mllvm', '-interleave-small-loop-scalar-reduction', '-mllvm', '-loop-rotate-multi',
++                '-mllvm', '-scalar-evolution-use-expensive-range-sharpening',
++                '-mllvm', '-extra-vectorizer-passes',
++                '-mllvm', '-polly', '-mllvm', '-polly-2nd-level-tiling',
++                '-mllvm', '-polly-detect-profitability-min-per-loop-insts=40',
 +                '-mllvm', '-polly-invariant-load-hoisting',
-+                '-mllvm', '-polly-vectorizer=stripmine', '-Rpass-analysis=polly',
++                '-mllvm', '-polly-loopfusion-greedy', '-mllvm', '-polly-register-tiling',
++                '-mllvm', '-polly-run-dce', '-mllvm', '-polly-vectorizer=stripmine',
 +                '-g', '-std=c++14','-fno-exceptions', '-fno-rtti', '-w', '-c',
 +                training_source]
      if sys.platform == 'darwin':
        train_cmd.extend(['-isysroot', isysroot])
      RunCommand(train_cmd, msvc_arch='x64')
-@@ -980,17 +1011,12 @@ def main():
-   if args.bolt:
-     ldflags += ['-Wl,--emit-relocs', '-Wl,-znow']
- 
--  default_tools = ['plugins', 'blink_gc_plugin', 'translation_unit']
-+  default_tools = []
-   chrome_tools = list(set(default_tools + args.extra_tools))
-   if cc is not None:  base_cmake_args.append('-DCMAKE_C_COMPILER=' + cc)
-   if cxx is not None: base_cmake_args.append('-DCMAKE_CXX_COMPILER=' + cxx)
+@@ -1006,24 +1050,32 @@ def main():
    if lld is not None: base_cmake_args.append('-DCMAKE_LINKER=' + lld)
+   final_install_dir = args.install_dir if args.install_dir else LLVM_BUILD_DIR
    cmake_args = base_cmake_args + [
 -      '-DCMAKE_C_FLAGS=' + ' '.join(cflags),
 -      '-DCMAKE_CXX_FLAGS=' + ' '.join(cxxflags),
 -      '-DCMAKE_EXE_LINKER_FLAGS=' + ' '.join(ldflags),
 -      '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags),
 -      '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags),
-       '-DCMAKE_INSTALL_PREFIX=' + LLVM_BUILD_DIR,
-       '-DLLVM_EXTERNAL_PROJECTS=chrometools',
-       '-DLLVM_EXTERNAL_CHROMETOOLS_SOURCE_DIR=' +
-@@ -999,7 +1025,19 @@ def main():
+-      '-DCMAKE_INSTALL_PREFIX=' + final_install_dir,
+-  ]
++    '-DCMAKE_INSTALL_PREFIX=' + final_install_dir,
++    '-DLLVM_ENABLE_PROJECTS=' + projects,
++    ]
+   if not args.no_tools:
+     cmake_args.extend([
+         '-DLLVM_EXTERNAL_PROJECTS=chrometools',
+         '-DLLVM_EXTERNAL_CHROMETOOLS_SOURCE_DIR=' +
+         os.path.join(CHROMIUM_DIR, 'tools', 'clang'),
+         '-DCHROMIUM_TOOLS=%s' % ';'.join(chrome_tools)
+-    ])
++   ])
    if args.pgo:
      cmake_args.append('-DLLVM_PROFDATA_FILE=' + LLVM_PROFDATA_FILE)
    if args.thinlto:
@@ -605,19 +750,19 @@ index b686912d6fb57..ad22de371f064 100755
 +    cmake_args.append( '-DLLVM_PARALLEL_LINK_JOBS=4' )
 +    cmake_args.append( '-DCMAKE_C_FLAGS=-fno-split-lto-unit ' + ' '.join(cflags) )
 +    cmake_args.append( '-DCMAKE_CXX_FLAGS=-fno-split-lto-unit ' + ' '.join(cxxflags) )
-+    cmake_args.append( '-DCMAKE_EXE_LINKER_FLAGS=-Wl,-mllvm,-enable-gvn-hoist -Wl,-mllvm,-enable-loopinterchange -Wl,-mllvm,-enable-loop-distribute -Wl,-mllvm,-enable-loop-flatten -Wl,-mllvm,-interleave-small-loop-scalar-reduction -Wl,-mllvm,-loop-rotate-multi -Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening -Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40 -Wl,-mllvm,-polly-invariant-load-hoisting -Wl,-mllvm,-polly-vectorizer=stripmine ' + ' '.join(ldflags) )
-+    cmake_args.append( '-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-mllvm,-enable-gvn-hoist -Wl,-mllvm,-enable-loopinterchange -Wl,-mllvm,-enable-loop-distribute -Wl,-mllvm,-enable-loop-flatten -Wl,-mllvm,-interleave-small-loop-scalar-reduction -Wl,-mllvm,-loop-rotate-multi -Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening -Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40 -Wl,-mllvm,-polly-invariant-load-hoisting -Wl,-mllvm,-polly-vectorizer=stripmine ' + ' '.join(ldflags) )
-+    cmake_args.append( '-DCMAKE_MODULE_LINKER_FLAGS=-Wl,-mllvm,-enable-gvn-hoist -Wl,-mllvm,-enable-loopinterchange -Wl,-mllvm,-enable-loop-distribute -Wl,-mllvm,-enable-loop-flatten -Wl,-mllvm,-interleave-small-loop-scalar-reduction -Wl,-mllvm,-loop-rotate-multi -Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening -Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40 -Wl,-mllvm,-polly-invariant-load-hoisting -Wl,-mllvm,-polly-vectorizer=stripmine ' + ' '.join(ldflags) )
++    cmake_args.append( '-DCMAKE_EXE_LINKER_FLAGS=-Wl,-mllvm,-adce-remove-loops -Wl,-mllvm,-aggressive-ext-opt -Wl,-mllvm,-enable-cse-in-irtranslator -Wl,-mllvm,-enable-cse-in-legalizer -Wl,-mllvm,-enable-gvn-hoist -Wl,-mllvm,-gvn-hoist-max-bbs=-1 -Wl,-mllvm,-gvn-hoist-max-depth=-1 -Wl,-mllvm,-gvn-hoist-max-chain-length=-1 -Wl,-mllvm,-enable-interleaved-mem-accesses -Wl,-mllvm,-enable-masked-interleaved-mem-accesses -Wl,-mllvm,-enable-loopinterchange -Wl,-mllvm,-enable-loop-distribute -Wl,-mllvm,-enable-loop-flatten -Wl,-mllvm,-interleave-small-loop-scalar-reduction -Wl,-mllvm,-loop-rotate-multi -Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening -Wl,-mllvm,-extra-vectorizer-passes -Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-2nd-level-tiling -Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40 -Wl,-mllvm,-polly-invariant-load-hoisting -Wl,-mllvm,-polly-loopfusion-greedy -Wl,-mllvm,-polly-register-tiling -Wl,-mllvm,-polly-run-dce -Wl,-mllvm,-polly-vectorizer=stripmine ' + ' '.join(ldflags) )
++    cmake_args.append( '-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-mllvm,-adce-remove-loops -Wl,-mllvm,-aggressive-ext-opt -Wl,-mllvm,-enable-cse-in-irtranslator -Wl,-mllvm,-enable-cse-in-legalizer -Wl,-mllvm,-enable-gvn-hoist -Wl,-mllvm,-gvn-hoist-max-bbs=-1 -Wl,-mllvm,-gvn-hoist-max-depth=-1 -Wl,-mllvm,-gvn-hoist-max-chain-length=-1 -Wl,-mllvm,-enable-interleaved-mem-accesses -Wl,-mllvm,-enable-masked-interleaved-mem-accesses -Wl,-mllvm,-enable-loopinterchange -Wl,-mllvm,-enable-loop-distribute -Wl,-mllvm,-enable-loop-flatten -Wl,-mllvm,-interleave-small-loop-scalar-reduction -Wl,-mllvm,-loop-rotate-multi -Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening -Wl,-mllvm,-extra-vectorizer-passes -Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-2nd-level-tiling -Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40 -Wl,-mllvm,-polly-invariant-load-hoisting -Wl,-mllvm,-polly-loopfusion-greedy -Wl,-mllvm,-polly-register-tiling -Wl,-mllvm,-polly-run-dce -Wl,-mllvm,-polly-vectorizer=stripmine ' + ' '.join(ldflags) )
++    cmake_args.append( '-DCMAKE_MODULE_LINKER_FLAGS=-Wl,-mllvm,-adce-remove-loops -Wl,-mllvm,-aggressive-ext-opt -Wl,-mllvm,-enable-cse-in-irtranslator -Wl,-mllvm,-enable-cse-in-legalizer -Wl,-mllvm,-enable-gvn-hoist -Wl,-mllvm,-gvn-hoist-max-bbs=-1 -Wl,-mllvm,-gvn-hoist-max-depth=-1 -Wl,-mllvm,-gvn-hoist-max-chain-length=-1 -Wl,-mllvm,-enable-interleaved-mem-accesses -Wl,-mllvm,-enable-masked-interleaved-mem-accesses -Wl,-mllvm,-enable-loopinterchange -Wl,-mllvm,-enable-loop-distribute -Wl,-mllvm,-enable-loop-flatten -Wl,-mllvm,-interleave-small-loop-scalar-reduction -Wl,-mllvm,-loop-rotate-multi -Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening -Wl,-mllvm,-extra-vectorizer-passes -Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-2nd-level-tiling -Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40 -Wl,-mllvm,-polly-invariant-load-hoisting -Wl,-mllvm,-polly-loopfusion-greedy -Wl,-mllvm,-polly-register-tiling -Wl,-mllvm,-polly-run-dce -Wl,-mllvm,-polly-vectorizer=stripmine ' + ' '.join(ldflags) )
 +  else:
-+     cmake_args.append( '-DCMAKE_C_FLAGS=-mllvm -polly -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-vectorizer=stripmine ' + ' '.join(cflags) )
-+     cmake_args.append( '-DCMAKE_CXX_FLAGS=-mllvm -polly -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-vectorizer=stripmine ' + ' '.join(cxxflags) )
++     cmake_args.append( '-DCMAKE_C_FLAGS=-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-register-tiling -mllvm -polly-run-dce -mllvm -polly-vectorizer=stripmine ' + ' '.join(cflags) )
++     cmake_args.append( '-DCMAKE_CXX_FLAGS=-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-register-tiling -mllvm -polly-run-dce -mllvm -polly-vectorizer=stripmine ' + ' '.join(cxxflags) )
 +     cmake_args.append( '-DCMAKE_EXE_LINKER_FLAGS=' + ' '.join(ldflags) )
 +     cmake_args.append( '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags) )
 +     cmake_args.append( '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags) )
    if sys.platform == 'win32':
      cmake_args.append('-DLLVM_ENABLE_ZLIB=FORCE_ON')
  
-@@ -1046,28 +1084,29 @@ def main():
+@@ -1070,28 +1122,29 @@ def main():
           compiler_rt_cmake_flags(sanitizers=True, profile=True) + [
               'CMAKE_SYSROOT=%s' % sysroot_amd64,
           ]))
@@ -669,7 +814,7 @@ index b686912d6fb57..ad22de371f064 100755
    elif sys.platform == 'win32':
      runtimes_triples_args.append(
          ('i386-pc-windows-msvc',
-@@ -1175,26 +1214,27 @@ def main():
+@@ -1199,26 +1252,27 @@ def main():
    # will be created which contains the necessary source files for compilation.
    # MLGO is only officially supported on linux. This condition is checked at
    # the top of main()
@@ -717,14 +862,29 @@ index b686912d6fb57..ad22de371f064 100755
  
    # Convert FOO=BAR CMake flags per triple into
    # -DBUILTINS_$triple_FOO=BAR/-DRUNTIMES_$triple_FOO=BAR and build up
-@@ -1251,8 +1291,8 @@ def main():
+@@ -1275,8 +1329,6 @@ def main():
      bolt_train_cmake_args = base_cmake_args + [
          '-DLLVM_TARGETS_TO_BUILD=X86',
          '-DLLVM_ENABLE_PROJECTS=clang',
 -        '-DCMAKE_C_FLAGS=' + ' '.join(cflags),
 -        '-DCMAKE_CXX_FLAGS=' + ' '.join(cxxflags),
-+        '-DCMAKE_C_FLAGS=-mllvm -polly -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-vectorizer=stripmine -Rpass-analysis=polly ' + ' '.join(cflags),
-+        '-DCMAKE_CXX_FLAGS=-mllvm -polly -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-vectorizer=stripmine -Rpass-analysis=polly ' + ' '.join(cxxflags),
          '-DCMAKE_EXE_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags),
+@@ -1288,6 +1340,8 @@ def main():
+         os.path.join(LLVM_BUILD_DIR, 'bin/clang-bolt.inst'),
+         '-DCMAKE_ASM_COMPILER_ID=Clang',
+     ]
++    cmake_args.append( '-DCMAKE_C_FLAGS=-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-register-tiling -mllvm -polly-run-dce -mllvm -polly-vectorizer=stripmine ' + ' '.join(cflags) )
++    cmake_args.append( '-DCMAKE_CXX_FLAGS=-mllvm -polly -mllvm -polly-2nd-level-tiling -mllvm -polly-detect-profitability-min-per-loop-insts=40 -mllvm -polly-invariant-load-hoisting -mllvm -polly-loopfusion-greedy -mllvm -polly-register-tiling -mllvm -polly-run-dce -mllvm -polly-vectorizer=stripmine ' + ' '.join(cxxflags) )
+     RunCommand(['cmake'] + bolt_train_cmake_args +
+                [os.path.join(LLVM_DIR, 'llvm')])
+     RunCommand([
+@@ -1336,6 +1390,7 @@ def main():
+   if args.install_dir:
+     RunCommand(['ninja', 'install'], msvc_arch='x64')
+ 
++
+   WriteStampFile(PACKAGE_VERSION, STAMP_FILE)
+   WriteStampFile(PACKAGE_VERSION, FORCE_HEAD_REVISION_FILE)
+   print('Clang build was successful.')
