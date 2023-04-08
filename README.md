@@ -63,4 +63,24 @@ https://john-h-k.github.io/VexTransitionPenalties.html
 
 ****
 
+**Note regarding FFmpeg:**
+
+Enable HEVC using the node javascript available here:
+
+https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding
+
+Apply the script within the chromium/src/third_party/ffmpeg directory.
+
+node /path/to/add-hevc-ffmpeg-decoder-parser.js
+
+Next apply ffmpeg.patch if present in the Chromium_Clang repp.
+
+git apply /path/to/ffmpeg.patch
+
+FFmpeg should be patched. Remember to apply associated Chromium build arguments.
+
+Verified on Linux as of latest published Chromium_Clang release build(s).
+
+****
+
 <sub>*Typical third-party build disclaimer. No warranties. No guarantees. Your mileage may vary. Use at your own risk.*</sub>
