@@ -33,7 +33,9 @@ enable_distro_version_check = false
 chrome_pgo_phase = 2
 use_icf = true
 is_cfi = true
-llvm_force_head_revision = true
+## External LLVM checkout used. ##
+clang_base_path = "/usr/lib/llvm-17"
+clang_version = "17"
 disable_fieldtrial_testing_config = true
 enable_ffmpeg_video_decoders = true
 enable_platform_hevc = true
