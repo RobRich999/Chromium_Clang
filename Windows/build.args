@@ -1,5 +1,11 @@
 # Build arguments go here.
 # See "gn args <out_dir> --list" for available build arguments.
+
+# External LLVM checkout used!
+# https://apt.llvm.org/
+clang_base_path = "/usr/lib/llvm-17"
+clang_version = "17"
+
 is_clang = true
 is_component_build = false
 is_debug = false
@@ -27,7 +33,6 @@ enable_resource_allowlist_generation = false
 enable_nacl = false
 enable_precompiled_headers = false
 chrome_pgo_phase = 2
-llvm_force_head_revision = true
 disable_fieldtrial_testing_config = true
 target_os = "win"
 enable_media_foundation_widevine_cdm = true
