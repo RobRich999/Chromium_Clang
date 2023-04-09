@@ -73,7 +73,9 @@ Apply the script within the chromium/src/third_party/ffmpeg directory.
 
 node /path/to/add-hevc-ffmpeg-decoder-parser.js
 
-Next apply ffmpeg.patch if present in the Chromium_Clang repp.
+Next apply ffmpeg.patch if present in the Chromium_Clang repo.
+
+https://github.com/RobRich999/Chromium_Clang/blob/master/FFmpeg/ffmpeg.patch
 
 git apply /path/to/ffmpeg.patch
 
