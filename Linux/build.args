@@ -1,5 +1,10 @@
 # Build arguments go here.
 # See "gn args <out_dir> --list" for available build arguments.
+
+# External LLVM checkout used!
+clang_base_path = "/usr/lib/llvm-17"
+clang_version = "17"
+
 is_clang = true
 is_component_build = false
 is_debug = false
@@ -33,9 +38,6 @@ enable_distro_version_check = false
 chrome_pgo_phase = 2
 use_icf = true
 is_cfi = true
-## External LLVM checkout used. ##
-clang_base_path = "/usr/lib/llvm-17"
-clang_version = "17"
 disable_fieldtrial_testing_config = true
 enable_ffmpeg_video_decoders = true
 enable_platform_hevc = true
