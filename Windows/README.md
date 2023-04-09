@@ -1,4 +1,4 @@
-Chromium_Clang for Windows builds are cross-compiled under Linux.
+Chromium_Clang for Windows builds are cross-compiled under Linux; currently Kubuntu 23.04 (Lunar Lobster).
 
 https://chromium.googlesource.com/chromium/src/+/master/docs/win_cross.md
 
