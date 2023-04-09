@@ -6,7 +6,7 @@ The modified script builds LLVM on Linux x64-64. Other architectures and platfor
 
 All builds are bootstrapped. There is no need to pass the --bootstrap option, which will now error.
 
-LLVM is built with -march=native, Polly, and other optimizations. Optimizations have beeb carried down into the PGO, ThinLTO, and BOLT build options.
+LLVM is built with -march=native, Polly, and other optimizations. Optimizations have been carried down into the PGO, ThinLTO, and BOLT build options.
 
 Using --without-android and --without-fuchsia now skips downloading the ARM sysroots. The options have not otherwise been tested.
 
