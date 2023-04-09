@@ -2,6 +2,7 @@
 # See "gn args <out_dir> --list" for available build arguments.
 
 # External LLVM checkout used!
+# https://apt.llvm.org/
 clang_base_path = "/usr/lib/llvm-17"
 clang_version = "17"
 
