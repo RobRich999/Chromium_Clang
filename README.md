@@ -75,15 +75,13 @@ Apply the script within the chromium/src/third_party/ffmpeg directory.
 
 node /path/to/add-hevc-ffmpeg-decoder-parser.js
 
-Next apply ffmpeg.patch if present in the Chromium_Clang repo.
+Modify ffmpeg_generated.gni to comment out the dynamic_hdr10_plus.c file:
 
-https://github.com/RobRich999/Chromium_Clang/blob/master/FFmpeg/ffmpeg.patch
+# "libavcodec/dynamic_hdr10_plus.c",
 
-git apply /path/to/ffmpeg.patch
+HDR10 support has been moved elsewhere in FFmpeg and should still work.
 
-FFmpeg should be patched. Remember to apply associated Chromium build arguments.
-
-Verified as of latest published Chromium_Clang for Linux build(s).
+Remember to apply associated Chromium build arguments.
 
 ****
 
