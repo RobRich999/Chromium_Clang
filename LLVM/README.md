@@ -10,7 +10,7 @@ LLVM is built with -march=native, Polly, and other optimizations. Optimizations 
 
 Using --without-android and --without-fuchsia now skips downloading the ARM sysroots. The options have not otherwise been tested.
 
-I added --x86-only to skip building LLVM support for various other architectures. The options have not otherwise been tested.
+I added --x86-only to skip building LLVM support for various other architectures. The option has not otherwise been tested.
 
 Use --without-clang-extra to disable building extra clang tools. These are not required for my release builds. YMMV for other build types.
 
