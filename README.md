@@ -14,6 +14,8 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v114.0.5690.0-r1125063
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v114.0.5690.0-r1125063-win64-avx
 
+<sub>*Windows builds are cross-compiled under Linux.*</sub>
+
 ****
 
 **Links to latest Linux build releases in deb package format:**
