@@ -10,7 +10,7 @@ The issue has been reported pending future "enable-chromium-hevc-hardware-decodi
 
 https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/issues/50
 
-Apply the the add-hevc-ffmpeg-decoder-parser.js script within the chromium/src/third_party/ffmpeg directory.
+Use the patched add-hevc-ffmpeg-decoder-parser.js script within the chromium/src/third_party/ffmpeg directory.
 
 node /path/to/add-hevc-ffmpeg-decoder-parser.js
 
