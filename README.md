@@ -77,7 +77,7 @@ node /path/to/add-hevc-ffmpeg-decoder-parser.js
 
 Modify ffmpeg_generated.gni to comment out the dynamic_hdr10_plus.c file:
 
-# "libavcodec/dynamic_hdr10_plus.c",
+\# "libavcodec/dynamic_hdr10_plus.c",
 
 HDR10 support has been moved elsewhere in FFmpeg and should still work.
 
