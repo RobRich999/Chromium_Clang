@@ -18,4 +18,8 @@ Usage example from the /chromium/src directory:
 
 vpython3 tools/clang/scripts/build.py --without-android --without-fuchsia --disable-asserts --thinlto --pgo --bolt --llvm-force-head-revision --x86-only --without-clang-extra
 
-Building LLVM with ThinLTO, PGO, and BOLT optimizations are optional. Regardless LLLVM still builds with optimizations for -O3, -march=native, Polly, extra LLVM loop passes, etc. PGO and BOLT are not too LLVM build time intensive for a relatively fast system and/or lots of cores. ThinLTO can incur dramatically increased LLVVM build times, even on my 64-core build server.
+Building LLVM with ThinLTO, PGO, and BOLT optimizations are optional. Regardless, LLLVM still builds with optimizations for -O3, -march=native, Polly, extra LLVM loop passes, etc.
+
+PGO and BOLT are not too LLVM build time intensive for a relatively fast system and/or lots of cores.
+
+ThinLTO can incur dramatically increased LLVVM build times as tested on an Opteron 64-core build server.
