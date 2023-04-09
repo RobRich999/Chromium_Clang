@@ -81,7 +81,7 @@ git apply /path/to/ffmpeg.patch
 
 FFmpeg should be patched. Remember to apply associated Chromium build arguments.
 
-Verified on Linux as of latest published Chromium_Clang release build(s).
+Verified as of latest published Chromium_Clang for Linux build(s).
 
 ****
 
