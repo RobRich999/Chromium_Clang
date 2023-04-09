@@ -22,4 +22,4 @@ Building LLVM with ThinLTO, PGO, and BOLT optimizations are optional. Regardless
 
 PGO and BOLT are not too LLVM build time intensive for a relatively fast system and/or lots of cores.
 
-ThinLTO can incur dramatically increased LLVVM build times as tested on an Opteron 64-core build server.
+ThinLTO can incur dramatically increased LLVM build times as tested on an Opteron 64-core build server.
