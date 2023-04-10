@@ -67,7 +67,11 @@ https://john-h-k.github.io/VexTransitionPenalties.html
 
 **Note regarding FFmpeg:**
 
-https://github.com/RobRich999/Chromium_Clang/tree/master/FFmpeg
+Use the javascript patcher from here...
+
+https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding
+
+...then proceed with the Chromium_Clang patches and build arguments.
 
 ****
 
