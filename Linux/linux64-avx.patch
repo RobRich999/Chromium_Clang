@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index d0b55ce295fdf..e567d76fad8a1 100644
+index d0b55ce295fdf..fb38a5630fbd7 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -349,6 +349,7 @@ config("compiler") {
@@ -10,15 +10,6 @@ index d0b55ce295fdf..e567d76fad8a1 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -569,7 +570,7 @@ config("compiler") {
-     if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
- 
 @@ -666,11 +667,28 @@ config("compiler") {
      cflags += [
        "-flto=thin",
