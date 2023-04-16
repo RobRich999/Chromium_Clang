@@ -308,7 +308,7 @@ index d0b55ce295fdf..7411a76d4e87c 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index a02f55d83efa1..86f979e3f7c0b 100644
+index 507a76edd4439..dff50590b5725 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -88,7 +88,7 @@ config("compiler") {
@@ -372,10 +372,10 @@ index 505d0ce5049f1..00fcf1172c017 100644
 -                  "scope")
  }
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 7cfc0bf6d3614..657f21a934359 100644
+index 07b991932aad5..75a2e0eabe55d 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -209,28 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -209,33 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -394,17 +394,23 @@ index 7cfc0bf6d3614..657f21a934359 100644
 -    return true;
 -  }
 -#endif  // BUILDFLAG(IS_CHROMEOS_LACROS)
+-#if BUILDFLAG(IS_CHROMEOS_ASH)
+-  if (!base::FeatureList::IsEnabled(kPlatformHEVCDecoderSupport)) {
+-    return false;
+-  }
+-#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
 -  return GetSupplementalProfileCache()->IsProfileSupported(type.profile);
 -#else
-   return true;
+-  return true;
 -#endif  // BUIDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_SUPPORT)
 -#else
 -  return false;
 -#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
++   return true;
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -405,7 +384,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -410,7 +384,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
