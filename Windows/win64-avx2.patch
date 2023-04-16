@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index d0b55ce295fdf..3eec6b98d7dde 100644
+index d0b55ce295fdf..ad0119bbe47c4 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -349,6 +349,7 @@ config("compiler") {
@@ -15,7 +15,7 @@ index d0b55ce295fdf..3eec6b98d7dde 100644
      # TODO(crbug.com/1235145): Investigate why/if this should be needed.
      if (is_win) {
 -      cflags += [ "/clang:-ffp-contract=off" ]
-+      cflags += [ "/clang:-ffp-contract=fast" ]
++      cflags += [ "/clang:-ffp-contract=true" ]
      } else {
        cflags += [ "-ffp-contract=off" ]
      }
@@ -317,7 +317,7 @@ index d0b55ce295fdf..3eec6b98d7dde 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index a02f55d83efa1..ec8dfab70f245 100644
+index 507a76edd4439..44b36d40aa944 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -88,7 +88,7 @@ config("compiler") {
@@ -381,10 +381,10 @@ index 505d0ce5049f1..00fcf1172c017 100644
 -                  "scope")
  }
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 7cfc0bf6d3614..657f21a934359 100644
+index 07b991932aad5..75a2e0eabe55d 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -209,28 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -209,33 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -403,17 +403,23 @@ index 7cfc0bf6d3614..657f21a934359 100644
 -    return true;
 -  }
 -#endif  // BUILDFLAG(IS_CHROMEOS_LACROS)
+-#if BUILDFLAG(IS_CHROMEOS_ASH)
+-  if (!base::FeatureList::IsEnabled(kPlatformHEVCDecoderSupport)) {
+-    return false;
+-  }
+-#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
 -  return GetSupplementalProfileCache()->IsProfileSupported(type.profile);
 -#else
-   return true;
+-  return true;
 -#endif  // BUIDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_SUPPORT)
 -#else
 -  return false;
 -#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
++   return true;
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -405,7 +384,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -410,7 +384,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
