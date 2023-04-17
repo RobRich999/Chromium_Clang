@@ -302,10 +302,10 @@ index b00fec969991a..75f590e896796 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index b40122f4f5006..c498809a91b00 100644
+index b40122f4f5006..9f070732f4ce0 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -710,7 +710,7 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -710,11 +710,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -314,6 +314,11 @@ index b40122f4f5006..c498809a91b00 100644
  
  BASE_FEATURE(kVaapiVideoEncodeLinux,
               "VaapiVideoEncoder",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
+ // Intended for manual usage only in order to gague the status of newer driver
 @@ -1062,7 +1062,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
  // TODO(b/159825227): remove when the direct video decoder is fully launched.
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
