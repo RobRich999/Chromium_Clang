@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index d0b55ce295fdf..fb38a5630fbd7 100644
+index 451c20e5761a7..f4b100bae4100 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -349,6 +349,7 @@ config("compiler") {
@@ -10,27 +10,25 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -666,11 +667,28 @@ config("compiler") {
+@@ -666,11 +667,26 @@ config("compiler") {
      cflags += [
        "-flto=thin",
        "-fsplit-lto-unit",
++      "-freroll-loops",
 +      "-mllvm", "-adce-remove-loops",
 +      "-mllvm", "-aggressive-ext-opt",
-+      "-mllvm", "-enable-cse-in-irtranslator",
-+      "-mllvm", "-enable-cse-in-legalizer",
 +      "-mllvm", "-enable-gvn-hoist",
-+      "-mllvm", "-gvn-hoist-max-bbs=-1",
-+      "-mllvm", "-gvn-hoist-max-depth=-1",
-+      "-mllvm", "-gvn-hoist-max-chain-length=-1",
 +      "-mllvm", "-enable-interleaved-mem-accesses",
 +      "-mllvm", "-enable-masked-interleaved-mem-accesses",
 +      "-mllvm", "-enable-loopinterchange",
 +      "-mllvm", "-enable-loop-distribute",
 +      "-mllvm", "-enable-loop-flatten",
++      "-mllvm", "-extra-vectorizer-passes",
 +      "-mllvm", "-interleave-small-loop-scalar-reduction",
 +      "-mllvm", "-loop-rotate-multi",
 +      "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
-+      "-mllvm", "-extra-vectorizer-passes",
++      "-mllvm", "-unroll-runtime",
++      "-mllvm", "-unroll-runtime-multi-exit",
      ]
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
@@ -40,44 +38,37 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -687,7 +705,35 @@ config("compiler") {
+@@ -687,7 +703,28 @@ config("compiler") {
          "/lldltocachepolicy:$cache_policy",
        ]
      } else {
 -      ldflags += [ "-flto=thin" ]
 +      ldflags += [
 +        "-flto=thin",
++        "-freroll-loops",
 +        "-Wl,-mllvm,-adce-remove-loops",
 +        "-Wl,-mllvm,-aggressive-ext-opt",
-+        "-Wl,-mllvm,-enable-cse-in-irtranslator",
-+        "-Wl,-mllvm,-enable-cse-in-legalizer",
 +        "-Wl,-mllvm,-enable-gvn-hoist",
-+        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
-+        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
-+        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
 +        "-Wl,-mllvm,-enable-interleaved-mem-accesses",
 +        "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
 +        "-Wl,-mllvm,-enable-loopinterchange",
 +        "-Wl,-mllvm,-enable-loop-distribute",
 +        "-Wl,-mllvm,-enable-loop-flatten",
++        "-Wl,-mllvm,-extra-vectorizer-passes",
 +        "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
 +        "-Wl,-mllvm,-loop-rotate-multi",
 +        "-Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening",
-+        "-Wl,-mllvm,-extra-vectorizer-passes",
++        "-Wl,-mllvm,-unroll-runtime",
++        "-Wl,-mllvm,-unroll-runtime-multi-exit",
 +        "-Wl,-mllvm,-polly",
-+        "-Wl,-mllvm,-polly-2nd-level-tiling",
-+        "-Wl,-mllvm,-polly-detect-profitability-min-per-loop-insts=40",
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
-+        "-Wl,-mllvm,-polly-loopfusion-greedy",
-+        "-Wl,-mllvm,-polly-register-tiling",
 +        "-Wl,-mllvm,-polly-run-dce",
 +        "-Wl,-mllvm,-polly-vectorizer=stripmine",
-+        # "-Wl,-mllvm,-pass-remarks-analysis=polly",
-+     ]
++      ]
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -705,12 +751,12 @@ config("compiler") {
+@@ -705,12 +742,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -94,16 +85,16 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -886,6 +932,8 @@ config("compiler") {
+@@ -886,6 +923,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+avx,+aes",
++    "-Ctarget-cpu=x86-64-v2", "-Ctarget-feature=+avx",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -918,12 +966,13 @@ config("rust_defer_lto_to_linker") {
+@@ -918,7 +957,7 @@ config("rust_defer_lto_to_linker") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -112,13 +103,7 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-     }
- 
-     rustflags = [ "-Clto=thin" ]
-@@ -941,15 +990,16 @@ config("thinlto_optimize_default") {
+@@ -941,15 +980,16 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -136,31 +121,17 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
-     rustflags = [ "-Clto=thin" ]
-@@ -983,7 +1033,7 @@ config("compiler_cpu_abi") {
+     rustflags = [ "-Clinker-plugin-lto=yes" ]
+@@ -983,7 +1023,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-mavx", "-maes",
++        "-march=x86-64-v2", "-mavx"
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2067,11 +2117,12 @@ if (is_win) {
-       # can be removed at link time with --gc-sections.
-       "-fdata-sections",
-       "-ffunction-sections",
-+      "-funique-section-names",
-     ]
-     if ((!is_nacl || is_nacl_saigo) && is_clang) {
-       # We don't care about unique section names, this makes object files a bit
-       # smaller.
--      common_optimize_on_cflags += [ "-fno-unique-section-names" ]
-+      # common_optimize_on_cflags += [ "-fno-unique-section-names" ]
-     }
- 
-     common_optimize_on_ldflags += [
-@@ -2131,7 +2182,7 @@ config("optimize") {
+@@ -2135,7 +2175,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -169,7 +140,7 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2140,12 +2191,12 @@ config("optimize") {
+@@ -2144,7 +2184,7 @@ config("optimize") {
          ]
        }
      } else {
@@ -178,13 +149,7 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
      }
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
-     # vectorization.
--    rustflags = [ "-Copt-level=z" ]
-+    rustflags = [ "-Copt-level=s" ]
-   } else if (is_chromeos) {
-     # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
-     # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2159,7 +2210,7 @@ config("optimize") {
+@@ -2163,7 +2203,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -193,7 +158,7 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2230,7 +2281,7 @@ config("optimize_max") {
+@@ -2234,7 +2274,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -203,16 +168,31 @@ index d0b55ce295fdf..fb38a5630fbd7 100644
      rustflags = [ "-Copt-level=3" ]
    }
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
-index 15bbf25f2b443..49829c0ac2410 100755
+index 15bbf25f2b443..e69de29bb2d1d 100755
 --- a/chrome/installer/linux/common/repo.cron
 +++ b/chrome/installer/linux/common/repo.cron
-@@ -17,28 +17,6 @@
- # "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
- # to "false".
- 
+@@ -1,44 +0,0 @@
+-#!/bin/sh
+-#
+-# Copyright 2009 The Chromium Authors
+-# Use of this source code is governed by a BSD-style license that can be
+-# found in the LICENSE file.
+-#
+-# This script is part of the @@PACKAGE@@ package.
+-#
+-# It creates the repository configuration file for package updates, and it
+-# monitors that config to see if it has been disabled by the overly aggressive
+-# distro upgrade process (e.g.  intrepid -> jaunty). When this situation is
+-# detected, the respository will be re-enabled. If the respository is disabled
+-# for any other reason, this won't re-enable it.
+-#
+-# This functionality can be controlled by creating the $DEFAULTS_FILE and
+-# setting "repo_add_once" and/or "repo_reenable_on_distupgrade" to "true" or
+-# "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
+-# to "false".
+-
 -@@include@@../common/variables.include
-+# @@include@@../common/variables.include
- 
+-
 -@@include@@apt.include
 -
 -## MAIN ##
@@ -236,7 +216,6 @@ index 15bbf25f2b443..49829c0ac2410 100755
 -if [ "$repo_reenable_on_distupgrade" = "true" ]; then
 -  handle_distro_upgrade
 -fi
-+# @@include@@apt.include
 diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
 index c1db53387a9c8..631fe61eefa72 100755
 --- a/chrome/installer/linux/debian/postinst
@@ -302,7 +281,7 @@ index b00fec969991a..75f590e896796 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index b40122f4f5006..9f070732f4ce0 100644
+index aaec091bb22bd..a28e94458f0e7 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -710,11 +710,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
@@ -396,3 +375,16 @@ index 6b5e48095e4bc..3701bdfef832a 100644
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
+diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
+index 506a22f43a82a..2fe60380edda1 100644
+--- a/tools/cfi/ignores.txt
++++ b/tools/cfi/ignores.txt
+@@ -130,6 +130,8 @@ type:sandbox::TargetServices
+ 
+ [cfi-icall]
+ 
++fun:ft_size_reset_iterator
++
+ ######### Cross-DSO icalls using dynamically resolved symbols crbug.com/771365
+ 
+ # ANGLE
