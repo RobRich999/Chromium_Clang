@@ -12,7 +12,7 @@ Implementation of various options are subject to change depending upon performan
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v114.0.5728.0-r1134209-linux64-deb-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v114.0.5719.0-r1131511-linux64-deb-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v114.0.5728.0-r1134209-linux64-deb-avx
 
 ****
 
