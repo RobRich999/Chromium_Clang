@@ -1,3 +1,12 @@
-Apply the patch from the /chromium/src directory to modify V8 to warn instead of error when encountering profile mismatches.
-
-git apply /path/to/v8.patch
+diff --git a/BUILD.gn b/BUILD.gn
+index 7ae552a31e..784e0426e4 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -2248,7 +2248,7 @@ template("run_mksnapshot") {
+ 
+         # Replace this with --warn-about-builtin-profile-data to see the full
+         # list of builtins with incompatible profiles.
+-        "--abort-on-bad-builtin-profile-data",
++        "--warn-about-builtin-profile-data",
+       ]
+     }
