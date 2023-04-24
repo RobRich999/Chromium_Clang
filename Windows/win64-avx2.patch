@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 451c20e5761a7..3031dc63c6158 100644
+index 451c20e5761a7..af1a1c8bef484 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -349,6 +349,7 @@ config("compiler") {
@@ -134,7 +134,7 @@ index 451c20e5761a7..3031dc63c6158 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=haswell",
++    "-Ctune-cpu=haswell", "-Ctarget-feature=+avx",
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
