@@ -401,3 +401,16 @@ index 6b5e48095e4bc..3701bdfef832a 100644
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
+diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
+index 506a22f43a82a..2fe60380edda1 100644
+--- a/tools/cfi/ignores.txt
++++ b/tools/cfi/ignores.txt
+@@ -130,6 +130,8 @@ type:sandbox::TargetServices
+ 
+ [cfi-icall]
+ 
++fun:ft_size_reset_iterator
++
+ ######### Cross-DSO icalls using dynamically resolved symbols crbug.com/771365
+ 
+ # ANGLE
