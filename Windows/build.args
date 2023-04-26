@@ -33,7 +33,6 @@ enable_resource_allowlist_generation = false
 enable_nacl = false
 enable_precompiled_headers = false
 chrome_pgo_phase = 2
-is_cfi = true
 disable_fieldtrial_testing_config = true
 target_os = "win"
 enable_media_foundation_widevine_cdm = true
