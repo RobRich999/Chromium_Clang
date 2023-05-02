@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index e89b62eb0aaf6..e08d70259068c 100644
+index e89b62eb0aaf6..7a953694922e6 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -349,6 +349,7 @@ config("compiler") {
@@ -10,26 +10,12 @@ index e89b62eb0aaf6..e08d70259068c 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -665,12 +666,26 @@ config("compiler") {
+@@ -665,12 +666,12 @@ config("compiler") {
  
      cflags += [
        "-flto=thin",
 -      "-fsplit-lto-unit",
 +      "-fno-split-lto-unit",
-+      "-Xclang", "-freroll-loops",
-+      "-mllvm", "-adce-remove-loops",
-+      "-mllvm", "-aggressive-ext-opt",
-+      "-mllvm", "-enable-gvn-hoist",
-+      "-mllvm", "-enable-interleaved-mem-accesses",
-+      "-mllvm", "-enable-masked-interleaved-mem-accesses",
-+      "-mllvm", "-enable-loopinterchange",
-+      "-mllvm", "-enable-loop-flatten",
-+      "-mllvm", "-extra-vectorizer-passes",
-+      "-mllvm", "-interleave-small-loop-scalar-reduction",
-+      "-mllvm", "-loop-rotate-multi",
-+      "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
-+      "-mllvm", "-unroll-runtime",
-+      "-mllvm", "-unroll-runtime-multi-exit",
      ]
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
@@ -39,7 +25,26 @@ index e89b62eb0aaf6..e08d70259068c 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -682,13 +697,40 @@ config("compiler") {
+@@ -679,16 +680,44 @@ config("compiler") {
+     import_instr_limit = 30
+ 
+     if (is_win) {
++      cflags += [
++        "-Xclang", "-freroll-loops",
++        "-mllvm", "-adce-remove-loops",
++        "-mllvm", "-aggressive-ext-opt",
++        "-mllvm", "-enable-gvn-hoist",
++        "-mllvm", "-enable-interleaved-mem-accesses",
++        "-mllvm", "-enable-masked-interleaved-mem-accesses",
++        "-mllvm", "-enable-loopinterchange",
++        "-mllvm", "-enable-loop-flatten",
++        "-mllvm", "-extra-vectorizer-passes",
++        "-mllvm", "-interleave-small-loop-scalar-reduction",
++        "-mllvm", "-loop-rotate-multi",
++        "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
++        "-mllvm", "-unroll-runtime",
++        "-mllvm", "-unroll-runtime-multi-exit",
++    ]
        ldflags += [
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
@@ -65,26 +70,11 @@ index e89b62eb0aaf6..e08d70259068c 100644
        ]
      } else {
 -      ldflags += [ "-flto=thin" ]
-+      ldflags = [
-+        "-flto=thin",
-+        "-freroll-loops",
-+        "-Wl,-mllvm,-aggressive-ext-opt",
-+        "-Wl,-mllvm,-enable-gvn-hoist",
-+        "-Wl,-mllvm,-enable-loopinterchange",
-+        "-Wl,-mllvm,-enable-loop-flatten",
-+        "-Wl,-mllvm,-extra-vectorizer-passes",
-+        "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
-+        "-Wl,-mllvm,-loop-rotate-multi",
-+        "-Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening",
-+        "-Wl,-mllvm,-unroll-runtime",
-+        "-Wl,-mllvm,-unroll-runtime-multi-exit",
-+        "-Wl,-mllvm,-polly",
-+        "-Wl,-mllvm,-polly-invariant-load-hoisting",
-+      ]
++      ldflags = [ "-flto=thin" ]
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -706,12 +748,12 @@ config("compiler") {
+@@ -706,12 +735,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -101,7 +91,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -725,7 +767,7 @@ config("compiler") {
+@@ -725,7 +754,7 @@ config("compiler") {
          import_instr_limit = 5
        }
  
@@ -110,7 +100,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -895,6 +937,8 @@ config("compiler") {
+@@ -895,6 +924,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -119,7 +109,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -912,12 +956,14 @@ config("compiler") {
+@@ -912,12 +943,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -130,12 +120,13 @@ index e89b62eb0aaf6..e08d70259068c 100644
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
+-      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags = [ "-Wl,--lto-O0" ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -938,15 +984,17 @@ config("thinlto_optimize_default") {
+@@ -938,15 +971,17 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -150,12 +141,13 @@ index e89b62eb0aaf6..e08d70259068c 100644
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
+-      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags = [ "-Wl,--lto-O0" ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -983,7 +1031,7 @@ config("compiler_cpu_abi") {
+@@ -983,7 +1018,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -164,7 +156,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2120,12 +2168,12 @@ config("optimize") {
+@@ -2120,12 +2155,12 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -180,7 +172,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
  
        # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
        # suggests not using an explicit `-Copt-level` at all, and the default is
-@@ -2135,7 +2183,7 @@ config("optimize") {
+@@ -2135,7 +2170,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -189,7 +181,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2144,12 +2192,12 @@ config("optimize") {
+@@ -2144,12 +2179,12 @@ config("optimize") {
          ]
        }
      } else {
@@ -204,7 +196,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2163,7 +2211,7 @@ config("optimize") {
+@@ -2163,7 +2198,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -213,7 +205,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2230,11 +2278,11 @@ config("optimize_max") {
+@@ -2230,11 +2265,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -227,7 +219,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2263,7 +2311,7 @@ config("optimize_speed") {
+@@ -2263,7 +2298,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -236,7 +228,7 @@ index e89b62eb0aaf6..e08d70259068c 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2617,7 +2665,7 @@ config("minimal_symbols") {
+@@ -2617,7 +2652,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
