@@ -1,9 +1,9 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index e89b62eb0aaf6..34177193bcd80 100644
+index e89b62eb0aaf6..9b6121b2ec9a9 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -349,6 +349,7 @@ config("compiler") {
-
+ 
      if (use_lld) {
        ldflags += [ "-fuse-ld=lld" ]
 +      ldflags += [ "-Wl,--threads=8" ]
@@ -11,7 +11,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
          ldflags += [ "-B$lld_path" ]
        }
 @@ -567,7 +568,7 @@ config("compiler") {
-
+ 
      # TODO(crbug.com/1235145): Investigate why/if this should be needed.
      if (is_win) {
 -      cflags += [ "/clang:-ffp-contract=off" ]
@@ -20,23 +20,23 @@ index e89b62eb0aaf6..34177193bcd80 100644
        cflags += [ "-ffp-contract=off" ]
      }
 @@ -665,12 +666,12 @@ config("compiler") {
-
+ 
      cflags += [
        "-flto=thin",
 -      "-fsplit-lto-unit",
 +      "-fno-split-lto-unit",
      ]
-
+ 
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
 -    cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
 +    # cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
-
+ 
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -679,16 +680,43 @@ config("compiler") {
+@@ -679,13 +680,40 @@ config("compiler") {
      import_instr_limit = 30
-
+ 
      if (is_win) {
 +      cflags += [
 +        "-Xclang", "-freroll-loops",
@@ -77,11 +77,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
 +        "-mllvm:-polly-invariant-load-hoisting",
        ]
      } else {
--      ldflags += [ "-flto=thin" ]
-+      ldflags = [ "-flto=thin" ]
-
-       # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
-       # usage in crbug.com/1038040. Note this will increase build time in
+       ldflags += [ "-flto=thin" ]
 @@ -706,12 +734,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
@@ -93,19 +89,19 @@ index e89b62eb0aaf6..34177193bcd80 100644
 +        #     [ "-Wl,--thinlto-cache-dir=" +
 +        #       rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
        }
-
+ 
 -      ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
 +      # ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
-
+ 
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
 @@ -725,7 +753,7 @@ config("compiler") {
          import_instr_limit = 5
        }
-
+ 
 -      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
 +      ldflags += [ "-Wl,-mllvm,-import-instr-limit=5" ]
-
+ 
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
 @@ -895,6 +923,8 @@ config("compiler") {
@@ -123,7 +119,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
 +    lto_opt_level = 3
-
+ 
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
@@ -132,7 +128,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
 +      ldflags = [ "-Wl,--lto-O0" ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
-
+ 
      # We always point Rust to a linker that performs LTO, so we don't want Rust
 @@ -938,15 +970,17 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
@@ -144,7 +140,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
 -      lto_opt_level = 0
 +      lto_opt_level = 3
      }
-
+ 
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
@@ -153,7 +149,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
 +      ldflags = [ "-Wl,--lto-O0" ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
-
+ 
      # We always point Rust to a linker that performs LTO, so we don't want Rust
 @@ -983,7 +1017,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
@@ -177,7 +173,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
        # optimization level will be decided based on the profiling data.
 -      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
 +      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
-
+ 
        # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
        # suggests not using an explicit `-Copt-level` at all, and the default is
 @@ -2135,7 +2169,7 @@ config("optimize") {
@@ -186,11 +182,11 @@ index e89b62eb0aaf6..34177193bcd80 100644
      if (is_clang) {
 -      cflags = [ "-Oz" ] + common_optimize_on_cflags
 +      cflags = [ "-O3" ] + common_optimize_on_cflags
-
+ 
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
 @@ -2149,7 +2183,7 @@ config("optimize") {
-
+ 
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
 -    rustflags = [ "-Copt-level=z" ]
@@ -204,7 +200,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
    } else {
 -    cflags = [ "-O2" ] + common_optimize_on_cflags
 +    cflags = [ "-O3" ] + common_optimize_on_cflags
-
+ 
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
 @@ -2230,11 +2264,11 @@ config("optimize_max") {
@@ -236,7 +232,7 @@ index e89b62eb0aaf6..34177193bcd80 100644
    if (is_win) {
 -    ldflags = [ "/DEBUG" ]
 +    ldflags = [ "/DEBUG:NONE" ]
-
+ 
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
@@ -244,13 +240,13 @@ index 8a3bfbbb526e5..01a0c9caee553 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
-
+ 
    cflags += [
      # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
 -    "/Zc:sizedDealloc-",
 +    # "/Zc:sizedDealloc-",
    ]
-
+ 
    if (is_clang) {
 @@ -126,7 +126,7 @@ config("compiler") {
      # microarchitecture. MSVC only supports a subset of architectures, and the
@@ -259,27 +255,27 @@ index 8a3bfbbb526e5..01a0c9caee553 100644
 -      cflags += [ "-msse3" ]
 +      cflags += [ "/arch:AVX2" ]
      }
-
+ 
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
 @@ -166,6 +166,8 @@ config("compiler") {
-
+ 
      # Don't look for libpaths in %LIB%, similar to /X in cflags above.
      ldflags += [ "/lldignoreenv" ]
 +
 +    ldflags += [ "/threads:8" ]
    }
-
+ 
    # Some binaries create PDBs larger than 4 GiB. Increasing the PDB page size
 @@ -189,9 +191,7 @@ config("compiler") {
      ]
-
+ 
      if (use_lld) {
 -      # String tail merging leads to smaller binaries, but they don't compress
 -      # as well, leading to increased mini_installer size (crbug.com/838449).
 -      ldflags += [ "/OPT:NOLLDTAILMERGE" ]
 +      ldflags += [ "/OPT:LLDTAILMERGE" ]
      }
-
+ 
      # TODO(siggi): Is this of any use anymore?
 @@ -199,7 +199,7 @@ config("compiler") {
      # PDB file by about 5%) but does not otherwise alter the output binary. It
@@ -288,7 +284,7 @@ index 8a3bfbbb526e5..01a0c9caee553 100644
 -    ldflags += [ "/PROFILE" ]
 +    # ldflags += [ "/PROFILE" ]
    }
-
+ 
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 07b991932aad5..75a2e0eabe55d 100644
@@ -296,7 +292,7 @@ index 07b991932aad5..75a2e0eabe55d 100644
 +++ b/media/base/supported_types.cc
 @@ -209,33 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
-
+ 
  bool IsHevcProfileSupported(const VideoType& type) {
 -  if (!IsColorSpaceSupported(type.color_space))
 -    return false;
@@ -327,7 +323,7 @@ index 07b991932aad5..75a2e0eabe55d 100644
 -#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
 +   return true;
  }
-
+ 
  bool IsVp9ProfileSupported(const VideoType& type) {
 @@ -410,7 +384,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
@@ -353,7 +349,7 @@ index 6b5e48095e4bc..3701bdfef832a 100644
 @@ -86,6 +85,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
-
+ 
 +    case VideoCodec::kHEVC:
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
