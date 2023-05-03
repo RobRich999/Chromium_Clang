@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 451c20e5761a7..f4b100bae4100 100644
+index e89b62eb0aaf6..d3f8faeb18ee8 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -349,6 +349,7 @@ config("compiler") {
@@ -10,18 +10,24 @@ index 451c20e5761a7..f4b100bae4100 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -666,11 +667,26 @@ config("compiler") {
+@@ -569,7 +570,7 @@ config("compiler") {
+     if (is_win) {
+       cflags += [ "/clang:-ffp-contract=off" ]
+     } else {
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
+     }
+   }
+ 
+@@ -666,11 +667,23 @@ config("compiler") {
      cflags += [
        "-flto=thin",
        "-fsplit-lto-unit",
 +      "-freroll-loops",
-+      "-mllvm", "-adce-remove-loops",
 +      "-mllvm", "-aggressive-ext-opt",
++      "-mllvm", "-enable-ext-tsp-block-placement",
 +      "-mllvm", "-enable-gvn-hoist",
-+      "-mllvm", "-enable-interleaved-mem-accesses",
-+      "-mllvm", "-enable-masked-interleaved-mem-accesses",
 +      "-mllvm", "-enable-loopinterchange",
-+      "-mllvm", "-enable-loop-distribute",
 +      "-mllvm", "-enable-loop-flatten",
 +      "-mllvm", "-extra-vectorizer-passes",
 +      "-mllvm", "-interleave-small-loop-scalar-reduction",
@@ -38,21 +44,18 @@ index 451c20e5761a7..f4b100bae4100 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -687,7 +703,28 @@ config("compiler") {
-         "/lldltocachepolicy:$cache_policy",
+@@ -688,7 +701,23 @@ config("compiler") {
+         "-mllvm:-disable-auto-upgrade-debug-info",
        ]
      } else {
 -      ldflags += [ "-flto=thin" ]
 +      ldflags += [
 +        "-flto=thin",
 +        "-freroll-loops",
-+        "-Wl,-mllvm,-adce-remove-loops",
 +        "-Wl,-mllvm,-aggressive-ext-opt",
++        "-Wl,-mllvm,-enable-ext-tsp-block-placement",
 +        "-Wl,-mllvm,-enable-gvn-hoist",
-+        "-Wl,-mllvm,-enable-interleaved-mem-accesses",
-+        "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
 +        "-Wl,-mllvm,-enable-loopinterchange",
-+        "-Wl,-mllvm,-enable-loop-distribute",
 +        "-Wl,-mllvm,-enable-loop-flatten",
 +        "-Wl,-mllvm,-extra-vectorizer-passes",
 +        "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
@@ -62,13 +65,11 @@ index 451c20e5761a7..f4b100bae4100 100644
 +        "-Wl,-mllvm,-unroll-runtime-multi-exit",
 +        "-Wl,-mllvm,-polly",
 +        "-Wl,-mllvm,-polly-invariant-load-hoisting",
-+        "-Wl,-mllvm,-polly-run-dce",
-+        "-Wl,-mllvm,-polly-vectorizer=stripmine",
 +      ]
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -705,12 +742,12 @@ config("compiler") {
+@@ -706,12 +735,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -85,7 +86,7 @@ index 451c20e5761a7..f4b100bae4100 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -886,6 +923,8 @@ config("compiler") {
+@@ -895,6 +924,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -94,7 +95,7 @@ index 451c20e5761a7..f4b100bae4100 100644
    ]
    if (rust_abi_target != "") {
      rustflags += [ "--target=$rust_abi_target" ]
-@@ -918,7 +957,7 @@ config("rust_defer_lto_to_linker") {
+@@ -912,12 +943,13 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -103,7 +104,13 @@ index 451c20e5761a7..f4b100bae4100 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -941,15 +980,16 @@ config("thinlto_optimize_default") {
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
+     }
+ 
+     # We always point Rust to a linker that performs LTO, so we don't want Rust
+@@ -938,15 +970,16 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -121,17 +128,17 @@ index 451c20e5761a7..f4b100bae4100 100644
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
-     rustflags = [ "-Clinker-plugin-lto=yes" ]
-@@ -983,7 +1023,7 @@ config("compiler_cpu_abi") {
+     # We always point Rust to a linker that performs LTO, so we don't want Rust
+@@ -983,7 +1016,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=x86-64-v2", "-mavx"
++        "-march=x86-64-v2", "-mavx",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2135,7 +2175,7 @@ config("optimize") {
+@@ -2135,7 +2168,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -140,7 +147,7 @@ index 451c20e5761a7..f4b100bae4100 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2144,7 +2184,7 @@ config("optimize") {
+@@ -2144,12 +2177,12 @@ config("optimize") {
          ]
        }
      } else {
@@ -149,7 +156,13 @@ index 451c20e5761a7..f4b100bae4100 100644
      }
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
-@@ -2163,7 +2203,7 @@ config("optimize") {
+     # vectorization.
+-    rustflags = [ "-Copt-level=z" ]
++    rustflags = [ "-Copt-level=3" ]
+   } else if (is_chromeos) {
+     # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
+     # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
+@@ -2163,7 +2196,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -158,7 +171,7 @@ index 451c20e5761a7..f4b100bae4100 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2234,7 +2274,7 @@ config("optimize_max") {
+@@ -2234,7 +2267,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -168,28 +181,13 @@ index 451c20e5761a7..f4b100bae4100 100644
      rustflags = [ "-Copt-level=3" ]
    }
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
-index 15bbf25f2b443..e69de29bb2d1d 100755
+index 15bbf25f2b443..33e25bbaba36b 100755
 --- a/chrome/installer/linux/common/repo.cron
 +++ b/chrome/installer/linux/common/repo.cron
-@@ -1,44 +0,0 @@
--#!/bin/sh
--#
--# Copyright 2009 The Chromium Authors
--# Use of this source code is governed by a BSD-style license that can be
--# found in the LICENSE file.
--#
--# This script is part of the @@PACKAGE@@ package.
--#
--# It creates the repository configuration file for package updates, and it
--# monitors that config to see if it has been disabled by the overly aggressive
--# distro upgrade process (e.g.  intrepid -> jaunty). When this situation is
--# detected, the respository will be re-enabled. If the respository is disabled
--# for any other reason, this won't re-enable it.
--#
--# This functionality can be controlled by creating the $DEFAULTS_FILE and
--# setting "repo_add_once" and/or "repo_reenable_on_distupgrade" to "true" or
--# "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
--# to "false".
+@@ -16,29 +16,3 @@
+ # setting "repo_add_once" and/or "repo_reenable_on_distupgrade" to "true" or
+ # "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
+ # to "false".
 -
 -@@include@@../common/variables.include
 -
@@ -217,15 +215,16 @@ index 15bbf25f2b443..e69de29bb2d1d 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
-index c1db53387a9c8..631fe61eefa72 100755
+index c1db53387a9c8..d848f17dee293 100755
 --- a/chrome/installer/linux/debian/postinst
 +++ b/chrome/installer/linux/debian/postinst
-@@ -54,17 +54,6 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
+@@ -54,17 +54,8 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
  update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
    /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
  
 -@@include@@../common/apt.include
--
++# @@include@@../common/apt.include
+ 
  @@include@@../common/symlinks.include
  
  remove_udev_symlinks
@@ -239,15 +238,16 @@ index c1db53387a9c8..631fe61eefa72 100755
 -# Run the cron job immediately to perform repository configuration.
 -nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
-index 3e1cadc8296ca..32fbab915001f 100755
+index 3e1cadc8296ca..aa5848db6913f 100755
 --- a/chrome/installer/linux/debian/postrm
 +++ b/chrome/installer/linux/debian/postrm
-@@ -15,22 +15,6 @@ fi
+@@ -15,22 +15,8 @@ fi
  
  @@include@@../common/variables.include
  
 -@@include@@../common/apt.include
--
++# @@include@@../common/apt.include
+ 
  @@include@@../common/symlinks.include
  
  remove_udev_symlinks
@@ -265,26 +265,11 @@ index 3e1cadc8296ca..32fbab915001f 100755
 -# Remove any Google repository added by the package.
 -clean_sources_lists
 -uninstall_key
-diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
-index b00fec969991a..75f590e896796 100644
---- a/content/gpu/gpu_sandbox_hook_linux.cc
-+++ b/content/gpu/gpu_sandbox_hook_linux.cc
-@@ -247,6 +247,10 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
-       "/usr/lib64/dri/r300_dri.so",
-       "/usr/lib64/dri/r600_dri.so",
-       "/usr/lib64/dri/radeonsi_dri.so",
-+      "/usr/share/vulkan/icd.d",
-+      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
-+      "/etc/vulkan/icd.d",
-+      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
-       // Allow libglvnd files and libs.
-       "/usr/share/glvnd/egl_vendor.d",
-       "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index aaec091bb22bd..a28e94458f0e7 100644
+index 080a60525a6f4..04b8712b08f6b 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -710,11 +710,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -731,11 +731,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -298,7 +283,7 @@ index aaec091bb22bd..a28e94458f0e7 100644
  
  // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
  // Intended for manual usage only in order to gague the status of newer driver
-@@ -1062,7 +1062,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+@@ -1083,7 +1083,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
  // TODO(b/159825227): remove when the direct video decoder is fully launched.
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
               "UseChromeOSDirectVideoDecoder",
@@ -308,7 +293,7 @@ index aaec091bb22bd..a28e94458f0e7 100644
  // Limit the number of concurrent hardware decoder instances on ChromeOS.
  BASE_FEATURE(kLimitConcurrentDecoderInstances,
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 07b991932aad5..75a2e0eabe55d 100644
+index 07b991932aad5..657f21a934359 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
 @@ -209,33 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
@@ -337,12 +322,11 @@ index 07b991932aad5..75a2e0eabe55d 100644
 -#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
 -  return GetSupplementalProfileCache()->IsProfileSupported(type.profile);
 -#else
--  return true;
+   return true;
 -#endif  // BUIDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_SUPPORT)
 -#else
 -  return false;
 -#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
-+   return true;
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
@@ -375,16 +359,3 @@ index 6b5e48095e4bc..3701bdfef832a 100644
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
-diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 506a22f43a82a..2fe60380edda1 100644
---- a/tools/cfi/ignores.txt
-+++ b/tools/cfi/ignores.txt
-@@ -130,6 +130,8 @@ type:sandbox::TargetServices
- 
- [cfi-icall]
- 
-+fun:ft_size_reset_iterator
-+
- ######### Cross-DSO icalls using dynamically resolved symbols crbug.com/771365
- 
- # ANGLE
