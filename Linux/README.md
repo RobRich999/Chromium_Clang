@@ -4,7 +4,7 @@ https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/linux/buil
 
 Add the --unsupported option when using the build depedency script on Ubuntu 23.04 at this time.
 
-./build/install-build-deps.sh --unsupported
+/build/install-build-deps.sh --unsupported
 
 Additional options listed in script:
 
