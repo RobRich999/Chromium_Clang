@@ -1,12 +1,12 @@
 diff --git a/tools/clang/scripts/build.py b/tools/clang/scripts/build.py
-index 62cde9673ec68..2f8eaf3ba420a 100755
+index a75e176863061..ea81047547188 100755
 --- a/tools/clang/scripts/build.py
 +++ b/tools/clang/scripts/build.py
 @@ -366,6 +366,7 @@ def BuildLibXml2():
            '-DLIBXML2_WITH_XPATH=OFF',
            '-DLIBXML2_WITH_XPTR=OFF',
            '-DLIBXML2_WITH_ZLIB=OFF',
-+          '-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native -pipe',
++          '-DCMAKE_C_FLAGS_RELEASE=-O3 -DNDEBUG -w -march=native -fgraphite-identity -floop-nest-optimize -pipe',
            '..',
        ],
        msvc_arch='x64')
@@ -21,7 +21,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
    parser.add_argument('--build-mac-arm', action='store_true',
                        help='Build arm binaries. Only valid on macOS.')
    parser.add_argument('--disable-asserts', action='store_true',
-@@ -591,13 +592,17 @@ def main():
+@@ -594,13 +595,17 @@ def main():
                        help='don\'t build Fuchsia clang_rt runtime (linux/mac)',
                        dest='with_fuchsia',
                        default=sys.platform in ('linux2', 'darwin'))
@@ -42,7 +42,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
    if args.with_android and not os.path.exists(ANDROID_NDK_DIR):
      print('Android NDK not found at ' + ANDROID_NDK_DIR)
      print('The Android NDK is needed to build a Clang whose -fsanitize=address')
-@@ -678,12 +683,23 @@ def main():
+@@ -681,17 +686,29 @@ def main():
    # LLVM_ENABLE_LLD).
    cc, cxx, lld = None, None, None
  
@@ -51,7 +51,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
 -  ldflags = []
 +  cflags = [ '-O3 -DNDEBUG -w -march=native' ]
 +  cxxflags = [ '-O3 -DNDEBUG -w -march=native' ]
-+  ldflags = [ '-fuse-ld=lld' ]
++  ldflags = [ '-fuse-ld=lld -Wl,--threads=8' ]
 +
 +  # targets = 'AArch64;ARM;LoongArch;Mips;PowerPC;RISCV;SystemZ;WebAssembly;X86'
 +  # projects = 'clang;lld;clang-tools-extra'
@@ -71,7 +71,24 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
    if args.bolt:
      projects += ';bolt'
  
-@@ -717,6 +733,7 @@ def main():
+-  pic_default = sys.platform == 'win32'
+-  pic_mode = 'ON' if args.pic or pic_default else 'OFF'
++  # pic_default = sys.platform == 'win32'
++  # pic_mode = 'ON' if args.pic or pic_default else 'OFF'
++  pic_mode = 'ON'
+ 
+   base_cmake_args = [
+       '-GNinja',
+@@ -700,7 +717,7 @@ def main():
+       '-DLLVM_ENABLE_PROJECTS=' + projects,
+       '-DLLVM_ENABLE_RUNTIMES=compiler-rt',
+       '-DLLVM_TARGETS_TO_BUILD=' + targets,
+-      f'-DLLVM_ENABLE_PIC={pic_mode}',
++      '-DLLVM_ENABLE_PIC={pic_mode}',
+       '-DLLVM_ENABLE_UNWIND_TABLES=OFF',
+       '-DLLVM_ENABLE_TERMINFO=OFF',
+       '-DLLVM_ENABLE_Z3_SOLVER=OFF',
+@@ -722,6 +739,7 @@ def main():
        '-DLLVM_ENABLE_CURL=OFF',
        # Build libclang.a as well as libclang.so
        '-DLIBCLANG_BUILD_STATIC=ON',
@@ -79,7 +96,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
    ]
  
    if sys.platform == 'darwin':
-@@ -783,21 +800,23 @@ def main():
+@@ -788,21 +806,23 @@ def main():
      sysroot_i386 = os.path.join(LLVM_BUILD_TOOLS_DIR, toolchain_name)
      DownloadAndUnpack(U, sysroot_i386)
  
@@ -118,7 +135,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
  
      # Add the sysroot to base_cmake_args.
      if platform.machine() == 'aarch64':
-@@ -829,79 +848,95 @@ def main():
+@@ -834,79 +854,95 @@ def main():
    cflags += libxml_cflags
    cxxflags += libxml_cflags
  
@@ -283,7 +300,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
  
    if args.pgo:
      print('Building instrumented compiler')
-@@ -911,9 +946,9 @@ def main():
+@@ -916,9 +952,9 @@ def main():
      os.chdir(LLVM_INSTRUMENTED_DIR)
  
      instrument_args = base_cmake_args + [
@@ -296,7 +313,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
          '-DCMAKE_EXE_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags),
-@@ -927,7 +962,7 @@ def main():
+@@ -932,7 +968,7 @@ def main():
  
      RunCommand(['cmake'] + instrument_args + [os.path.join(LLVM_DIR, 'llvm')],
                 msvc_arch='x64')
@@ -305,7 +322,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
      print('Instrumented compiler built.')
  
      # Train by building some C++ code.
-@@ -956,8 +991,10 @@ def main():
+@@ -961,8 +997,10 @@ def main():
      with open(training_source, 'wb') as f:
        DownloadUrl(CDS_URL + '/' + training_source, f)
      train_cmd = [os.path.join(LLVM_INSTRUMENTED_DIR, 'bin', 'clang++'),
@@ -318,7 +335,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
      if sys.platform == 'darwin':
        train_cmd.extend(['-isysroot', isysroot])
      RunCommand(train_cmd, msvc_arch='x64')
-@@ -1006,12 +1043,8 @@ def main():
+@@ -1011,12 +1049,8 @@ def main():
    if lld is not None: base_cmake_args.append('-DCMAKE_LINKER=' + lld)
    final_install_dir = args.install_dir if args.install_dir else LLVM_BUILD_DIR
    cmake_args = base_cmake_args + [
@@ -332,7 +349,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
    ]
    if not args.no_tools:
      cmake_args.extend([
-@@ -1023,7 +1056,19 @@ def main():
+@@ -1028,7 +1062,19 @@ def main():
    if args.pgo:
      cmake_args.append('-DLLVM_PROFDATA_FILE=' + LLVM_PROFDATA_FILE)
    if args.thinlto:
@@ -341,9 +358,9 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
 +    cmake_args.append( '-DLLVM_PARALLEL_LINK_JOBS=8' )
 +    cmake_args.append( '-DCMAKE_C_FLAGS=-fno-split-lto-unit ' + ' '.join(cflags) )
 +    cmake_args.append( '-DCMAKE_CXX_FLAGS=-fno-split-lto-unit ' + ' '.join(cxxflags) )
-+    cmake_args.append( '-DCMAKE_EXE_LINKER_FLAGS=-Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-invariant-load-hoisting ' + ' '.join(ldflags) )
-+    cmake_args.append( '-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-invariant-load-hoisting ' + ' '.join(ldflags) )
-+    cmake_args.append( '-DCMAKE_MODULE_LINKER_FLAGS=-Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-invariant-load-hoisting ' + ' '.join(ldflags) )
++    cmake_args.append( '-DCMAKE_EXE_LINKER_FLAGS=-Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--lto-CGO3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-invariant-load-hoisting ' + ' '.join(ldflags) )
++    cmake_args.append( '-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--lto-CGO3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-invariant-load-hoisting ' + ' '.join(ldflags) )
++    cmake_args.append( '-DCMAKE_MODULE_LINKER_FLAGS=-Wl,-mllvm,-import-instr-limit=30 -Wl,--lto-O3 -Wl,--lto-CGO3 -Wl,--thinlto-jobs=all -Wl,-mllvm,-polly -Wl,-mllvm,-polly-invariant-load-hoisting ' + ' '.join(ldflags) )
 +  else:
 +    cmake_args.append( '-DCMAKE_C_FLAGS=-mllvm -polly -mllvm -polly-invariant-load-hoisting ' + ' '.join(cflags) )
 +    cmake_args.append( '-DCMAKE_CXX_FLAGS=-mllvm -polly -mllvm -polly-invariant-load-hoisting ' + ' '.join(cxxflags) )
@@ -353,7 +370,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
    if sys.platform == 'win32':
      cmake_args.append('-DLLVM_ENABLE_ZLIB=FORCE_ON')
  
-@@ -1073,28 +1118,29 @@ def main():
+@@ -1078,28 +1124,29 @@ def main():
           compiler_rt_cmake_flags(sanitizers=True, profile=True) + [
               'CMAKE_SYSROOT=%s' % sysroot_amd64,
           ]))
@@ -405,7 +422,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
    elif sys.platform == 'win32':
      runtimes_triples_args.append(
          ('i386-pc-windows-msvc',
-@@ -1202,26 +1248,27 @@ def main():
+@@ -1207,26 +1254,27 @@ def main():
    # will be created which contains the necessary source files for compilation.
    # MLGO is only officially supported on linux. This condition is checked at
    # the top of main()
@@ -453,7 +470,16 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
  
    # Convert FOO=BAR CMake flags per triple into
    # -DBUILTINS_$triple_FOO=BAR/-DRUNTIMES_$triple_FOO=BAR and build up
-@@ -1278,8 +1325,6 @@ def main():
+@@ -1267,7 +1315,7 @@ def main():
+     # Instrument.
+     RunCommand([
+         'bin/llvm-bolt', 'bin/clang', '-o', 'bin/clang-bolt.inst',
+-        '-instrument', '--instrumentation-file-append-pid',
++        '--lite=false', '-instrument', '--instrumentation-file-append-pid',
+         '--instrumentation-file=' +
+         os.path.join(bolt_profiles_dir, 'prof.fdata')
+     ])
+@@ -1283,8 +1331,6 @@ def main():
      bolt_train_cmake_args = base_cmake_args + [
          '-DLLVM_TARGETS_TO_BUILD=X86',
          '-DLLVM_ENABLE_PROJECTS=clang',
@@ -462,7 +488,7 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
          '-DCMAKE_EXE_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_SHARED_LINKER_FLAGS=' + ' '.join(ldflags),
          '-DCMAKE_MODULE_LINKER_FLAGS=' + ' '.join(ldflags),
-@@ -1291,6 +1336,8 @@ def main():
+@@ -1296,6 +1342,8 @@ def main():
          os.path.join(LLVM_BUILD_DIR, 'bin/clang-bolt.inst'),
          '-DCMAKE_ASM_COMPILER_ID=Clang',
      ]
@@ -471,3 +497,21 @@ index 62cde9673ec68..2f8eaf3ba420a 100755
      RunCommand(['cmake'] + bolt_train_cmake_args +
                 [os.path.join(LLVM_DIR, 'llvm')])
      RunCommand([
+@@ -1312,9 +1360,14 @@ def main():
+     ])
+     RunCommand([
+         'bin/llvm-bolt', 'bin/clang', '-o', 'bin/clang-bolt.opt', '-data',
+-        'merged.fdata', '-reorder-blocks=ext-tsp', '-reorder-functions=hfsort+',
+-        '-split-functions', '-split-all-cold', '-split-eh', '-dyno-stats',
+-        '-icf=1', '-use-gnu-stack', '-use-old-text'
++        'merged.fdata', '--reorder-blocks=ext-tsp', '--reorder-functions=hfsort+',
++        '--split-functions', '--split-all-cold', '--split-eh', '--dyno-stats',
++        '--icf', '--use-gnu-stack', '--use-old-text', '--peepholes=all',
++        '--elim-link-veneers', '--group-stubs', '--align-blocks', '--sctc-mode=heuristic',
++        '--jump-tables=aggressive', '--simplify-conditional-tail-calls',
++        '--simplify-rodata-loads', '--align-macro-fusion=all', '--eliminate-unreachable',
++        '--tail-duplication=cache', '--indirect-call-promotion=all', '--icp-eliminate-loads',
++        '--hot-data', '--x86-strip-redundant-address-size', '--lite=false',
+     ])
+ 
+     # Overwrite clang, preserving its timestamp so ninja doesn't rebuild it.
