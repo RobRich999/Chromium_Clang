@@ -78,7 +78,7 @@ index d93bd13f6d435..b74f181f20f44 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+   "-Ctune-cpu=haswell", "-Ctarget-feature=+avx",
++   "-Ctune-cpu=x86-64-v3", "-Ctarget-feature=+avx",
    ]
  
    if (!is_win || force_rustc_color_output) {
