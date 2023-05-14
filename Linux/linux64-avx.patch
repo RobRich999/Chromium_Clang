@@ -339,3 +339,18 @@ index 506a22f43a82a..2fe60380edda1 100644
  ######### Cross-DSO icalls using dynamically resolved symbols crbug.com/771365
  
  # ANGLE
+diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
+index 6be2dd15a86b0..5891f9895e250 100644
+--- a/content/gpu/gpu_sandbox_hook_linux.cc
++++ b/content/gpu/gpu_sandbox_hook_linux.cc
+@@ -252,6 +252,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+       "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+       "/usr/lib64/libEGL_mesa.so.0",
+       "/usr/lib64/libGLdispatch.so.0"};
++      // GPU Log Warning Workaround
++      "/usr/share/vulkan/icd.d",
++      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
++      "/etc/vulkan/icd.d",
++      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
+   for (const char* item : kReadOnlyList)
+     permissions->push_back(BrokerFilePermission::ReadOnly(item));
