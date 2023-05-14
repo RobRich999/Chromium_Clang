@@ -241,6 +241,22 @@ index 3e1cadc8296ca..32fbab915001f 100755
 -# Remove any Google repository added by the package.
 -clean_sources_lists
 -uninstall_key
+diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
+index 6be2dd15a86b0..c3151ebb03653 100644
+--- a/content/gpu/gpu_sandbox_hook_linux.cc
++++ b/content/gpu/gpu_sandbox_hook_linux.cc
+@@ -247,6 +247,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+       "/usr/lib64/dri/r300_dri.so",
+       "/usr/lib64/dri/r600_dri.so",
+       "/usr/lib64/dri/radeonsi_dri.so",
++      // GPU Log Warning Workaround
++      "/usr/share/vulkan/icd.d",
++      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
++      "/etc/vulkan/icd.d",
++      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
+       // Allow libglvnd files and libs.
+       "/usr/share/glvnd/egl_vendor.d",
+       "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
 index 3a1b928293101..ff489efebeb94 100644
 --- a/media/base/media_switches.cc
