@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index d93bd13f6d435..2a5c5ea015ef2 100644
+index b61ac1f2d6473..8d573f0b5afbc 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -373,6 +373,7 @@ config("compiler") {
+@@ -372,6 +372,7 @@ config("compiler") {
  
      if (use_lld) {
        ldflags += [ "-fuse-ld=lld" ]
@@ -10,7 +10,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -695,13 +696,13 @@ config("compiler") {
+@@ -693,13 +694,13 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -26,7 +26,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
  
      if (is_win) {
        ldflags += [
-@@ -731,12 +732,12 @@ config("compiler") {
+@@ -729,12 +730,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -43,7 +43,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -750,7 +751,7 @@ config("compiler") {
+@@ -748,7 +749,7 @@ config("compiler") {
          import_instr_limit = 5
        }
  
@@ -52,7 +52,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -938,6 +939,8 @@ config("compiler") {
+@@ -936,6 +937,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -61,7 +61,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -963,12 +966,14 @@ config("compiler") {
+@@ -961,12 +964,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -77,7 +77,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -989,15 +994,18 @@ config("thinlto_optimize_default") {
+@@ -987,15 +992,18 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -98,7 +98,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1034,7 +1042,7 @@ config("compiler_cpu_abi") {
+@@ -1032,7 +1040,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -107,7 +107,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2182,7 +2190,7 @@ config("optimize") {
+@@ -2184,7 +2192,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -116,7 +116,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2191,12 +2199,12 @@ config("optimize") {
+@@ -2193,12 +2201,12 @@ config("optimize") {
          ]
        }
      } else {
@@ -131,7 +131,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2210,7 +2218,7 @@ config("optimize") {
+@@ -2212,7 +2220,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -140,7 +140,7 @@ index d93bd13f6d435..2a5c5ea015ef2 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2281,7 +2289,7 @@ config("optimize_max") {
+@@ -2283,7 +2291,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -232,11 +232,27 @@ index 3e1cadc8296ca..32fbab915001f 100755
 -# Remove any Google repository added by the package.
 -clean_sources_lists
 -uninstall_key
+diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
+index 6be2dd15a86b0..c3151ebb03653 100644
+--- a/content/gpu/gpu_sandbox_hook_linux.cc
++++ b/content/gpu/gpu_sandbox_hook_linux.cc
+@@ -247,6 +247,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+       "/usr/lib64/dri/r300_dri.so",
+       "/usr/lib64/dri/r600_dri.so",
+       "/usr/lib64/dri/radeonsi_dri.so",
++      // GPU Log Warning Workaround
++      "/usr/share/vulkan/icd.d",
++      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
++      "/etc/vulkan/icd.d",
++      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
+       // Allow libglvnd files and libs.
+       "/usr/share/glvnd/egl_vendor.d",
+       "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 1eb891b2c5c95..d38b157508dec 100644
+index 3a1b928293101..ff489efebeb94 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -730,11 +730,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -737,11 +737,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -250,7 +266,7 @@ index 1eb891b2c5c95..d38b157508dec 100644
  
  // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
  // Intended for manual usage only in order to gague the status of newer driver
-@@ -1095,7 +1095,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+@@ -1094,7 +1094,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
  // TODO(b/159825227): remove when the direct video decoder is fully launched.
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
               "UseChromeOSDirectVideoDecoder",
@@ -339,19 +355,3 @@ index 506a22f43a82a..2fe60380edda1 100644
  ######### Cross-DSO icalls using dynamically resolved symbols crbug.com/771365
  
  # ANGLE
-diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
-index 6be2dd15a86b0..5891f9895e250 100644
---- a/content/gpu/gpu_sandbox_hook_linux.cc
-+++ b/content/gpu/gpu_sandbox_hook_linux.cc
-@@ -252,6 +252,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
-       "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
-       "/usr/lib64/libEGL_mesa.so.0",
-       "/usr/lib64/libGLdispatch.so.0"};
-+      // GPU Log Warning Workaround
-+      "/usr/share/vulkan/icd.d",
-+      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
-+      "/etc/vulkan/icd.d",
-+      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
-   for (const char* item : kReadOnlyList)
-     permissions->push_back(BrokerFilePermission::ReadOnly(item));
-
