@@ -18,7 +18,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v115.0.5766.0-r1142852
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v115.0.5766.0-r1142933-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v115.0.5771.0-r1143762-win64-avx2
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v115.0.5766.0-r1142933-win64-avx
 
