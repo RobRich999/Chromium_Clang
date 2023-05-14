@@ -354,3 +354,4 @@ index 6be2dd15a86b0..5891f9895e250 100644
 +      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
    for (const char* item : kReadOnlyList)
      permissions->push_back(BrokerFilePermission::ReadOnly(item));
+
