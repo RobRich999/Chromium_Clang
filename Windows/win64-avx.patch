@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index d93bd13f6d435..1496a9f544a3f 100644
+index d2f591abae29e..1b2412003e8e1 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -373,6 +373,7 @@ config("compiler") {
+@@ -377,6 +377,7 @@ config("compiler") {
  
      if (use_lld) {
        ldflags += [ "-fuse-ld=lld" ]
@@ -10,7 +10,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -695,21 +696,21 @@ config("compiler") {
+@@ -699,21 +700,21 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -38,7 +38,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
          "-mllvm:-disable-auto-upgrade-debug-info",
        ]
      } else {
-@@ -731,12 +732,12 @@ config("compiler") {
+@@ -735,12 +736,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -55,7 +55,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -750,7 +751,7 @@ config("compiler") {
+@@ -754,7 +755,7 @@ config("compiler") {
          import_instr_limit = 5
        }
  
@@ -64,16 +64,16 @@ index d93bd13f6d435..1496a9f544a3f 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -938,6 +939,8 @@ config("compiler") {
+@@ -971,6 +972,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+   "-Ctarget-feature=+avx",
++   "-Ctune-cpu=x86-64-v3", "-Ctarget-feature=+avx",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -963,12 +966,15 @@ config("compiler") {
+@@ -1005,12 +1008,15 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -82,16 +82,16 @@ index d93bd13f6d435..1496a9f544a3f 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
++      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
 +      ldflags += [ "-mllvm:-import-instr-limit=5" ]
      } else {
 -      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags = [ "-Wl,--lto-O0" ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      # ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -989,15 +995,19 @@ config("thinlto_optimize_default") {
+@@ -1031,15 +1037,19 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -104,17 +104,17 @@ index d93bd13f6d435..1496a9f544a3f 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
++      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
 +      ldflags += [ "-mllvm:-import-instr-limit=30" ]
 +      ldflags += [ "-mllvm:-enable-gvn-hoist" ]
      } else {
 -      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags = [ "-Wl,--lto-O0" ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      # ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1034,7 +1044,7 @@ config("compiler_cpu_abi") {
+@@ -1076,7 +1086,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -123,7 +123,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2167,22 +2177,22 @@ config("optimize") {
+@@ -2209,22 +2219,22 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -151,7 +151,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2191,12 +2201,12 @@ config("optimize") {
+@@ -2233,12 +2243,12 @@ config("optimize") {
          ]
        }
      } else {
@@ -166,7 +166,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2210,7 +2220,7 @@ config("optimize") {
+@@ -2252,7 +2262,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -175,7 +175,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2277,11 +2287,11 @@ config("optimize_max") {
+@@ -2319,11 +2329,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -189,7 +189,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2310,7 +2320,7 @@ config("optimize_speed") {
+@@ -2352,7 +2362,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -198,7 +198,7 @@ index d93bd13f6d435..1496a9f544a3f 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2668,7 +2678,7 @@ config("minimal_symbols") {
+@@ -2717,7 +2727,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -208,10 +208,10 @@ index d93bd13f6d435..1496a9f544a3f 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index ff7d3454d4b22..d5cf0cf30c164 100644
+index c51ad032acd3f..38057259eb1f3 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
-@@ -85,7 +85,7 @@ config("compiler") {
+@@ -86,7 +86,7 @@ config("compiler") {
  
    cflags += [
      # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
@@ -220,7 +220,7 @@ index ff7d3454d4b22..d5cf0cf30c164 100644
    ]
  
    if (is_clang) {
-@@ -126,7 +126,7 @@ config("compiler") {
+@@ -127,7 +127,7 @@ config("compiler") {
      # microarchitecture. MSVC only supports a subset of architectures, and the
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
@@ -229,7 +229,7 @@ index ff7d3454d4b22..d5cf0cf30c164 100644
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
-@@ -166,6 +166,8 @@ config("compiler") {
+@@ -167,6 +167,8 @@ config("compiler") {
  
      # Don't look for libpaths in %LIB%, similar to /X in cflags above.
      ldflags += [ "/lldignoreenv" ]
@@ -238,7 +238,7 @@ index ff7d3454d4b22..d5cf0cf30c164 100644
    }
  
    # Some binaries create PDBs larger than 4 GiB. Increasing the PDB page size
-@@ -189,9 +191,7 @@ config("compiler") {
+@@ -190,9 +192,7 @@ config("compiler") {
      ]
  
      if (use_lld) {
@@ -249,7 +249,7 @@ index ff7d3454d4b22..d5cf0cf30c164 100644
      }
  
      # TODO(siggi): Is this of any use anymore?
-@@ -199,7 +199,7 @@ config("compiler") {
+@@ -200,7 +200,7 @@ config("compiler") {
      # PDB file by about 5%) but does not otherwise alter the output binary. It
      # is enabled opportunistically for builds where it is not prohibited (not
      # supported when incrementally linking, or using /debug:fastlink).
