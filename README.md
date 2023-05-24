@@ -79,7 +79,7 @@ https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding
 
 A Linux64 AVX2 optimized build script and resulting external binary builds of LLVM for building Chromium are available here:
 
-https://github.com/RobRich999/LLVM_Optimized_AVX2/tree/main
+https://github.com/RobRich999/LLVM_Optimized_AVX2
 
 ****
 
