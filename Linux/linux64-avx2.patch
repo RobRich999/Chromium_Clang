@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index b61ac1f2d6473..0aaab7bc08856 100644
+index 23a8da453c3d2..641314169eba3 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -372,6 +372,7 @@ config("compiler") {
+@@ -378,6 +378,7 @@ config("compiler") {
  
      if (use_lld) {
        ldflags += [ "-fuse-ld=lld" ]
@@ -10,7 +10,7 @@ index b61ac1f2d6473..0aaab7bc08856 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -592,7 +593,7 @@ config("compiler") {
+@@ -599,7 +600,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/clang:-ffp-contract=off" ]
      } else {
@@ -19,7 +19,7 @@ index b61ac1f2d6473..0aaab7bc08856 100644
      }
    }
  
-@@ -693,13 +694,13 @@ config("compiler") {
+@@ -700,13 +701,13 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -31,11 +31,11 @@ index b61ac1f2d6473..0aaab7bc08856 100644
      # TODO(gbiv): We ideally shouldn't need to specify this; ThinLTO
      # should be able to better manage binary size increases on its own.
 -    import_instr_limit = 30
-+    #  import_instr_limit = 30
++    # import_instr_limit = 30
  
      if (is_win) {
        ldflags += [
-@@ -729,12 +730,12 @@ config("compiler") {
+@@ -736,12 +737,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -52,7 +52,7 @@ index b61ac1f2d6473..0aaab7bc08856 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -748,7 +749,7 @@ config("compiler") {
+@@ -755,7 +756,7 @@ config("compiler") {
          import_instr_limit = 5
        }
  
@@ -61,7 +61,7 @@ index b61ac1f2d6473..0aaab7bc08856 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -936,6 +937,8 @@ config("compiler") {
+@@ -977,6 +978,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -70,12 +70,12 @@ index b61ac1f2d6473..0aaab7bc08856 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -961,12 +964,14 @@ config("compiler") {
+@@ -1011,12 +1014,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 3
++    lto_opt_level = 2
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
@@ -86,12 +86,9 @@ index b61ac1f2d6473..0aaab7bc08856 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -987,15 +992,18 @@ config("thinlto_optimize_default") {
- config("thinlto_optimize_max") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+@@ -1039,13 +1044,23 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
--      lto_opt_level = 2
-+      lto_opt_level = 3
+       lto_opt_level = 2
      } else {
 -      lto_opt_level = 0
 +      lto_opt_level = 3
@@ -103,11 +100,18 @@ index b61ac1f2d6473..0aaab7bc08856 100644
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
 +      ldflags += [ "-Wl,-mllvm,-import-instr-limit=30" ]
-+      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist" ]
++      ldflags += [
++        "-freroll-loops",
++        "-Wl,-mllvm,-aggressive-ext-opt",
++        "-Wl,-mllvm,-enable-dfa-jump-thread",
++        "-Wl,-mllvm,-enable-gvn-hoist",
++        "-Wl,-mllvm,-loop-rotate-multi",
++        "-Wl,-mllvm,-slp-vectorize-hor-store",
++      ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1032,7 +1040,7 @@ config("compiler_cpu_abi") {
+@@ -1082,7 +1097,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -116,40 +120,25 @@ index b61ac1f2d6473..0aaab7bc08856 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2184,7 +2192,7 @@ config("optimize") {
+@@ -2230,7 +2245,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
 -      cflags = [ "-Oz" ] + common_optimize_on_cflags
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
++      cflags = [ "-Os" ] + common_optimize_on_cflags
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2193,12 +2201,12 @@ config("optimize") {
-         ]
-       }
-     } else {
--      cflags = [ "-Os" ] + common_optimize_on_cflags
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
-     }
+@@ -2244,7 +2259,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
 -    rustflags = [ "-Copt-level=z" ]
-+    rustflags = [ "-Copt-level=3" ]
++    rustflags = [ "-Copt-level=s" ]
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2212,7 +2220,7 @@ config("optimize") {
-     # vectorization while otherwise optimizing for size.
-     rustflags = [ "-Copt-level=s" ]
-   } else {
--    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-O3" ] + common_optimize_on_cflags
- 
-     # The `-O3` for clang turns on extra optimizations compared to the standard
-     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2283,7 +2291,7 @@ config("optimize_max") {
+@@ -2329,7 +2344,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -242,10 +231,10 @@ index 3e1cadc8296ca..32fbab915001f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
-index 6be2dd15a86b0..c3151ebb03653 100644
+index 37a4748e746c3..104e29e8736a4 100644
 --- a/content/gpu/gpu_sandbox_hook_linux.cc
 +++ b/content/gpu/gpu_sandbox_hook_linux.cc
-@@ -247,6 +247,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+@@ -263,6 +263,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
@@ -258,10 +247,10 @@ index 6be2dd15a86b0..c3151ebb03653 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 3a1b928293101..ff489efebeb94 100644
+index 6000ffc39d5a4..ebc868987919b 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -737,11 +737,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -724,11 +724,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
