@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 23a8da453c3d2..1873148985dc9 100644
+index e93c74922c79a..158701e7cd468 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -378,6 +378,7 @@ config("compiler") {
@@ -52,7 +52,7 @@ index 23a8da453c3d2..1873148985dc9 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -977,6 +978,8 @@ config("compiler") {
+@@ -981,6 +982,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -61,7 +61,7 @@ index 23a8da453c3d2..1873148985dc9 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1011,12 +1014,14 @@ config("compiler") {
+@@ -1015,12 +1018,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -77,12 +77,15 @@ index 23a8da453c3d2..1873148985dc9 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1039,13 +1044,23 @@ config("thinlto_optimize_max") {
+@@ -1041,15 +1046,25 @@ config("thinlto_optimize_default") {
+ config("thinlto_optimize_max") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
-       lto_opt_level = 2
+-      lto_opt_level = 2
++      lto_opt_level = 3
      } else {
 -      lto_opt_level = 0
-+      lto_opt_level = 3
++      lto_opt_level = 2
      }
  
      if (is_win) {
@@ -102,7 +105,7 @@ index 23a8da453c3d2..1873148985dc9 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1082,7 +1097,7 @@ config("compiler_cpu_abi") {
+@@ -1086,7 +1101,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -111,7 +114,7 @@ index 23a8da453c3d2..1873148985dc9 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2230,7 +2245,7 @@ config("optimize") {
+@@ -2324,7 +2339,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -120,7 +123,7 @@ index 23a8da453c3d2..1873148985dc9 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2244,7 +2259,7 @@ config("optimize") {
+@@ -2338,7 +2353,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -129,7 +132,7 @@ index 23a8da453c3d2..1873148985dc9 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2329,7 +2344,7 @@ config("optimize_max") {
+@@ -2423,7 +2438,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -238,10 +241,10 @@ index 37a4748e746c3..104e29e8736a4 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 6000ffc39d5a4..ebc868987919b 100644
+index 4fee5d2bcdca5..ea2a67063e68f 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -724,11 +724,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -728,11 +728,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -255,7 +258,7 @@ index 6000ffc39d5a4..ebc868987919b 100644
  
  // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
  // Intended for manual usage only in order to gague the status of newer driver
-@@ -1094,7 +1094,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+@@ -1111,7 +1111,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
  // TODO(b/159825227): remove when the direct video decoder is fully launched.
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
               "UseChromeOSDirectVideoDecoder",
