@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 23a8da453c3d2..358f43f8cf484 100644
+index e93c74922c79a..3df69c783ae90 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -378,6 +378,7 @@ config("compiler") {
@@ -64,7 +64,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -977,6 +978,8 @@ config("compiler") {
+@@ -981,6 +982,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -73,7 +73,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1011,12 +1014,15 @@ config("compiler") {
+@@ -1015,12 +1018,15 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -91,9 +91,12 @@ index 23a8da453c3d2..358f43f8cf484 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1039,13 +1045,23 @@ config("thinlto_optimize_max") {
+@@ -1041,15 +1047,25 @@ config("thinlto_optimize_default") {
+ config("thinlto_optimize_max") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
-       lto_opt_level = 2
+-      lto_opt_level = 2
++      lto_opt_level = 3
      } else {
 -      lto_opt_level = 0
 +      lto_opt_level = 2
@@ -117,7 +120,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1082,7 +1098,7 @@ config("compiler_cpu_abi") {
+@@ -1086,7 +1102,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -126,7 +129,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2216,7 +2232,7 @@ config("optimize") {
+@@ -2310,7 +2326,7 @@ config("optimize") {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
        cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
@@ -135,7 +138,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
      } else {
        # PGO requires all translation units to be compiled with /O2. The actual
        # optimization level will be decided based on the profiling data.
-@@ -2225,12 +2241,12 @@ config("optimize") {
+@@ -2319,12 +2335,12 @@ config("optimize") {
        # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
        # suggests not using an explicit `-Copt-level` at all, and the default is
        # to optimize for performance like `/O2` for clang.
@@ -150,7 +153,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2244,7 +2260,7 @@ config("optimize") {
+@@ -2338,7 +2354,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -159,7 +162,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2325,11 +2341,11 @@ config("optimize_max") {
+@@ -2419,11 +2435,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -173,7 +176,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2358,7 +2374,7 @@ config("optimize_speed") {
+@@ -2452,7 +2468,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -182,7 +185,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2723,7 +2739,7 @@ config("minimal_symbols") {
+@@ -2817,7 +2833,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -192,7 +195,7 @@ index 23a8da453c3d2..358f43f8cf484 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index c51ad032acd3f..38057259eb1f3 100644
+index 83be92974ef8e..dae107f69c221 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
