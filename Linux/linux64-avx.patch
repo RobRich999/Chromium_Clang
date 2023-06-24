@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index e93c74922c79a..158701e7cd468 100644
+index ce321e852d75c..4d08cc8362387 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -378,6 +378,7 @@ config("compiler") {
+@@ -379,6 +379,7 @@ config("compiler") {
  
      if (use_lld) {
        ldflags += [ "-fuse-ld=lld" ]
@@ -10,7 +10,7 @@ index e93c74922c79a..158701e7cd468 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -700,13 +701,13 @@ config("compiler") {
+@@ -703,13 +704,13 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -26,7 +26,7 @@ index e93c74922c79a..158701e7cd468 100644
  
      if (is_win) {
        ldflags += [
-@@ -736,12 +737,12 @@ config("compiler") {
+@@ -739,12 +740,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -43,7 +43,7 @@ index e93c74922c79a..158701e7cd468 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -755,7 +756,7 @@ config("compiler") {
+@@ -758,7 +759,7 @@ config("compiler") {
          import_instr_limit = 5
        }
  
@@ -52,16 +52,16 @@ index e93c74922c79a..158701e7cd468 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -981,6 +982,8 @@ config("compiler") {
+@@ -979,6 +980,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=x86-64-v2", "-Ctarget-feature=+avx",
++    "-Ctarget-feature=+avx",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1015,12 +1018,14 @@ config("compiler") {
+@@ -1025,12 +1028,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -77,7 +77,7 @@ index e93c74922c79a..158701e7cd468 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1041,15 +1046,25 @@ config("thinlto_optimize_default") {
+@@ -1051,15 +1056,25 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -105,16 +105,16 @@ index e93c74922c79a..158701e7cd468 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1086,7 +1101,7 @@ config("compiler_cpu_abi") {
+@@ -1096,7 +1111,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=x86-64-v2", "-mavx",
++        "-mavx",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2324,7 +2339,7 @@ config("optimize") {
+@@ -2266,7 +2281,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -123,7 +123,7 @@ index e93c74922c79a..158701e7cd468 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2338,7 +2353,7 @@ config("optimize") {
+@@ -2280,7 +2295,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -132,7 +132,7 @@ index e93c74922c79a..158701e7cd468 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2423,7 +2438,7 @@ config("optimize_max") {
+@@ -2365,7 +2380,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -225,10 +225,10 @@ index 3e1cadc8296ca..32fbab915001f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
-index 37a4748e746c3..104e29e8736a4 100644
+index a6a9e620b743d..b3f2dc4095e03 100644
 --- a/content/gpu/gpu_sandbox_hook_linux.cc
 +++ b/content/gpu/gpu_sandbox_hook_linux.cc
-@@ -263,6 +263,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+@@ -249,6 +249,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
@@ -241,10 +241,19 @@ index 37a4748e746c3..104e29e8736a4 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 4fee5d2bcdca5..ea2a67063e68f 100644
+index 1bcd74ef70b4c..943c94597e2f9 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -728,11 +728,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -340,7 +340,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+ // Enables HEVC hardware accelerated encoding for Windows and Mac.
+ BASE_FEATURE(kPlatformHEVCEncoderSupport,
+              "PlatformHEVCEncoderSupport",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE)
+ #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+ 
+@@ -731,11 +731,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -258,7 +267,7 @@ index 4fee5d2bcdca5..ea2a67063e68f 100644
  
  // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
  // Intended for manual usage only in order to gague the status of newer driver
-@@ -1111,7 +1111,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+@@ -1114,7 +1114,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
  // TODO(b/159825227): remove when the direct video decoder is fully launched.
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
               "UseChromeOSDirectVideoDecoder",
@@ -335,7 +344,7 @@ index e62b2af59003c..86aec8821c578 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 506a22f43a82a..2fe60380edda1 100644
+index d366d55aab629..ee98cb42df9ba 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
 @@ -130,6 +130,8 @@ type:sandbox::TargetServices
