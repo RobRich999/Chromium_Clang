@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ce321e852d75c..983cc96da8eab 100644
+index 2fb10c2d3d3c5..e5e40dd3986ea 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -379,6 +379,7 @@ config("compiler") {
+@@ -377,6 +377,7 @@ config("compiler") {
  
      if (use_lld) {
        ldflags += [ "-fuse-ld=lld" ]
@@ -10,7 +10,7 @@ index ce321e852d75c..983cc96da8eab 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -600,7 +601,7 @@ config("compiler") {
+@@ -598,7 +599,7 @@ config("compiler") {
  
      # TODO(crbug.com/1235145): Investigate why/if this should be needed.
      if (is_win) {
@@ -19,7 +19,7 @@ index ce321e852d75c..983cc96da8eab 100644
      } else {
        cflags += [ "-ffp-contract=off" ]
      }
-@@ -703,21 +704,21 @@ config("compiler") {
+@@ -701,21 +702,21 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -47,7 +47,7 @@ index ce321e852d75c..983cc96da8eab 100644
          "-mllvm:-disable-auto-upgrade-debug-info",
        ]
      } else {
-@@ -739,12 +740,12 @@ config("compiler") {
+@@ -737,12 +738,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -64,16 +64,16 @@ index ce321e852d75c..983cc96da8eab 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -758,7 +759,7 @@ config("compiler") {
+@@ -756,7 +757,7 @@ config("compiler") {
          import_instr_limit = 5
        }
  
 -      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
-+      ldflags += [ "-Wl,-mllvm,-import-instr-limit=5" ]
++      # ldflags += [ "-Wl,-mllvm,-import-instr-limit=5" ]
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -979,6 +980,8 @@ config("compiler") {
+@@ -977,6 +978,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -82,25 +82,26 @@ index ce321e852d75c..983cc96da8eab 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1025,12 +1028,15 @@ config("compiler") {
+@@ -1023,12 +1026,16 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 2
++    lto_opt_level = 3
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-import-instr-limit=5" ]
++      ldflags += [ "-mllvm:-import-instr-limit=30" ]
      } else {
 -      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags = [ "-Wl,--lto-O0" ]
++      ldflags = [ "-Wl,--lto-O0" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      ldflags += [ "-mllvm:-import-instr-limit=30" ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1051,15 +1057,25 @@ config("thinlto_optimize_default") {
+@@ -1049,15 +1056,19 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -108,28 +109,22 @@ index ce321e852d75c..983cc96da8eab 100644
 +      lto_opt_level = 3
      } else {
 -      lto_opt_level = 0
-+      lto_opt_level = 2
++      lto_opt_level = 3
      }
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-import-instr-limit=30" ]
-+      ldflags += [
-+        "-mllvm:-aggressive-ext-opt",
-+        "-mllvm:-enable-dfa-jump-thread",
-+        "-mllvm:-enable-gvn-hoist",
-+        "-mllvm:-loop-rotate-multi",
-+        "-mllvm:-slp-vectorize-hor-store",
-+      ]
++      ldflags += [ "-mllvm:-import-instr-limit=100" ]
      } else {
 -      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags = [ "-Wl,--lto-O0" ]
++      ldflags = [ "-Wl,--lto-O0" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      ldflags += [ "-mllvm:-import-instr-limit=100" ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1096,7 +1112,7 @@ config("compiler_cpu_abi") {
+@@ -1094,7 +1105,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -138,16 +133,20 @@ index ce321e852d75c..983cc96da8eab 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2252,7 +2268,7 @@ config("optimize") {
+@@ -2244,22 +2255,22 @@ config("optimize") {
+     if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
-       cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
+-      cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
 -      rustflags = [ "-Copt-level=s" ]
++      cflags = [  "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
 +      rustflags = [ "-Copt-level=3" ]
      } else {
        # PGO requires all translation units to be compiled with /O2. The actual
        # optimization level will be decided based on the profiling data.
-@@ -2261,12 +2277,12 @@ config("optimize") {
+-      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [  "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
+ 
        # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
        # suggests not using an explicit `-Copt-level` at all, and the default is
        # to optimize for performance like `/O2` for clang.
@@ -162,7 +161,7 @@ index ce321e852d75c..983cc96da8eab 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2280,7 +2296,7 @@ config("optimize") {
+@@ -2273,7 +2284,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -171,7 +170,16 @@ index ce321e852d75c..983cc96da8eab 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2361,11 +2377,11 @@ config("optimize_max") {
+@@ -2287,7 +2298,7 @@ config("optimize") {
+     # vectorization while otherwise optimizing for size.
+     rustflags = [ "-Copt-level=s" ]
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
+ 
+     # The `-O3` for clang turns on extra optimizations compared to the standard
+     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
+@@ -2354,11 +2365,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -185,7 +193,7 @@ index ce321e852d75c..983cc96da8eab 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2394,7 +2410,7 @@ config("optimize_speed") {
+@@ -2387,7 +2398,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -194,7 +202,7 @@ index ce321e852d75c..983cc96da8eab 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2759,7 +2775,7 @@ config("minimal_symbols") {
+@@ -2760,7 +2771,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -204,7 +212,7 @@ index ce321e852d75c..983cc96da8eab 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index b42013bbb0972..70830c6837e4f 100644
+index a1915301a5aff..51ab5d4b8bf19 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -254,8 +262,31 @@ index b42013bbb0972..70830c6837e4f 100644
    }
  
    # arflags apply only to static_libraries. The normal linker configs are only
+diff --git a/chrome/updater/win/installer/create_installer_archive.py b/chrome/updater/win/installer/create_installer_archive.py
+index fca63d47b722e..6a2a995fc9762 100644
+--- a/chrome/updater/win/installer/create_installer_archive.py
++++ b/chrome/updater/win/installer/create_installer_archive.py
+@@ -42,16 +42,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
+         cmd.append('-mx1')
+     else:
+         cmd.extend([
+-            # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
+-            # pre-filter). These arguments are the similar to what the Chrome
+-            # mini-installer is using.
+-            '-m0=BCJ2',
+-            '-m1=LZMA:d27:fb128',
+-            '-m2=LZMA:d22:fb128:mf=bt2',
+-            '-m3=LZMA:d22:fb128:mf=bt2',
+-            '-mb0:1',
+-            '-mb0s1:2',
+-            '-mb0s2:3',
++          '-mx5',
++          '-myx=7',
+         ])
+     cmd.extend([
+         os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 1bcd74ef70b4c..077dc68049a1b 100644
+index 9262cc744582f..719671c6c8988 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -340,7 +340,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
