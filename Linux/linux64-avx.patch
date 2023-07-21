@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 5d5b2c7ffebed..e88f4395fce43 100644
+index 5d5b2c7ffebed..25ea255f9234a 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -377,6 +377,7 @@ config("compiler") {
@@ -10,15 +10,6 @@ index 5d5b2c7ffebed..e88f4395fce43 100644
        if (lld_path != "") {
          ldflags += [ "-B$lld_path" ]
        }
-@@ -600,7 +601,7 @@ config("compiler") {
-     if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
- 
 @@ -701,13 +702,13 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
