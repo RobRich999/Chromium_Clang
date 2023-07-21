@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 028345b8b8b83..fe269c94ae105 100644
+index 5d5b2c7ffebed..c1122ca85b7ef 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -377,6 +377,7 @@ config("compiler") {
@@ -115,7 +115,7 @@ index 028345b8b8b83..fe269c94ae105 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2260,7 +2267,7 @@ config("optimize") {
+@@ -2259,7 +2266,7 @@ config("optimize") {
    } else if (optimize_for_size) {
      # Favor size over speed.
      if (is_clang) {
@@ -124,7 +124,7 @@ index 028345b8b8b83..fe269c94ae105 100644
  
        if (use_ml_inliner && is_a_target_toolchain) {
          cflags += [
-@@ -2274,7 +2281,7 @@ config("optimize") {
+@@ -2273,7 +2280,7 @@ config("optimize") {
  
      # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
      # vectorization.
@@ -133,7 +133,7 @@ index 028345b8b8b83..fe269c94ae105 100644
    } else if (is_chromeos) {
      # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
      # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2288,7 +2295,7 @@ config("optimize") {
+@@ -2287,7 +2294,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -142,7 +142,7 @@ index 028345b8b8b83..fe269c94ae105 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2359,7 +2366,7 @@ config("optimize_max") {
+@@ -2358,7 +2365,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -264,10 +264,10 @@ index a6a9e620b743d..b3f2dc4095e03 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 9262cc744582f..ebab85d37cca4 100644
+index 1a9152cce59ec..65708fa3b74fb 100644
 --- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc 
-@@ -736,11 +736,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
++++ b/media/base/media_switches.cc
+@@ -735,11 +735,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -281,7 +281,7 @@ index 9262cc744582f..ebab85d37cca4 100644
  
  // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
  // Intended for manual usage only in order to gague the status of newer driver
-@@ -1119,7 +1119,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+@@ -1129,7 +1129,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
  // TODO(b/159825227): remove when the direct video decoder is fully launched.
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
               "UseChromeOSDirectVideoDecoder",
@@ -291,10 +291,10 @@ index 9262cc744582f..ebab85d37cca4 100644
  // Limit the number of concurrent hardware decoder instances on ChromeOS.
  BASE_FEATURE(kLimitConcurrentDecoderInstances,
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 07b991932aad5..657f21a934359 100644
+index a9cdc91e6960b..47e8834351fe2 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -209,33 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -215,33 +215,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -328,7 +328,7 @@ index 07b991932aad5..657f21a934359 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -410,7 +384,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -434,7 +408,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
