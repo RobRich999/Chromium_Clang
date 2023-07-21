@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 2fb10c2d3d3c5..e5e40dd3986ea 100644
+index 5d5b2c7ffebed..48704de5ce74d 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -377,6 +377,7 @@ config("compiler") {
@@ -202,7 +202,7 @@ index 2fb10c2d3d3c5..e5e40dd3986ea 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2760,7 +2771,7 @@ config("minimal_symbols") {
+@@ -2766,7 +2777,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -212,7 +212,7 @@ index 2fb10c2d3d3c5..e5e40dd3986ea 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index a1915301a5aff..51ab5d4b8bf19 100644
+index 50f3eb65a55f4..1e6fd84dc3791 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -262,8 +262,36 @@ index a1915301a5aff..51ab5d4b8bf19 100644
    }
  
    # arflags apply only to static_libraries. The normal linker configs are only
+diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
+index ba75899c40db8..d0f8baea4a069 100755
+--- a/chrome/tools/build/win/create_installer_archive.py
++++ b/chrome/tools/build/win/create_installer_archive.py
+@@ -80,21 +80,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
+   else:
+     cmd.extend(
+       [
+-          # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
+-          # pre-filter). This results in a ~2.3MB decrease in installer size on
+-          # a 24MB installer.
+-          # Additionally, these settings reflect a 7zip 4.42 and up change in
+-          # the definition of -mx9, increasting the dicionary size moving to
+-          # 26bit = 64MB. This results in an additional ~3.5MB decrease.
+-          # Older 7zip versions can support these settings, as these changes
+-          # rely on existing functionality in the lzma format.
+-          '-m0=BCJ2',
+-          '-m1=LZMA:d27:fb128',
+-          '-m2=LZMA:d22:fb128:mf=bt2',
+-          '-m3=LZMA:d22:fb128:mf=bt2',
+-          '-mb0:1',
+-          '-mb0s1:2',
+-          '-mb0s2:3',
++          '-mx5',
++          '-myx=7',
+       ])
+   cmd.extend(
+     [
 diff --git a/chrome/updater/win/installer/create_installer_archive.py b/chrome/updater/win/installer/create_installer_archive.py
-index fca63d47b722e..6a2a995fc9762 100644
+index fca63d47b722e..1c2d4f68c9124 100644
 --- a/chrome/updater/win/installer/create_installer_archive.py
 +++ b/chrome/updater/win/installer/create_installer_archive.py
 @@ -42,16 +42,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
@@ -280,29 +308,29 @@ index fca63d47b722e..6a2a995fc9762 100644
 -            '-mb0:1',
 -            '-mb0s1:2',
 -            '-mb0s2:3',
-+          '-mx5',
-+          '-myx=7',
++            '-mx5',
++            '-myx=7',
          ])
      cmd.extend([
          os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 9262cc744582f..719671c6c8988 100644
+index 1a9152cce59ec..7f813ea206d9f 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -340,7 +340,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
- // Enables HEVC hardware accelerated encoding for Windows and Mac.
+ // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
  BASE_FEATURE(kPlatformHEVCEncoderSupport,
               "PlatformHEVCEncoderSupport",
 -             base::FEATURE_DISABLED_BY_DEFAULT);
 +             base::FEATURE_ENABLED_BY_DEFAULT);
- #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE)
+ #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID)
  #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
  
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 07b991932aad5..657f21a934359 100644
+index a9cdc91e6960b..47e8834351fe2 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -209,33 +209,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -215,33 +215,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -336,7 +364,7 @@ index 07b991932aad5..657f21a934359 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -410,7 +384,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -434,7 +408,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
