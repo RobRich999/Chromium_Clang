@@ -1,13 +1,13 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index 20a566aed4..66d2586e0e 100644
+index 6b6eccfa54d..3fa828c665b 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -2270,7 +2270,7 @@ template("run_mksnapshot") {
+@@ -2343,7 +2343,7 @@ template("run_mksnapshot") {
  
          # Replace this with --warn-about-builtin-profile-data to see the full
          # list of builtins with incompatible profiles.
 -        "--abort-on-bad-builtin-profile-data",
 +        "--warn-about-builtin-profile-data",
        ]
-     }
  
+       if (!v8_enable_builtins_profiling && v8_enable_builtins_reordering) {
