@@ -1,16 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 5d5b2c7ffebed..70a711068ef66 100644
+index 9bb13ac4aecb4..d3293f589ce56 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -377,6 +377,7 @@ config("compiler") {
- 
-     if (use_lld) {
-       ldflags += [ "-fuse-ld=lld" ]
-+      ldflags += [ "-Wl,--threads=8" ]
-       if (lld_path != "") {
-         ldflags += [ "-B$lld_path" ]
-       }
-@@ -701,21 +702,21 @@ config("compiler") {
+@@ -699,23 +699,25 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -37,8 +29,12 @@ index 5d5b2c7ffebed..70a711068ef66 100644
 +        # "/lldltocachepolicy:$cache_policy",
          "-mllvm:-disable-auto-upgrade-debug-info",
        ]
++      ldflags += [ "-mllvm:-enable-gvn-hoist", ]
++      ldflags += [ "-mllvm:-loop-rotate-multi",] 
      } else {
-@@ -737,12 +738,12 @@ config("compiler") {
+       ldflags += [ "-flto=thin" ]
+ 
+@@ -735,12 +737,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -55,7 +51,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -756,7 +757,7 @@ config("compiler") {
+@@ -754,7 +756,7 @@ config("compiler") {
          import_instr_limit = 5
        }
  
@@ -64,7 +60,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
  
        if (!is_chromeos) {
          # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -977,6 +978,8 @@ config("compiler") {
+@@ -975,6 +977,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -73,7 +69,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1023,12 +1026,16 @@ config("compiler") {
+@@ -1021,12 +1025,16 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -91,7 +87,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1049,15 +1056,19 @@ config("thinlto_optimize_default") {
+@@ -1047,15 +1055,19 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -113,7 +109,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1094,7 +1105,7 @@ config("compiler_cpu_abi") {
+@@ -1092,7 +1104,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -122,7 +118,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2244,22 +2255,22 @@ config("optimize") {
+@@ -2273,17 +2285,17 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -144,22 +140,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
      }
    } else if (optimize_for_size) {
      # Favor size over speed.
-     if (is_clang) {
--      cflags = [ "-Oz" ] + common_optimize_on_cflags
-+      cflags = [ "-Os" ] + common_optimize_on_cflags
- 
-       if (use_ml_inliner && is_a_target_toolchain) {
-         cflags += [
-@@ -2273,7 +2284,7 @@ config("optimize") {
- 
-     # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
-     # vectorization.
--    rustflags = [ "-Copt-level=z" ]
-+    rustflags = [ "-Copt-level=s" ]
-   } else if (is_chromeos) {
-     # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
-     # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2287,7 +2298,7 @@ config("optimize") {
+@@ -2316,7 +2328,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -168,7 +149,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2354,11 +2365,11 @@ config("optimize_max") {
+@@ -2383,11 +2395,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -182,7 +163,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2387,7 +2398,7 @@ config("optimize_speed") {
+@@ -2416,7 +2428,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -191,7 +172,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2766,7 +2777,7 @@ config("minimal_symbols") {
+@@ -2795,7 +2807,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -201,7 +182,7 @@ index 5d5b2c7ffebed..70a711068ef66 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 50f3eb65a55f4..3e18e7cc6643a 100644
+index 497d479895dfe..b101818c96ec2 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -222,26 +203,6 @@ index 50f3eb65a55f4..3e18e7cc6643a 100644
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
-@@ -167,6 +167,8 @@ config("compiler") {
- 
-     # Don't look for libpaths in %LIB%, similar to /X in cflags above.
-     ldflags += [ "/lldignoreenv" ]
-+
-+    ldflags += [ "/threads:8" ]
-   }
- 
-   # Some binaries create PDBs larger than 4 GiB. Increasing the PDB page size
-@@ -190,9 +192,7 @@ config("compiler") {
-     ]
- 
-     if (use_lld) {
--      # String tail merging leads to smaller binaries, but they don't compress
--      # as well, leading to increased mini_installer size (crbug.com/838449).
--      ldflags += [ "/OPT:NOLLDTAILMERGE" ]
-+      ldflags += [ "/OPT:LLDTAILMERGE" ]
-     }
- 
-     # TODO(siggi): Is this of any use anymore?
 @@ -200,7 +200,7 @@ config("compiler") {
      # PDB file by about 5%) but does not otherwise alter the output binary. It
      # is enabled opportunistically for builds where it is not prohibited (not
@@ -252,7 +213,7 @@ index 50f3eb65a55f4..3e18e7cc6643a 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
-index ba75899c40db8..d0f8baea4a069 100755
+index 07387a69ada91..1d7832f9c22cd 100755
 --- a/chrome/tools/build/win/create_installer_archive.py
 +++ b/chrome/tools/build/win/create_installer_archive.py
 @@ -80,21 +80,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
@@ -303,10 +264,10 @@ index fca63d47b722e..1c2d4f68c9124 100644
      cmd.extend([
          os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 1a9152cce59ec..7f813ea206d9f 100644
+index 09db0f1b7fa7a..7cce66e692ccf 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -340,7 +340,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+@@ -344,7 +344,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
  // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
  BASE_FEATURE(kPlatformHEVCEncoderSupport,
               "PlatformHEVCEncoderSupport",
@@ -316,7 +277,7 @@ index 1a9152cce59ec..7f813ea206d9f 100644
  #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
  
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index a9cdc91e6960b..47e8834351fe2 100644
+index ec5e5df9760ad..a4cdc594d6820 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
 @@ -215,33 +215,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
@@ -353,7 +314,7 @@ index a9cdc91e6960b..47e8834351fe2 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -434,7 +408,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -425,7 +399,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -383,10 +344,10 @@ index e62b2af59003c..86aec8821c578 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index d366d55aab629..ee98cb42df9ba 100644
+index 73080483ab32b..9304584dedea4 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
-@@ -130,6 +130,8 @@ type:sandbox::TargetServices
+@@ -144,6 +144,8 @@ type:sandbox::TargetServices
  
  [cfi-icall]
  
