@@ -1,4 +1,4 @@
-Chromoum_Clang for Linux builds are currently compiled under Kubuntu 23.04 (Lunar Lobster).
+Chromium_Clang for Linux builds are currently compiled under Kubuntu 23.04 (Lunar Lobster).
 
 https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/linux/build_instructions.md
 
