@@ -1,16 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 9bb13ac4aecb4..1591a4a51c91d 100644
+index 9c5725c3ffbbb..5f6e1b9327939 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -374,6 +374,7 @@ config("compiler") {
- 
-     if (use_lld) {
-       ldflags += [ "-fuse-ld=lld" ]
-+      ldflags += [ "-Wl,--threads=8" ]
-       if (lld_path != "") {
-         ldflags += [ "-B$lld_path" ]
-       }
-@@ -699,13 +700,13 @@ config("compiler") {
+@@ -711,7 +711,7 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -19,23 +11,18 @@ index 9bb13ac4aecb4..1591a4a51c91d 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-     # TODO(gbiv): We ideally shouldn't need to specify this; ThinLTO
-     # should be able to better manage binary size increases on its own.
--    import_instr_limit = 30
-+    # import_instr_limit = 30
- 
-     if (is_win) {
-       ldflags += [
-@@ -718,6 +719,8 @@ config("compiler") {
+@@ -730,6 +730,10 @@ config("compiler") {
        ]
      } else {
        ldflags += [ "-flto=thin" ]
 +      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist", ]
-+      ldflags += [ "-Wl,-mllvm,-loop-rotate-multi",] 
++      ldflags += [ "-Wl,-mllvm,-loop-rotate-multi",]
++      ldflags += [ "-Wl,-mllvm,-polly", ]
++      ldflags += [ "-Wl,-mllvm,-polly-invariant-load-hoisting", ]
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -735,12 +738,12 @@ config("compiler") {
+@@ -747,12 +751,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -52,25 +39,16 @@ index 9bb13ac4aecb4..1591a4a51c91d 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -754,7 +757,7 @@ config("compiler") {
-         import_instr_limit = 5
-       }
- 
--      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
-+      # ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
- 
-       if (!is_chromeos) {
-         # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -975,6 +978,8 @@ config("compiler") {
+@@ -982,6 +986,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=x86-64-v2", "-Ctarget-feature=+avx",
++    "-Ctarget-feature=+avx",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1021,12 +1026,14 @@ config("compiler") {
+@@ -1028,12 +1034,13 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -82,11 +60,10 @@ index 9bb13ac4aecb4..1591a4a51c91d 100644
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-import-instr-limit=30" ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1047,15 +1054,17 @@ config("thinlto_optimize_default") {
+@@ -1054,15 +1061,16 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -102,20 +79,19 @@ index 9bb13ac4aecb4..1591a4a51c91d 100644
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-import-instr-limit=100" ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1092,7 +1101,7 @@ config("compiler_cpu_abi") {
+@@ -1099,7 +1107,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+         "-march=x86-64-v2", "-mavx",
++        "-mavx",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2316,7 +2325,7 @@ config("optimize") {
+@@ -2323,7 +2331,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -124,7 +100,7 @@ index 9bb13ac4aecb4..1591a4a51c91d 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2387,7 +2396,7 @@ config("optimize_max") {
+@@ -2394,7 +2402,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -133,6 +109,18 @@ index 9bb13ac4aecb4..1591a4a51c91d 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
+diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
+index f8293b2ef03f9..93c9825b069d2 100644
+--- a/build/config/compiler/pgo/BUILD.gn
++++ b/build/config/compiler/pgo/BUILD.gn
+@@ -122,6 +122,7 @@ config("pgo_optimization_flags") {
+            "Please set pgo_data_path to point at the profile data")
+     cflags = [
+       "-fprofile-use=" + rebase_path(pgo_data_path, root_build_dir),
++      "-fsplit-machine-functions",
+ 
+       # It's possible to have some profile data legitimately missing,
+       # and at least some profile data always ends up being considered
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
 index 15bbf25f2b443..33e25bbaba36b 100755
 --- a/chrome/installer/linux/common/repo.cron
@@ -246,10 +234,10 @@ index a6a9e620b743d..b3f2dc4095e03 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 09db0f1b7fa7a..688803d78e983 100644
+index d22722314e286..2278191a25d67 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -742,11 +742,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
+@@ -766,11 +766,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
  
  BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
               "VaapiVideoDecodeLinuxGL",
@@ -263,7 +251,7 @@ index 09db0f1b7fa7a..688803d78e983 100644
  
  // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
  // Intended for manual usage only in order to gague the status of newer driver
-@@ -1136,7 +1136,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
+@@ -1177,7 +1177,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
  // TODO(b/159825227): remove when the direct video decoder is fully launched.
  BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
               "UseChromeOSDirectVideoDecoder",
