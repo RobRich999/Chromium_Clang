@@ -3,8 +3,8 @@
 
 # External LLVM checkout used!
 # https://apt.llvm.org/
-clang_base_path = "/usr/lib/llvm-17"
-clang_version = "17"
+clang_base_path = "/usr/lib/llvm-18"
+clang_version = "18"
 
 is_clang = true
 is_component_build = false
