@@ -3,8 +3,8 @@
 
 # External LLVM checkout used!
 # https://apt.llvm.org/
-clang_base_path = "/usr/lib/llvm-17"
-clang_version = "17"
+clang_base_path = "/usr/lib/llvm-18"
+clang_version = "18"
 
 is_clang = true
 is_component_build = false
@@ -47,3 +47,4 @@ enable_platform_ac3_eac3_audio = true
 enable_platform_dolby_vision = true
 enable_platform_mpeg_h_audio = true
 enable_mse_mpeg2ts_stream_parser = true
+use_text_section_splitting = true
