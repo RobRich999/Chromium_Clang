@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 9bb13ac4aecb4..88188d8e36fc7 100644
+index 9c5725c3ffbbb..57c8cc9f905d3 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -595,7 +595,7 @@ config("compiler") {
+@@ -607,7 +607,7 @@ config("compiler") {
  
      # TODO(crbug.com/1235145): Investigate why/if this should be needed.
      if (is_win) {
@@ -11,7 +11,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
      } else {
        cflags += [ "-ffp-contract=off" ]
      }
-@@ -699,23 +699,25 @@ config("compiler") {
+@@ -711,7 +711,7 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -20,30 +20,26 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-     # TODO(gbiv): We ideally shouldn't need to specify this; ThinLTO
-     # should be able to better manage binary size increases on its own.
--    import_instr_limit = 30
-+    # import_instr_limit = 30
- 
-     if (is_win) {
+@@ -723,11 +723,15 @@ config("compiler") {
        ldflags += [
          "/opt:lldltojobs=all",
--        "-mllvm:-import-instr-limit=$import_instr_limit",
+         "-mllvm:-import-instr-limit=$import_instr_limit",
 -        "/lldltocache:" +
 -            rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
 -        "/lldltocachepolicy:$cache_policy",
-+        # "-mllvm:-import-instr-limit=$import_instr_limit",
 +        # "/lldltocache:" +
 +        #     rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
 +        # "/lldltocachepolicy:$cache_policy",
          "-mllvm:-disable-auto-upgrade-debug-info",
        ]
 +      ldflags += [ "-mllvm:-enable-gvn-hoist", ]
-+      ldflags += [ "-mllvm:-loop-rotate-multi",] 
++      ldflags += [ "-mllvm:-loop-rotate-multi", ]
++      ldflags += [ "-mllvm:-polly", ]
++      ldflags += [ "-mllvm:-polly-invariant-load-hoisting", ]
      } else {
        ldflags += [ "-flto=thin" ]
  
-@@ -735,12 +737,12 @@ config("compiler") {
+@@ -747,12 +751,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -60,16 +56,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -754,7 +756,7 @@ config("compiler") {
-         import_instr_limit = 5
-       }
- 
--      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
-+      # ldflags += [ "-Wl,-mllvm,-import-instr-limit=5" ]
- 
-       if (!is_chromeos) {
-         # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -975,6 +977,8 @@ config("compiler") {
+@@ -982,6 +986,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -78,7 +65,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1021,12 +1025,16 @@ config("compiler") {
+@@ -1028,12 +1034,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -88,15 +75,13 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-import-instr-limit=30" ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-import-instr-limit=30" ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1047,15 +1055,19 @@ config("thinlto_optimize_default") {
+@@ -1054,15 +1062,17 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -110,15 +95,13 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-import-instr-limit=100" ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-import-instr-limit=100" ]
      }
  
      # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1092,7 +1104,7 @@ config("compiler_cpu_abi") {
+@@ -1099,7 +1109,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -127,7 +110,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2273,17 +2285,17 @@ config("optimize") {
+@@ -2280,17 +2290,17 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -149,7 +132,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
      }
    } else if (optimize_for_size) {
      # Favor size over speed.
-@@ -2316,7 +2328,7 @@ config("optimize") {
+@@ -2323,7 +2333,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -158,7 +141,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2383,11 +2395,11 @@ config("optimize_max") {
+@@ -2390,11 +2400,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -172,7 +155,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2416,7 +2428,7 @@ config("optimize_speed") {
+@@ -2423,7 +2433,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -181,7 +164,7 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2795,7 +2807,7 @@ config("minimal_symbols") {
+@@ -2802,7 +2812,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -190,8 +173,20 @@ index 9bb13ac4aecb4..88188d8e36fc7 100644
  
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
+diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
+index f8293b2ef03f9..722f179743d21 100644
+--- a/build/config/compiler/pgo/BUILD.gn
++++ b/build/config/compiler/pgo/BUILD.gn
+@@ -122,6 +122,7 @@ config("pgo_optimization_flags") {
+            "Please set pgo_data_path to point at the profile data")
+     cflags = [
+       "-fprofile-use=" + rebase_path(pgo_data_path, root_build_dir),
++      "-Xclang", "-fsplit-machine-functions",
+ 
+       # It's possible to have some profile data legitimately missing,
+       # and at least some profile data always ends up being considered
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 497d479895dfe..5334d11284a6c 100644
+index ddcc94a2d5468..d91d17b753f2c 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -212,7 +207,7 @@ index 497d479895dfe..5334d11284a6c 100644
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
-@@ -200,7 +200,7 @@ config("compiler") {
+@@ -206,7 +206,7 @@ config("compiler") {
      # PDB file by about 5%) but does not otherwise alter the output binary. It
      # is enabled opportunistically for builds where it is not prohibited (not
      # supported when incrementally linking, or using /debug:fastlink).
@@ -273,7 +268,7 @@ index fca63d47b722e..1c2d4f68c9124 100644
      cmd.extend([
          os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 09db0f1b7fa7a..7cce66e692ccf 100644
+index d22722314e286..962fda8834120 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -344,7 +344,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
