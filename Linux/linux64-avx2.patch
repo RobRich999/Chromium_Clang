@@ -1,16 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 5d5b2c7ffebed..c1122ca85b7ef 100644
+index 21683acdb7489..215866eb6a9c0 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -377,6 +377,7 @@ config("compiler") {
- 
-     if (use_lld) {
-       ldflags += [ "-fuse-ld=lld" ]
-+      ldflags += [ "-Wl,--threads=8" ]
-       if (lld_path != "") {
-         ldflags += [ "-B$lld_path" ]
-       }
-@@ -600,7 +601,7 @@ config("compiler") {
+@@ -625,7 +625,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/clang:-ffp-contract=off" ]
      } else {
@@ -19,7 +11,7 @@ index 5d5b2c7ffebed..c1122ca85b7ef 100644
      }
    }
  
-@@ -701,13 +702,13 @@ config("compiler") {
+@@ -727,7 +727,7 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -28,14 +20,25 @@ index 5d5b2c7ffebed..c1122ca85b7ef 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-     # TODO(gbiv): We ideally shouldn't need to specify this; ThinLTO
-     # should be able to better manage binary size increases on its own.
--    import_instr_limit = 30
-+    # import_instr_limit = 30
+@@ -746,6 +746,8 @@ config("compiler") {
+       ]
+     } else {
+       ldflags += [ "-flto=thin" ]
++      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist", ]
++      ldflags += [ "-Wl,-mllvm,-loop-rotate-multi",]
  
-     if (is_win) {
-       ldflags += [
-@@ -737,12 +738,12 @@ config("compiler") {
+       # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
+       # usage in crbug.com/1038040. Note this will increase build time in
+@@ -755,7 +757,7 @@ config("compiler") {
+       # and let it use all cores.
+       # TODO(thakis): Check if '=0' (that is, number of cores, instead
+       # of "all" which means number of hardware threads) is faster.
+-      ldflags += [ "-Wl,--thinlto-jobs=all" ]
++      ldflags += [ "-Wl,--thinlto-jobs=8" ]
+       if (is_apple) {
+         ldflags += [
+           "-Wl,-cache_path_lto," +
+@@ -763,12 +765,12 @@ config("compiler") {
            "-Wcrl,object_path_lto",
          ]
        } else {
@@ -52,25 +55,16 @@ index 5d5b2c7ffebed..c1122ca85b7ef 100644
  
        if (is_chromeos) {
          # ARM was originally set lower than x86 to keep the size
-@@ -756,7 +757,7 @@ config("compiler") {
-         import_instr_limit = 5
-       }
- 
--      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
-+      # ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
- 
-       if (!is_chromeos) {
-         # TODO(https://crbug.com/972449): turn on for ChromeOS when that
-@@ -977,6 +978,8 @@ config("compiler") {
+@@ -1003,6 +1005,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=x86-64-v3",
++    "-Ctarget-cpu=haswell",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1023,12 +1026,14 @@ config("compiler") {
+@@ -1055,12 +1059,13 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -82,11 +76,10 @@ index 5d5b2c7ffebed..c1122ca85b7ef 100644
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-import-instr-limit=30" ]
      }
  
-     # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1049,15 +1054,17 @@ config("thinlto_optimize_default") {
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1086,15 +1091,16 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -102,38 +95,28 @@ index 5d5b2c7ffebed..c1122ca85b7ef 100644
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-import-instr-limit=100" ]
      }
  
-     # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1094,7 +1101,7 @@ config("compiler_cpu_abi") {
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1130,7 +1136,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=x86-64-v3",
++        "-march=haswell",
        ]
-       ldflags += [ "-m64" ]
-     } else if (current_cpu == "x86") {
-@@ -2259,7 +2266,7 @@ config("optimize") {
-   } else if (optimize_for_size) {
-     # Favor size over speed.
-     if (is_clang) {
--      cflags = [ "-Oz" ] + common_optimize_on_cflags
-+      cflags = [ "-Os" ] + common_optimize_on_cflags
  
-       if (use_ml_inliner && is_a_target_toolchain) {
-         cflags += [
-@@ -2273,7 +2280,7 @@ config("optimize") {
+       # Minimum SIMD support for devices running lacros.
+@@ -2296,7 +2302,7 @@ if (is_win) {
+     if ((!is_nacl || is_nacl_saigo) && is_clang) {
+       # We don't care about unique section names, this makes object files a bit
+       # smaller.
+-      common_optimize_on_cflags += [ "-fno-unique-section-names" ]
++      # common_optimize_on_cflags += [ "-fno-unique-section-names" ]
+     }
  
-     # Like with `-Oz` on Clang, `-Copt-level=z` will also turn off loop
-     # vectorization.
--    rustflags = [ "-Copt-level=z" ]
-+    rustflags = [ "-Copt-level=s" ]
-   } else if (is_chromeos) {
-     # TODO(gbiv): This is partially favoring size over speed. CrOS exclusively
-     # uses clang, and -Os in clang is more of a size-conscious -O2 than "size at
-@@ -2287,7 +2294,7 @@ config("optimize") {
+     common_optimize_on_ldflags += [
+@@ -2392,7 +2398,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -142,7 +125,7 @@ index 5d5b2c7ffebed..c1122ca85b7ef 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2358,7 +2365,7 @@ config("optimize_max") {
+@@ -2463,7 +2469,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -151,6 +134,21 @@ index 5d5b2c7ffebed..c1122ca85b7ef 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
+diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
+index f8293b2ef03f9..f2d9db10446cc 100644
+--- a/build/config/compiler/pgo/BUILD.gn
++++ b/build/config/compiler/pgo/BUILD.gn
+@@ -122,6 +122,10 @@ config("pgo_optimization_flags") {
+            "Please set pgo_data_path to point at the profile data")
+     cflags = [
+       "-fprofile-use=" + rebase_path(pgo_data_path, root_build_dir),
++      "-fbasic-block-sections=all",
++      "-funique-basic-block-section-names",
++      "-funique-internal-linkage-names",
++      "-fsplit-machine-functions",
+ 
+       # It's possible to have some profile data legitimately missing,
+       # and at least some profile data always ends up being considered
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
 index 15bbf25f2b443..33e25bbaba36b 100755
 --- a/chrome/installer/linux/common/repo.cron
@@ -263,35 +261,8 @@ index a6a9e620b743d..b3f2dc4095e03 100644
        // Allow libglvnd files and libs.
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 1a9152cce59ec..65708fa3b74fb 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -735,11 +735,11 @@ BASE_FEATURE(kVaapiVideoDecodeLinux,
- 
- BASE_FEATURE(kVaapiVideoDecodeLinuxGL,
-              "VaapiVideoDecodeLinuxGL",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- 
- BASE_FEATURE(kVaapiVideoEncodeLinux,
-              "VaapiVideoEncoder",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- 
- // Ignore the non-intel driver blacklist for VaapiVideoDecoder implementations.
- // Intended for manual usage only in order to gague the status of newer driver
-@@ -1129,7 +1129,7 @@ BASE_FEATURE(kChromeOSHWVBREncoding,
- // TODO(b/159825227): remove when the direct video decoder is fully launched.
- BASE_FEATURE(kUseChromeOSDirectVideoDecoder,
-              "UseChromeOSDirectVideoDecoder",
--             base::FEATURE_ENABLED_BY_DEFAULT);
-+             base::FEATURE_DISABLED_BY_DEFAULT);
- 
- // Limit the number of concurrent hardware decoder instances on ChromeOS.
- BASE_FEATURE(kLimitConcurrentDecoderInstances,
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index a9cdc91e6960b..47e8834351fe2 100644
+index ec5e5df9760ad..a4cdc594d6820 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
 @@ -215,33 +215,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
@@ -328,7 +299,7 @@ index a9cdc91e6960b..47e8834351fe2 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -434,7 +408,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -425,7 +399,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -358,10 +329,10 @@ index e62b2af59003c..86aec8821c578 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index d366d55aab629..ee98cb42df9ba 100644
+index 73080483ab32b..9304584dedea4 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
-@@ -130,6 +130,8 @@ type:sandbox::TargetServices
+@@ -144,6 +144,8 @@ type:sandbox::TargetServices
  
  [cfi-icall]
  
