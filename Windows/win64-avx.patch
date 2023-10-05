@@ -163,7 +163,7 @@ index 21683acdb7489..7092266694d62 100644
      rustflags = [ "-Copt-level=3" ]
    }
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index ddcc94a2d5468..39c58f10adfe0 100644
+index ddcc94a2d5468..f90be8b8ef0b5 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -180,7 +180,7 @@ index ddcc94a2d5468..39c58f10adfe0 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-march=sandybridge" ]
++      cflags += [ "-mavx", "-mcx16", "-msahf", "-mcrc32", "-mpopcnt", "-mpclmul", "-mxsave", "-mxsaveopt", "-mtune=sandybridge", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
