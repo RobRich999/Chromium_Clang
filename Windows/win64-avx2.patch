@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 21683acdb7489..4f2655c4736d0 100644
+index 21683acdb7489..77ec7ab60c87c 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -623,7 +623,7 @@ config("compiler") {
@@ -45,7 +45,7 @@ index 21683acdb7489..4f2655c4736d0 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1055,12 +1059,13 @@ config("compiler") {
+@@ -1055,10 +1059,11 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -56,12 +56,9 @@ index 21683acdb7489..4f2655c4736d0 100644
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
--      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
      }
- 
-     if (toolchain_supports_rust_thin_lto) {
-@@ -1086,15 +1091,16 @@ config("thinlto_optimize_default") {
+@@ -1086,13 +1091,14 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -76,11 +73,8 @@ index 21683acdb7489..4f2655c4736d0 100644
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
--      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
      }
- 
-     if (toolchain_supports_rust_thin_lto) {
 @@ -1130,7 +1136,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
