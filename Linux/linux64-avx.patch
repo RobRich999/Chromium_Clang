@@ -1,16 +1,7 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 21683acdb7489..00a6def97d2cf 100644
+index 21683acdb7489..ae0a3ee2004f4 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -625,7 +625,7 @@ config("compiler") {
-     if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
- 
 @@ -727,7 +727,7 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
@@ -51,7 +42,7 @@ index 21683acdb7489..00a6def97d2cf 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=haswell",
++    "-Ctarget-cpu=sandybridge",
    ]
  
    if (!is_win || force_rustc_color_output) {
@@ -94,7 +85,7 @@ index 21683acdb7489..00a6def97d2cf 100644
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=haswell",
++        "-march=sandybridge",
        ]
  
        # Minimum SIMD support for devices running lacros.
