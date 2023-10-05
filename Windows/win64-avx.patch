@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 21683acdb7489..7092266694d62 100644
+index 21683acdb7489..cada07722035f 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -727,7 +727,7 @@ config("compiler") {
@@ -162,6 +162,15 @@ index 21683acdb7489..7092266694d62 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
+@@ -2871,7 +2877,7 @@ config("minimal_symbols") {
+ # names in the final debug information.
+ config("no_symbols") {
+   if (is_win) {
+-    ldflags = [ "/DEBUG" ]
++    ldflags = [ "/DEBUG:NONE" ]
+ 
+     # All configs using /DEBUG should include this:
+     configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
 index ddcc94a2d5468..7ca0c47d426f3 100644
 --- a/build/config/win/BUILD.gn
