@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 9c5725c3ffbbb..b8a260f750775 100644
+index 21683acdb7489..7092266694d62 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -711,7 +711,7 @@ config("compiler") {
+@@ -727,7 +727,7 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -11,7 +11,7 @@ index 9c5725c3ffbbb..b8a260f750775 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -723,11 +723,15 @@ config("compiler") {
+@@ -739,10 +739,12 @@ config("compiler") {
        ldflags += [
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
@@ -22,41 +22,21 @@ index 9c5725c3ffbbb..b8a260f750775 100644
 +        #     rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
 +        # "/lldltocachepolicy:$cache_policy",
          "-mllvm:-disable-auto-upgrade-debug-info",
++        "-mllvm:-enable-gvn-hoist",
++        "-mllvm:-loop-rotate-multi",
        ]
-+      ldflags += [ "-mllvm:-enable-gvn-hoist", ]
-+      ldflags += [ "-mllvm:-loop-rotate-multi", ]
-+      ldflags += [ "-mllvm:-polly", ]
-+      ldflags += [ "-mllvm:-polly-invariant-load-hoisting", ]
      } else {
        ldflags += [ "-flto=thin" ]
- 
-@@ -747,12 +751,12 @@ config("compiler") {
-           "-Wcrl,object_path_lto",
-         ]
-       } else {
--        ldflags +=
--            [ "-Wl,--thinlto-cache-dir=" +
--              rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
-+        # ldflags +=
-+        #     [ "-Wl,--thinlto-cache-dir=" +
-+        #       rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
-       }
- 
--      ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
-+      # ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
- 
-       if (is_chromeos) {
-         # ARM was originally set lower than x86 to keep the size
-@@ -982,6 +986,8 @@ config("compiler") {
+@@ -1003,6 +1005,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+avx",
++    "-Ctarget-cpu=sandybridge",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1028,12 +1034,14 @@ config("compiler") {
+@@ -1055,10 +1059,11 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -68,11 +48,8 @@ index 9c5725c3ffbbb..b8a260f750775 100644
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
- 
-     # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1054,15 +1062,17 @@ config("thinlto_optimize_default") {
+@@ -1086,13 +1091,14 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -88,32 +65,51 @@ index 9c5725c3ffbbb..b8a260f750775 100644
 +      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
- 
-     # We always point Rust to a linker that performs LTO, so we don't want Rust
-@@ -1099,7 +1109,7 @@ config("compiler_cpu_abi") {
+@@ -1130,7 +1136,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
 +        "-march=native",
        ]
-       ldflags += [ "-m64" ]
-     } else if (current_cpu == "x86") {
-@@ -2280,17 +2290,17 @@ config("optimize") {
+ 
+       # Minimum SIMD support for devices running lacros.
+@@ -2290,8 +2296,8 @@ if (is_win) {
+     common_optimize_on_cflags += [
+       # Put data and code in their own sections, so that unused symbols
+       # can be removed at link time with --gc-sections.
+-      "-fdata-sections",
+-      "-ffunction-sections",
++      # "-fdata-sections",
++      # "-ffunction-sections",
+     ]
+     if ((!is_nacl || is_nacl_saigo) && is_clang) {
+       # We don't care about unique section names, this makes object files a bit
+@@ -2303,8 +2309,8 @@ if (is_win) {
+       # Specifically tell the linker to perform optimizations.
+       # See http://lwn.net/Articles/192624/ .
+       # -O2 enables string tail merge optimization in gold and lld.
+-      "-Wl,-O2",
+-      "-Wl,--gc-sections",
++      # "-Wl,-O2",
++      # "-Wl,--gc-sections",
+     ]
+   }
+ 
+@@ -2349,17 +2355,17 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
 -      cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
 -      rustflags = [ "-Copt-level=s" ]
-+      cflags = [  "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
 +      rustflags = [ "-Copt-level=3" ]
      } else {
        # PGO requires all translation units to be compiled with /O2. The actual
        # optimization level will be decided based on the profiling data.
 -      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-+      cflags = [  "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
  
        # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
        # suggests not using an explicit `-Copt-level` at all, and the default is
@@ -123,61 +119,51 @@ index 9c5725c3ffbbb..b8a260f750775 100644
      }
    } else if (optimize_for_size) {
      # Favor size over speed.
-@@ -2323,7 +2333,7 @@ config("optimize") {
+@@ -2392,12 +2398,12 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
 -    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-O3" ] + common_optimize_on_cflags
++    cflags = [ "-Oz" ] + common_optimize_on_cflags
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2390,11 +2400,11 @@ config("optimize_max") {
+     # to use.
+-    rustflags = [ "-Copt-level=3" ]
++    rustflags = [ "-Copt-level=z" ]
+   }
+   ldflags = common_optimize_on_ldflags
+ }
+@@ -2459,11 +2465,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
 -      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
 -      cflags = [ "-O2" ] + common_optimize_on_cflags
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
++      cflags = [ "-Oz" ] + common_optimize_on_cflags
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2423,7 +2433,7 @@ config("optimize_speed") {
+@@ -2492,11 +2498,11 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
 -      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "-Xclang", "-O3", ] + common_optimize_on_cflags
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2802,7 +2812,7 @@ config("minimal_symbols") {
- # names in the final debug information.
- config("no_symbols") {
-   if (is_win) {
--    ldflags = [ "/DEBUG" ]
-+    ldflags = [ "/DEBUG:NONE" ]
- 
-     # All configs using /DEBUG should include this:
-     configs = [ ":win_pdbaltpath" ]
-diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
-index f8293b2ef03f9..722f179743d21 100644
---- a/build/config/compiler/pgo/BUILD.gn
-+++ b/build/config/compiler/pgo/BUILD.gn
-@@ -122,6 +122,7 @@ config("pgo_optimization_flags") {
-            "Please set pgo_data_path to point at the profile data")
-     cflags = [
-       "-fprofile-use=" + rebase_path(pgo_data_path, root_build_dir),
-+      "-Xclang", "-fsplit-machine-functions",
- 
-       # It's possible to have some profile data legitimately missing,
-       # and at least some profile data always ends up being considered
+-      cflags = [ "-O3" ] + common_optimize_on_cflags
++      cflags = [ "-Oz" ] + common_optimize_on_cflags
+     }
+     rustflags = [ "-Copt-level=3" ]
+   }
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index ddcc94a2d5468..2a39f50df948d 100644
+index ddcc94a2d5468..39c58f10adfe0 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -194,7 +180,7 @@ index ddcc94a2d5468..2a39f50df948d 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mavx" ]
++      cflags += [ "-march=sandybridge" ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
@@ -259,10 +245,10 @@ index fca63d47b722e..1c2d4f68c9124 100644
      cmd.extend([
          os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index d22722314e286..962fda8834120 100644
+index 2ceacdeaf24dd..1df6d6bb75630 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -344,7 +344,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+@@ -347,7 +347,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
  // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
  BASE_FEATURE(kPlatformHEVCEncoderSupport,
               "PlatformHEVCEncoderSupport",
