@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 21683acdb7489..d60ad8b7c44ce 100644
+index bc098eb743f3c..cc098d6a4ac12 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -623,7 +623,7 @@ config("compiler") {
+@@ -625,7 +625,7 @@ config("compiler") {
  
      # TODO(crbug.com/1235145): Investigate why/if this should be needed.
      if (is_win) {
@@ -11,7 +11,7 @@ index 21683acdb7489..d60ad8b7c44ce 100644
      } else {
        cflags += [ "-ffp-contract=off" ]
      }
-@@ -727,7 +727,7 @@ config("compiler") {
+@@ -729,7 +729,7 @@ config("compiler") {
  
      # Limit the size of the ThinLTO cache to the lesser of 10% of
      # available disk space, 40GB and 100000 files.
@@ -20,7 +20,7 @@ index 21683acdb7489..d60ad8b7c44ce 100644
  
      # An import limit of 30 has better performance (per speedometer) and lower
      # binary size than the default setting of 100.
-@@ -739,10 +739,12 @@ config("compiler") {
+@@ -741,9 +741,9 @@ config("compiler") {
        ldflags += [
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
@@ -31,12 +31,9 @@ index 21683acdb7489..d60ad8b7c44ce 100644
 +        #     rebase_path("$root_out_dir/thinlto-cache", root_build_dir),
 +        # "/lldltocachepolicy:$cache_policy",
          "-mllvm:-disable-auto-upgrade-debug-info",
-+        "-mllvm:-enable-gvn-hoist",
-+        "-mllvm:-loop-rotate-multi",
        ]
      } else {
-       ldflags += [ "-flto=thin" ]
-@@ -1003,6 +1005,8 @@ config("compiler") {
+@@ -1005,6 +1005,8 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -45,7 +42,7 @@ index 21683acdb7489..d60ad8b7c44ce 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1055,10 +1059,11 @@ config("compiler") {
+@@ -1057,10 +1059,11 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -58,7 +55,7 @@ index 21683acdb7489..d60ad8b7c44ce 100644
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
      }
-@@ -1086,13 +1091,14 @@ config("thinlto_optimize_default") {
+@@ -1088,13 +1091,14 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -75,7 +72,7 @@ index 21683acdb7489..d60ad8b7c44ce 100644
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
      }
-@@ -1130,7 +1136,7 @@ config("compiler_cpu_abi") {
+@@ -1132,7 +1136,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -84,29 +81,7 @@ index 21683acdb7489..d60ad8b7c44ce 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2290,8 +2296,8 @@ if (is_win) {
-     common_optimize_on_cflags += [
-       # Put data and code in their own sections, so that unused symbols
-       # can be removed at link time with --gc-sections.
--      "-fdata-sections",
--      "-ffunction-sections",
-+      # "-fdata-sections",
-+      # "-ffunction-sections",
-     ]
-     if ((!is_nacl || is_nacl_saigo) && is_clang) {
-       # We don't care about unique section names, this makes object files a bit
-@@ -2303,8 +2309,8 @@ if (is_win) {
-       # Specifically tell the linker to perform optimizations.
-       # See http://lwn.net/Articles/192624/ .
-       # -O2 enables string tail merge optimization in gold and lld.
--      "-Wl,-O2",
--      "-Wl,--gc-sections",
-+      # "-Wl,-O2",
-+      # "-Wl,--gc-sections",
-     ]
-   }
- 
-@@ -2349,17 +2355,17 @@ config("optimize") {
+@@ -2356,17 +2360,17 @@ config("optimize") {
      if (chrome_pgo_phase != 2) {
        # Favor size over speed, /O1 must be before the common flags.
        # /O1 implies /Os and /GF.
@@ -128,22 +103,16 @@ index 21683acdb7489..d60ad8b7c44ce 100644
      }
    } else if (optimize_for_size) {
      # Favor size over speed.
-@@ -2392,12 +2398,12 @@ config("optimize") {
+@@ -2399,7 +2403,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
 -    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-Oz" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-     # to use.
--    rustflags = [ "-Copt-level=3" ]
-+    rustflags = [ "-Copt-level=z" ]
-   }
-   ldflags = common_optimize_on_ldflags
- }
-@@ -2459,11 +2465,11 @@ config("optimize_max") {
+@@ -2466,11 +2470,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -153,11 +122,11 @@ index 21683acdb7489..d60ad8b7c44ce 100644
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
 -      cflags = [ "-O2" ] + common_optimize_on_cflags
-+      cflags = [ "-Oz" ] + common_optimize_on_cflags
++      cflags = [ "-O3" ] + common_optimize_on_cflags
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2492,11 +2498,11 @@ config("optimize_speed") {
+@@ -2499,7 +2503,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -166,12 +135,7 @@ index 21683acdb7489..d60ad8b7c44ce 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
--      cflags = [ "-O3" ] + common_optimize_on_cflags
-+      cflags = [ "-Oz" ] + common_optimize_on_cflags
-     }
-     rustflags = [ "-Copt-level=3" ]
-   }
-@@ -2871,7 +2877,7 @@ config("minimal_symbols") {
+@@ -2878,7 +2882,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -263,7 +227,7 @@ index fca63d47b722e..1c2d4f68c9124 100644
      cmd.extend([
          os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 2ceacdeaf24dd..1df6d6bb75630 100644
+index 1620c72730e12..766a2d28d3c82 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -347,7 +347,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
@@ -323,10 +287,10 @@ index ec5e5df9760ad..a4cdc594d6820 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index e62b2af59003c..86aec8821c578 100644
+index aaab17bdc3b9c..1ea4fdf3408a2 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -74,7 +74,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -334,7 +298,7 @@ index e62b2af59003c..86aec8821c578 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -86,6 +85,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -88,6 +87,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
  
@@ -342,6 +306,19 @@ index e62b2af59003c..86aec8821c578 100644
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
+diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
+index 70d48cfc91a36..8e7f8dbdf1777 100644
+--- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
++++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
+@@ -9403,7 +9403,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
+     const ComputedStyle& style,
+     const LayoutObject*,
+     bool allow_visited_style) const {
+-  CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
++  // CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
+   const FillLayer& fill_layer = style.MaskLayers();
+   return ComputedStyleUtils::BackgroundImageOrWebkitMaskSize(style, fill_layer);
+ }
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
 index 73080483ab32b..9304584dedea4 100644
 --- a/tools/cfi/ignores.txt
