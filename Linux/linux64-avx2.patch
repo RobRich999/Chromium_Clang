@@ -1,16 +1,29 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 828116b37542a..61c5fee9512a0 100644
+index 828116b37542a..5016ef07f6b7a 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -630,7 +630,7 @@ config("compiler") {
+@@ -491,9 +491,9 @@ config("compiler") {
+   # Linux/Android/Fuchsia common flags setup.
+   # ---------------------------------
+   if (is_linux || is_chromeos || is_android || is_fuchsia) {
+-    asmflags += [ "-fPIC" ]
+-    cflags += [ "-fPIC" ]
+-    ldflags += [ "-fPIC" ]
++    asmflags += [ "-fPIC", "-w", ]
++    cflags += [ "-fPIC", "-w", ]
++    ldflags += [ "-fPIC", "-w", ]
+     rustflags += [ "-Crelocation-model=pic" ]
  
-     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
+     if (!is_clang) {
+@@ -632,7 +632,7 @@ config("compiler") {
      if (is_win) {
--      cflags += [ "/clang:-ffp-contract=off" ]
-+      cflags += [ "/clang:-ffp-contract=fast" ]
+       cflags += [ "/clang:-ffp-contract=off" ]
      } else {
-       cflags += [ "-ffp-contract=off" ]
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
      }
+   }
+ 
 @@ -1014,6 +1014,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
@@ -22,17 +35,22 @@ index 828116b37542a..61c5fee9512a0 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1066,8 +1070,7 @@ config("compiler") {
+@@ -1066,12 +1070,13 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
--
 +    lto_opt_level = 3
+ 
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
-@@ -1097,9 +1100,9 @@ config("thinlto_optimize_default") {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
+     }
+ 
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1097,15 +1102,16 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -44,38 +62,24 @@ index 828116b37542a..61c5fee9512a0 100644
      }
  
      if (is_win) {
-@@ -1141,7 +1144,7 @@ config("compiler_cpu_abi") {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
+     }
+ 
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1141,7 +1147,8 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=native",
++        "-march=x86-64-v3",
++        "-msse3", "-mssse3", "-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2354,17 +2357,17 @@ config("optimize") {
-     if (chrome_pgo_phase != 2) {
-       # Favor size over speed, /O1 must be before the common flags.
-       # /O1 implies /Os and /GF.
--      cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
--      rustflags = [ "-Copt-level=s" ]
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags + [ "/Oi" ]
-+      rustflags = [ "-Copt-level=3" ]
-     } else {
-       # PGO requires all translation units to be compiled with /O2. The actual
-       # optimization level will be decided based on the profiling data.
--      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags + [ "/Oi" ]
- 
-       # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
-       # suggests not using an explicit `-Copt-level` at all, and the default is
-       # to optimize for performance like `/O2` for clang.
--      rustflags = []
-+      rustflags = [ "-Copt-level=3" ]
-     }
-   } else if (optimize_for_size) {
-     # Favor size over speed.
-@@ -2397,7 +2400,7 @@ config("optimize") {
+@@ -2397,7 +2404,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -84,12 +88,7 @@ index 828116b37542a..61c5fee9512a0 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2464,11 +2467,11 @@ config("optimize_max") {
-     if (is_win) {
-       # Favor speed over size, /O2 must be before the common flags.
-       # /O2 implies /Ot, /Oi, and /GF.
--      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags + [ "/Oi" ]
+@@ -2468,7 +2475,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -98,119 +97,131 @@ index 828116b37542a..61c5fee9512a0 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2497,7 +2500,7 @@ config("optimize_speed") {
-     if (is_win) {
-       # Favor speed over size, /O2 must be before the common flags.
-       # /O2 implies /Ot, /Oi, and /GF.
--      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags + [ "/Oi" ]
-     } else if (optimize_for_fuzzing) {
-       cflags = [ "-O1" ] + common_optimize_on_cflags
+diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
+index f8293b2ef03f9..62d54e6af98a9 100644
+--- a/build/config/compiler/pgo/BUILD.gn
++++ b/build/config/compiler/pgo/BUILD.gn
+@@ -143,7 +143,7 @@ config("pgo_optimization_flags") {
+       if (is_win) {
+         ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
+       } else {
+-        ldflags = [ "-Wl,-mllvm,-enable-ext-tsp-block-placement=1" ]
++        ldflags = [ "-Wl,-mllvm,-enable-ext-tsp-block-placement=1", ]
+       }
      } else {
-@@ -2876,7 +2879,7 @@ config("minimal_symbols") {
- # names in the final debug information.
- config("no_symbols") {
-   if (is_win) {
--    ldflags = [ "/DEBUG" ]
-+    ldflags = [ "/DEBUG:NONE" ]
+       cflags += [
+diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
+index 15bbf25f2b443..33e25bbaba36b 100755
+--- a/chrome/installer/linux/common/repo.cron
++++ b/chrome/installer/linux/common/repo.cron
+@@ -16,29 +16,3 @@
+ # setting "repo_add_once" and/or "repo_reenable_on_distupgrade" to "true" or
+ # "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
+ # to "false".
+-
+-@@include@@../common/variables.include
+-
+-@@include@@apt.include
+-
+-## MAIN ##
+-if [ -r "$DEFAULTS_FILE" ]; then
+-  . "$DEFAULTS_FILE"
+-fi
+-
+-install_key
+-
+-if [ "$repo_add_once" = "true" ]; then
+-  create_sources_lists
+-  RES=$?
+-  # Sources creation succeeded, so stop trying.
+-  if [ $RES -ne 2 ]; then
+-    sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' "$DEFAULTS_FILE"
+-  fi
+-else
+-  update_bad_sources
+-fi
+-
+-if [ "$repo_reenable_on_distupgrade" = "true" ]; then
+-  handle_distro_upgrade
+-fi
+diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
+index 7cd40b9c37cce..743f2889ceedf 100755
+--- a/chrome/installer/linux/debian/build.sh
++++ b/chrome/installer/linux/debian/build.sh
+@@ -121,7 +121,7 @@ do_package() {
+   local PACKAGEFILE="${PACKAGE}-${CHANNEL}_${VERSIONFULL}_${ARCHITECTURE}.deb"
+   if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
+     (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
+-    xz -z9 -T0 --lzma2='dict=256MiB' "${TMPFILEDIR}/data.tar"
++    xz -z6 -T0 --memory=90% "${TMPFILEDIR}/data.tar"
+     xz -z0 "${TMPFILEDIR}/control.tar"
+     ar -d "${TMPFILEDIR}/${PACKAGEFILE}" control.tar data.tar
+     ar -r "${TMPFILEDIR}/${PACKAGEFILE}" "${TMPFILEDIR}/control.tar.xz" \
+diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
+index c1db53387a9c8..631fe61eefa72 100755
+--- a/chrome/installer/linux/debian/postinst
++++ b/chrome/installer/linux/debian/postinst
+@@ -54,17 +54,6 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
+ update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
+   /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
  
-     # All configs using /DEBUG should include this:
-     configs = [ ":win_pdbaltpath" ]
-diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index ddcc94a2d5468..3aa943f0d553a 100644
---- a/build/config/win/BUILD.gn
-+++ b/build/config/win/BUILD.gn
-@@ -127,7 +127,7 @@ config("compiler") {
-     # microarchitecture. MSVC only supports a subset of architectures, and the
-     # next step after SSE2 will be AVX.
-     if (current_cpu == "x86" || current_cpu == "x64") {
--      cflags += [ "-msse3" ]
-+      cflags += [ "/arch:AVX2" ]
-     }
+-@@include@@../common/apt.include
+-
+ @@include@@../common/symlinks.include
  
-     # Enable ANSI escape codes if something emulating them is around (cmd.exe
-@@ -198,7 +198,7 @@ config("compiler") {
-     if (use_lld) {
-       # String tail merging leads to smaller binaries, but they don't compress
-       # as well, leading to increased mini_installer size (crbug.com/838449).
--      ldflags += [ "/OPT:NOLLDTAILMERGE" ]
-+      ldflags += [ "/OPT:LLDTAILMERGE" ]
-     }
+ remove_udev_symlinks
+-
+-## MAIN ##
+-if [ ! -e "$DEFAULTS_FILE" ]; then
+-  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
+-  echo 'repo_reenable_on_distupgrade="true"' >> "$DEFAULTS_FILE"
+-fi
+-
+-# Run the cron job immediately to perform repository configuration.
+-nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
+diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
+index 3e1cadc8296ca..32fbab915001f 100755
+--- a/chrome/installer/linux/debian/postrm
++++ b/chrome/installer/linux/debian/postrm
+@@ -15,22 +15,6 @@ fi
  
-     # TODO(siggi): Is this of any use anymore?
-@@ -206,7 +206,7 @@ config("compiler") {
-     # PDB file by about 5%) but does not otherwise alter the output binary. It
-     # is enabled opportunistically for builds where it is not prohibited (not
-     # supported when incrementally linking, or using /debug:fastlink).
--    ldflags += [ "/PROFILE" ]
-+    # ldflags += [ "/PROFILE" ]
-   }
+ @@include@@../common/variables.include
  
-   # arflags apply only to static_libraries. The normal linker configs are only
-diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
-index 07387a69ada91..1d7832f9c22cd 100755
---- a/chrome/tools/build/win/create_installer_archive.py
-+++ b/chrome/tools/build/win/create_installer_archive.py
-@@ -80,21 +80,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
-   else:
-     cmd.extend(
-       [
--          # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
--          # pre-filter). This results in a ~2.3MB decrease in installer size on
--          # a 24MB installer.
--          # Additionally, these settings reflect a 7zip 4.42 and up change in
--          # the definition of -mx9, increasting the dicionary size moving to
--          # 26bit = 64MB. This results in an additional ~3.5MB decrease.
--          # Older 7zip versions can support these settings, as these changes
--          # rely on existing functionality in the lzma format.
--          '-m0=BCJ2',
--          '-m1=LZMA:d27:fb128',
--          '-m2=LZMA:d22:fb128:mf=bt2',
--          '-m3=LZMA:d22:fb128:mf=bt2',
--          '-mb0:1',
--          '-mb0s1:2',
--          '-mb0s2:3',
-+          '-mx5',
-+          '-myx=7',
-       ])
-   cmd.extend(
-     [
-diff --git a/chrome/updater/win/installer/create_installer_archive.py b/chrome/updater/win/installer/create_installer_archive.py
-index fca63d47b722e..1c2d4f68c9124 100644
---- a/chrome/updater/win/installer/create_installer_archive.py
-+++ b/chrome/updater/win/installer/create_installer_archive.py
-@@ -42,16 +42,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
-         cmd.append('-mx1')
-     else:
-         cmd.extend([
--            # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
--            # pre-filter). These arguments are the similar to what the Chrome
--            # mini-installer is using.
--            '-m0=BCJ2',
--            '-m1=LZMA:d27:fb128',
--            '-m2=LZMA:d22:fb128:mf=bt2',
--            '-m3=LZMA:d22:fb128:mf=bt2',
--            '-mb0:1',
--            '-mb0s1:2',
--            '-mb0s2:3',
-+            '-mx5',
-+            '-myx=7',
-         ])
-     cmd.extend([
-         os.path.abspath(compressed_file),
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 17fc195e1a069..ca3f4df6c1df0 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -347,7 +347,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
- // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
- BASE_FEATURE(kPlatformHEVCEncoderSupport,
-              "PlatformHEVCEncoderSupport",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID)
- #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+-@@include@@../common/apt.include
+-
+ @@include@@../common/symlinks.include
  
+ remove_udev_symlinks
+-
+-# Only remove the defaults file if it is not empty. An empty file was probably
+-# put there by the sysadmin to disable automatic repository configuration, as
+-# per the instructions on the package download page.
+-if [ -s "$DEFAULTS_FILE" ]; then
+-  # Make sure the package defaults are removed before the repository config,
+-  # otherwise it could result in the repository config being removed, but the
+-  # package defaults remain and are set to not recreate the repository config.
+-  # In that case, future installs won't recreate it and won't get auto-updated.
+-  rm "$DEFAULTS_FILE" || exit 1
+-fi
+-# Remove any Google repository added by the package.
+-clean_sources_lists
+-uninstall_key
+diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
+index a6a9e620b743d..b3f2dc4095e03 100644
+--- a/content/gpu/gpu_sandbox_hook_linux.cc
++++ b/content/gpu/gpu_sandbox_hook_linux.cc
+@@ -249,6 +249,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+       "/usr/lib64/dri/r300_dri.so",
+       "/usr/lib64/dri/r600_dri.so",
+       "/usr/lib64/dri/radeonsi_dri.so",
++      // GPU Log Warning Workaround
++      "/usr/share/vulkan/icd.d",
++      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
++      "/etc/vulkan/icd.d",
++      "/etc/vulkan/icd.d/radeon_icd.x86_64.json"
+       // Allow libglvnd files and libs.
+       "/usr/share/glvnd/egl_vendor.d",
+       "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index ec5e5df9760ad..a4cdc594d6820 100644
 --- a/media/base/supported_types.cc
