@@ -97,19 +97,6 @@ index 828116b37542a..5016ef07f6b7a 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
-index f8293b2ef03f9..62d54e6af98a9 100644
---- a/build/config/compiler/pgo/BUILD.gn
-+++ b/build/config/compiler/pgo/BUILD.gn
-@@ -143,7 +143,7 @@ config("pgo_optimization_flags") {
-       if (is_win) {
-         ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
-       } else {
--        ldflags = [ "-Wl,-mllvm,-enable-ext-tsp-block-placement=1" ]
-+        ldflags = [ "-Wl,-mllvm,-enable-ext-tsp-block-placement=1", ]
-       }
-     } else {
-       cflags += [
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
 index 15bbf25f2b443..33e25bbaba36b 100755
 --- a/chrome/installer/linux/common/repo.cron
