@@ -15,7 +15,7 @@ index 828116b37542a..61c5fee9512a0 100644
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
-+    
++
 +    "-Ctarget-cpu=x86-64-v3",
 +    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2",
 +    "-Cllvm-args=-fp-contract=off",
