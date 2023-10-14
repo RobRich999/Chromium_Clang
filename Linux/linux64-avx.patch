@@ -1,52 +1,31 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 21683acdb7489..ae0a3ee2004f4 100644
+index 828116b37542a..bd66db52a7538 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -727,7 +727,7 @@ config("compiler") {
+@@ -491,9 +491,9 @@ config("compiler") {
+   # Linux/Android/Fuchsia common flags setup.
+   # ---------------------------------
+   if (is_linux || is_chromeos || is_android || is_fuchsia) {
+-    asmflags += [ "-fPIC" ]
+-    cflags += [ "-fPIC" ]
+-    ldflags += [ "-fPIC" ]
++    asmflags += [ "-fPIC", "-w", ]
++    cflags += [ "-fPIC", "-w", ]
++    ldflags += [ "-fPIC", "-w", ]
+     rustflags += [ "-Crelocation-model=pic" ]
  
-     # Limit the size of the ThinLTO cache to the lesser of 10% of
-     # available disk space, 40GB and 100000 files.
--    cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
-+    # cache_policy = "cache_size=10%:cache_size_bytes=40g:cache_size_files=100000"
- 
-     # An import limit of 30 has better performance (per speedometer) and lower
-     # binary size than the default setting of 100.
-@@ -746,6 +746,8 @@ config("compiler") {
-       ]
-     } else {
-       ldflags += [ "-flto=thin" ]
-+      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist", ]
-+      ldflags += [ "-Wl,-mllvm,-loop-rotate-multi",]
- 
-       # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
-       # usage in crbug.com/1038040. Note this will increase build time in
-@@ -763,12 +765,12 @@ config("compiler") {
-           "-Wcrl,object_path_lto",
-         ]
-       } else {
--        ldflags +=
--            [ "-Wl,--thinlto-cache-dir=" +
--              rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
-+        # ldflags +=
-+        #     [ "-Wl,--thinlto-cache-dir=" +
-+        #       rebase_path("$root_out_dir/thinlto-cache", root_build_dir) ]
-       }
- 
--      ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
-+      # ldflags += [ "-Wl,--thinlto-cache-policy=$cache_policy" ]
- 
-       if (is_chromeos) {
-         # ARM was originally set lower than x86 to keep the size
-@@ -1003,6 +1005,8 @@ config("compiler") {
+     if (!is_clang) {
+@@ -1014,6 +1014,9 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=sandybridge",
++    "-Ctarget-cpu=x86-64-v2",
++    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+xsave",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1055,12 +1059,13 @@ config("compiler") {
+@@ -1066,12 +1069,13 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -61,7 +40,7 @@ index 21683acdb7489..ae0a3ee2004f4 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1086,15 +1091,16 @@ config("thinlto_optimize_default") {
+@@ -1097,15 +1101,16 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -80,25 +59,17 @@ index 21683acdb7489..ae0a3ee2004f4 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1130,7 +1136,7 @@ config("compiler_cpu_abi") {
+@@ -1141,7 +1146,8 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=sandybridge",
++        "-march=x86-64-v2",
++        "-msse3", "-mssse3", "-msse4.1", "-msse4.2", "-mavx", "-mxsave",
        ]
- 
-       # Minimum SIMD support for devices running lacros.
-@@ -2296,7 +2302,7 @@ if (is_win) {
-     if ((!is_nacl || is_nacl_saigo) && is_clang) {
-       # We don't care about unique section names, this makes object files a bit
-       # smaller.
--      common_optimize_on_cflags += [ "-fno-unique-section-names" ]
-+      # common_optimize_on_cflags += [ "-fno-unique-section-names" ]
-     }
- 
-     common_optimize_on_ldflags += [
-@@ -2392,7 +2398,7 @@ config("optimize") {
+       ldflags += [ "-m64" ]
+     } else if (current_cpu == "x86") {
+@@ -2397,7 +2403,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -107,7 +78,7 @@ index 21683acdb7489..ae0a3ee2004f4 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2463,7 +2469,7 @@ config("optimize_max") {
+@@ -2468,7 +2474,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -116,21 +87,6 @@ index 21683acdb7489..ae0a3ee2004f4 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
-index f8293b2ef03f9..f2d9db10446cc 100644
---- a/build/config/compiler/pgo/BUILD.gn
-+++ b/build/config/compiler/pgo/BUILD.gn
-@@ -122,6 +122,10 @@ config("pgo_optimization_flags") {
-            "Please set pgo_data_path to point at the profile data")
-     cflags = [
-       "-fprofile-use=" + rebase_path(pgo_data_path, root_build_dir),
-+      "-fbasic-block-sections=all",
-+      "-funique-basic-block-section-names",
-+      "-funique-internal-linkage-names",
-+      "-fsplit-machine-functions",
- 
-       # It's possible to have some profile data legitimately missing,
-       # and at least some profile data always ends up being considered
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
 index 15bbf25f2b443..33e25bbaba36b 100755
 --- a/chrome/installer/linux/common/repo.cron
@@ -291,10 +247,10 @@ index ec5e5df9760ad..a4cdc594d6820 100644
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index e62b2af59003c..86aec8821c578 100644
+index aaab17bdc3b9c..1ea4fdf3408a2 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -74,7 +74,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -302,7 +258,7 @@ index e62b2af59003c..86aec8821c578 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -86,6 +85,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -88,6 +87,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        // No extra threads for these codecs.
        break;
  
@@ -310,6 +266,19 @@ index e62b2af59003c..86aec8821c578 100644
      case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
+diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
+index 71f37e2250dda..a9d4a09f07353 100644
+--- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
++++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
+@@ -9443,7 +9443,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
+     const ComputedStyle& style,
+     const LayoutObject*,
+     bool allow_visited_style) const {
+-  CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
++  // CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
+   const FillLayer& fill_layer = style.MaskLayers();
+   return ComputedStyleUtils::BackgroundImageOrWebkitMaskSize(style, fill_layer);
+ }
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
 index 73080483ab32b..9304584dedea4 100644
 --- a/tools/cfi/ignores.txt
