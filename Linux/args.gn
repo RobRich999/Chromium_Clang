@@ -1,10 +1,10 @@
 # Build arguments go here.
 # See "gn args <out_dir> --list" for available build arguments.
 
-# External LLVM checkout used!
+# If external LLVM checkout used, for example:
 # https://apt.llvm.org/
-clang_base_path = "/usr/lib/llvm-18"
-clang_version = "18"
+# clang_base_path = "/usr/lib/llvm-18"
+# clang_version = "18"
 
 # Remove # below to disable rust if rustc errors encountered.
 # enable_rust = false
