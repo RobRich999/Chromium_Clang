@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index f95c417db9489..91ede07db6a44 100644
+index de1cd6efc67b4..8dfdd4f4e5359 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -497,10 +497,10 @@ config("compiler") {
@@ -31,157 +31,23 @@ index f95c417db9489..91ede07db6a44 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=x86-64-v3",
-+    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma",
++    "-Ztune-cpu=haswell",
++    "-Ctarget-feature=+avx,+avx2,+fma,+f16c",
 +    "-Cllvm-args=-fp-contract=fast",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1074,12 +1078,13 @@ config("compiler") {
- # building with ThinLTO, no optimization is performed in the link step.
- config("thinlto_optimize_default") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
--    lto_opt_level = 0
-+    lto_opt_level = 3
- 
-     if (is_win) {
-       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-     }
- 
-     if (toolchain_supports_rust_thin_lto) {
-@@ -1105,15 +1110,16 @@ config("thinlto_optimize_default") {
- config("thinlto_optimize_max") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
-     if (thin_lto_enable_optimizations) {
--      lto_opt_level = 2
-+      lto_opt_level = 3
-     } else {
--      lto_opt_level = 0
-+      lto_opt_level = 3
-     }
- 
-     if (is_win) {
-       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-     }
- 
-     if (toolchain_supports_rust_thin_lto) {
-@@ -1149,7 +1155,8 @@ config("compiler_cpu_abi") {
+@@ -1151,7 +1155,8 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=x86-64-v3",
-+        "-msse3", "-mssse3", "-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma",
++        "-mtune=haswell",
++        "-mavx", "-mavx2", "-mfma", "-mf16c",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2285,6 +2292,90 @@ if (is_win) {
-   common_optimize_on_cflags = []
-   common_optimize_on_ldflags = []
- 
-+  common_optimize_on_cflags += [
-+    "-freroll-loops",
-+    "-mllvm", "-adce-remove-loops",
-+    "-mllvm", "-aggressive-ext-opt",
-+    "-mllvm", "-consthoist-gep",
-+    "-mllvm", "-costmodel-reduxcost",
-+    "-mllvm", "-enable-cse-in-irtranslator",
-+    "-mllvm", "-enable-cse-in-legalizer",
-+    "-mllvm", "-enable-deferred-spilling",
-+    "-mllvm", "-enable-dfa-jump-thread",
-+    "-mllvm", "-enable-gvn-hoist",
-+    "-mllvm", "-enable-interleaved-mem-accesses",
-+    "-mllvm", "-enable-masked-interleaved-mem-accesses",
-+    "-mllvm", "-enable-ipra",
-+    "-mllvm", "-enable-loadstore-runtime-interleave",
-+    "-mllvm", "-enable-local-reassign",
-+    "-mllvm", "-enable-loopinterchange",
-+    "-mllvm", "-enable-loop-distribute",
-+    "-mllvm", "-enable-loop-flatten",
-+    "-mllvm", "-enable-loop-versioning-licm",
-+    "-mllvm", "-enable-unroll-and-jam",
-+    "-mllvm", "-exhaustive-register-search",
-+    "-mllvm", "-inline-enable-cost-benefit-analysis",
-+    "-mllvm", "-interleave-small-loop-scalar-reduction",
-+    "-mllvm", "-loop-rotate-multi",
-+    # "-mllvm", "-misched=ilpmax",
-+    # "-mllvm", "-precise-rotation-cost",
-+    # "-mllvm", "-pre-RA-sched=list-ilp",
-+    "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
-+    "-mllvm", "-slp-vectorize-hor-store",
-+    "-mllvm", "-unroll-allow-loop-nests-peeling",
-+    "-mllvm", "-unroll-allow-partial",
-+    "-mllvm", "-unroll-allow-remainder",
-+    # "-mllvm", "-unroll-max-iteration-count-to-analyze=100",
-+    "-mllvm", "-unroll-remainder",
-+    "-mllvm", "-unroll-runtime",
-+    "-mllvm", "-unroll-runtime-epilog",
-+    "-mllvm", "-unroll-runtime-multi-exit",
-+    "-mllvm", "-unroll-runtime-other-exit-predictable",
-+    "-mllvm", "-vectorizer-maximize-bandwidth",
-+  ]
-+
-+  common_optimize_on_ldflags += [
-+    "-freroll-loops",
-+    "-Wl,-mllvm,-adce-remove-loops",
-+    "-Wl,-mllvm,-aggressive-ext-opt",
-+    "-Wl,-mllvm,-consthoist-gep",
-+    "-Wl,-mllvm,-costmodel-reduxcost",
-+    "-Wl,-mllvm,-enable-cse-in-irtranslator",
-+    "-Wl,-mllvm,-enable-cse-in-legalizer",
-+    "-Wl,-mllvm,-enable-deferred-spilling",
-+    "-Wl,-mllvm,-enable-dfa-jump-thread",
-+    "-Wl,-mllvm,-enable-gvn-hoist",
-+    "-Wl,-mllvm,-enable-interleaved-mem-accesses",
-+    "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
-+    "-Wl,-mllvm,-enable-ipra",
-+    "-Wl,-mllvm,-enable-loadstore-runtime-interleave",
-+    "-Wl,-mllvm,-enable-local-reassign",
-+    "-Wl,-mllvm,-enable-loopinterchange",
-+    "-Wl,-mllvm,-enable-loop-distribute",
-+    "-Wl,-mllvm,-enable-loop-flatten",
-+    "-Wl,-mllvm,-enable-loop-versioning-licm",
-+    "-Wl,-mllvm,-enable-unroll-and-jam",
-+    "-Wl,-mllvm,-exhaustive-register-search",
-+    "-Wl,-mllvm,-inline-enable-cost-benefit-analysis",
-+    "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
-+    "-Wl,-mllvm,-loop-rotate-multi",
-+    # "-Wl,-mllvm,-misched=ilpmax",
-+    # "-Wl,-mllvm,-precise-rotation-cost",
-+    # "-Wl,-mllvm,-pre-RA-sched=list-ilp",
-+    "-Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening",
-+    "-Wl,-mllvm,-slp-vectorize-hor-store",
-+    "-Wl,-mllvm,-unroll-allow-loop-nests-peeling",
-+    "-Wl,-mllvm,-unroll-allow-partial",
-+    "-Wl,-mllvm,-unroll-allow-remainder",
-+    # "-Wl,-mllvm,-unroll-max-iteration-count-to-analyze=100",
-+    "-Wl,-mllvm,-unroll-remainder",
-+    "-Wl,-mllvm,-unroll-runtime",
-+    "-Wl,-mllvm,-unroll-runtime-epilog",
-+    "-Wl,-mllvm,-unroll-runtime-multi-exit",
-+    "-Wl,-mllvm,-unroll-runtime-other-exit-predictable",
-+    "-Wl,-mllvm,-vectorizer-maximize-bandwidth",
-+  ]
-+
-   if (is_android) {
-     # TODO(jdduke) Re-enable on mips after resolving linking
-     # issues with libc++ (crbug.com/456380).
-@@ -2414,7 +2505,7 @@ config("optimize") {
-     # vectorization while otherwise optimizing for size.
-     rustflags = [ "-Copt-level=s" ]
-   } else {
--    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-O3" ] + common_optimize_on_cflags
- 
-     # The `-O3` for clang turns on extra optimizations compared to the standard
-     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2485,7 +2576,7 @@ config("optimize_max") {
+@@ -2487,7 +2492,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -225,7 +91,7 @@ index 15bbf25f2b443..33e25bbaba36b 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 7cd40b9c37cce..743f2889ceedf 100755
+index 7cd40b9c37cce..62c2dc74ed103 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
 @@ -121,7 +121,7 @@ do_package() {
@@ -233,32 +99,10 @@ index 7cd40b9c37cce..743f2889ceedf 100755
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
 -    xz -z9 -T0 --lzma2='dict=256MiB' "${TMPFILEDIR}/data.tar"
-+    xz -z6 -T0 --memory=90% "${TMPFILEDIR}/data.tar"
++    xz -z9 -e -T0 --lzma2='dict=256MiB' "${TMPFILEDIR}/data.tar"
      xz -z0 "${TMPFILEDIR}/control.tar"
      ar -d "${TMPFILEDIR}/${PACKAGEFILE}" control.tar data.tar
      ar -r "${TMPFILEDIR}/${PACKAGEFILE}" "${TMPFILEDIR}/control.tar.xz" \
-diff --git a/chrome/installer/linux/debian/postinst b/chrome/installer/linux/debian/postinst
-index c1db53387a9c8..631fe61eefa72 100755
---- a/chrome/installer/linux/debian/postinst
-+++ b/chrome/installer/linux/debian/postinst
-@@ -54,17 +54,6 @@ update-alternatives --install /usr/bin/gnome-www-browser gnome-www-browser \
- update-alternatives --install /usr/bin/@@PACKAGE_ORIG@@ @@PACKAGE_ORIG@@ \
-   /usr/bin/@@USR_BIN_SYMLINK_NAME@@ $PRIORITY
- 
--@@include@@../common/apt.include
--
- @@include@@../common/symlinks.include
- 
- remove_udev_symlinks
--
--## MAIN ##
--if [ ! -e "$DEFAULTS_FILE" ]; then
--  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
--  echo 'repo_reenable_on_distupgrade="true"' >> "$DEFAULTS_FILE"
--fi
--
--# Run the cron job immediately to perform repository configuration.
--nohup sh /etc/cron.daily/@@PACKAGE@@ > /dev/null 2>&1 &
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
 index 3e1cadc8296ca..32fbab915001f 100755
 --- a/chrome/installer/linux/debian/postrm
@@ -370,10 +214,10 @@ index aaab17bdc3b9c..1ea4fdf3408a2 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-index 38e403a87514e..09a84de70e2cf 100644
+index 6651bb9ea44e1..3e2f56999c3de 100644
 --- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
 +++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-@@ -9551,7 +9551,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
+@@ -9539,7 +9539,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
      const ComputedStyle& style,
      const LayoutObject*,
      bool allow_visited_style) const {
