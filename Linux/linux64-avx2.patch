@@ -99,7 +99,7 @@ index 7cd40b9c37cce..62c2dc74ed103 100755
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
 -    xz -z9 -T0 --lzma2='dict=256MiB' "${TMPFILEDIR}/data.tar"
-+    xz -z9 -e -T0 --lzma2='dict=256MiB' "${TMPFILEDIR}/data.tar"
++    xz -z6 -e -T0 "${TMPFILEDIR}/data.tar"
      xz -z0 "${TMPFILEDIR}/control.tar"
      ar -d "${TMPFILEDIR}/${PACKAGEFILE}" control.tar data.tar
      ar -r "${TMPFILEDIR}/${PACKAGEFILE}" "${TMPFILEDIR}/control.tar.xz" \
