@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index de1cd6efc67b4..f9393c3d13f4a 100644
+index de1cd6efc67b4..d16efec5d1a15 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -497,10 +497,10 @@ config("compiler") {
@@ -17,18 +17,17 @@ index de1cd6efc67b4..f9393c3d13f4a 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -1022,6 +1022,10 @@ config("compiler") {
+@@ -1022,6 +1022,9 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ztune-cpu=haswell",
 +    "-Ctarget-feature=+avx",
 +    "-Cllvm-args=-fp-contract=off",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1151,7 +1155,7 @@ config("compiler_cpu_abi") {
+@@ -1151,7 +1154,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -37,7 +36,7 @@ index de1cd6efc67b4..f9393c3d13f4a 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2487,7 +2491,7 @@ config("optimize_max") {
+@@ -2487,7 +2490,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
