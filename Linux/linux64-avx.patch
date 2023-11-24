@@ -46,6 +46,19 @@ index de1cd6efc67b4..f9393c3d13f4a 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
+diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_linux.cc
+index 62da648c6acb0..e8f5aad43c1a3 100644
+--- a/chrome/common/chrome_paths_linux.cc
++++ b/chrome/common/chrome_paths_linux.cc
+@@ -94,7 +94,7 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
+ #elif BUILDFLAG(GOOGLE_CHROME_BRANDING)
+   std::string data_dir_basename = "google-chrome";
+ #else
+-  std::string data_dir_basename = "chromium";
++  std::string data_dir_basename = "chromium-clang";
+ #endif
+   *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
+   return true;
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
 index 15bbf25f2b443..33e25bbaba36b 100755
 --- a/chrome/installer/linux/common/repo.cron
@@ -137,10 +150,10 @@ index a6a9e620b743d..b3f2dc4095e03 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index bf505442f24f6..a18de91843a8b 100644
+index e789456e87089..552d2230e14bd 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -219,33 +219,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -174,7 +187,7 @@ index bf505442f24f6..a18de91843a8b 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -432,7 +406,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -435,7 +409,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -204,10 +217,10 @@ index aaab17bdc3b9c..1ea4fdf3408a2 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-index 6651bb9ea44e1..3e2f56999c3de 100644
+index 8c18c4218a06f..7fb24d18daa0c 100644
 --- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
 +++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-@@ -9539,7 +9539,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
+@@ -9733,7 +9733,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
      const ComputedStyle& style,
      const LayoutObject*,
      bool allow_visited_style) const {
