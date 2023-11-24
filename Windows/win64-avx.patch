@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 80bc79e5fb350..a06eadc88d7ac 100644
+index de1cd6efc67b4..39460065be3d0 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -497,10 +497,10 @@ config("compiler") {
@@ -17,233 +17,26 @@ index 80bc79e5fb350..a06eadc88d7ac 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -1022,6 +1022,10 @@ config("compiler") {
+@@ -1022,6 +1022,9 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=sandybridge",
-+    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+xsave,",
++    "-Ctarget-feature=+avx",
 +    "-Cllvm-args=-fp-contract=off",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1074,12 +1078,14 @@ config("compiler") {
- # building with ThinLTO, no optimization is performed in the link step.
- config("thinlto_optimize_default") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
--    lto_opt_level = 0
-+    lto_opt_level = 3
- 
-     if (is_win) {
-       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-     }
- 
-     if (toolchain_supports_rust_thin_lto) {
-@@ -1105,15 +1111,17 @@ config("thinlto_optimize_default") {
- config("thinlto_optimize_max") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
-     if (thin_lto_enable_optimizations) {
--      lto_opt_level = 2
-+      lto_opt_level = 3
-     } else {
--      lto_opt_level = 0
-+      lto_opt_level = 3
-     }
- 
-     if (is_win) {
-       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-     }
- 
-     if (toolchain_supports_rust_thin_lto) {
-@@ -1149,7 +1157,8 @@ config("compiler_cpu_abi") {
+@@ -1151,7 +1154,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=sandybridge",
-+        "-msse3", "-mssse3", "-msse4.1", "-msse4.2", "-mavx", "-mxsave",
++        "-mavx",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2269,6 +2278,71 @@ if (is_win) {
-   }
-   common_optimize_on_ldflags = []
- 
-+  common_optimize_on_cflags += [
-+    "/clang:-freroll-loops",
-+    "-mllvm", "-adce-remove-loops",
-+    "-mllvm", "-aggressive-ext-opt",
-+    "-mllvm", "-consthoist-gep",
-+    "-mllvm", "-costmodel-reduxcost",
-+    "-mllvm", "-enable-cse-in-irtranslator",
-+    "-mllvm", "-enable-cse-in-legalizer",
-+    "-mllvm", "-enable-deferred-spilling",
-+    "-mllvm", "-enable-dfa-jump-thread",
-+    "-mllvm", "-enable-gvn-hoist",
-+    "-mllvm", "-enable-interleaved-mem-accesses",
-+    "-mllvm", "-enable-masked-interleaved-mem-accesses",
-+    "-mllvm", "-enable-ipra",
-+    "-mllvm", "-enable-loadstore-runtime-interleave",
-+    "-mllvm", "-enable-local-reassign",
-+    "-mllvm", "-enable-loopinterchange",
-+    "-mllvm", "-enable-loop-distribute",
-+    "-mllvm", "-enable-loop-flatten",
-+    "-mllvm", "-enable-loop-versioning-licm",
-+    "-mllvm", "-enable-unroll-and-jam",
-+    "-mllvm", "-exhaustive-register-search",
-+    "-mllvm", "-inline-enable-cost-benefit-analysis",
-+    "-mllvm", "-interleave-small-loop-scalar-reduction",
-+    "-mllvm", "-loop-rotate-multi",
-+    "-mllvm", "-misched=ilpmax",
-+    "-mllvm", "-pre-RA-sched=list-ilp",
-+    "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
-+    "-mllvm", "-slp-vectorize-hor-store",
-+    "-mllvm", "-unroll-runtime-multi-exit",
-+    "-mllvm", "-vectorizer-maximize-bandwidth",
-+  ]
-+
-+  common_optimize_on_ldflags += [
-+    "-mllvm:-adce-remove-loops",
-+    "-mllvm:-aggressive-ext-opt",
-+    "-mllvm:-consthoist-gep",
-+    "-mllvm:-costmodel-reduxcost",
-+    "-mllvm:-enable-cse-in-irtranslator",
-+    "-mllvm:-enable-cse-in-legalizer",
-+    "-mllvm:-enable-deferred-spilling",
-+    "-mllvm:-enable-dfa-jump-thread",
-+    "-mllvm:-enable-gvn-hoist",
-+    "-mllvm:-enable-interleaved-mem-accesses",
-+    "-mllvm:-enable-masked-interleaved-mem-accesses",
-+    "-mllvm:-enable-ipra",
-+    "-mllvm:-enable-loadstore-runtime-interleave",
-+    "-mllvm:-enable-local-reassign",
-+    "-mllvm:-enable-loopinterchange",
-+    "-mllvm:-enable-loop-distribute",
-+    "-mllvm:-enable-loop-flatten",
-+    "-mllvm:-enable-loop-versioning-licm",
-+    "-mllvm:-enable-unroll-and-jam",
-+    "-mllvm:-exhaustive-register-search",
-+    "-mllvm:-inline-enable-cost-benefit-analysis",
-+    "-mllvm:-interleave-small-loop-scalar-reduction",
-+    "-mllvm:-loop-rotate-multi",
-+    "-mllvm:-misched=ilpmax",
-+    "-mllvm:-pre-RA-sched=list-ilp",
-+    "-mllvm:-scalar-evolution-use-expensive-range-sharpening",
-+    "-mllvm:-slp-vectorize-hor-store",
-+    "-mllvm:-unroll-runtime-multi-exit",
-+    "-mllvm:-vectorizer-maximize-bandwidth",
-+  ]
-+
-   # /OPT:ICF is not desirable in Debug builds, since code-folding can result in
-   # misleading symbols in stack traces.
-   if (!is_debug && !is_component_build) {
-@@ -2288,6 +2362,72 @@ if (is_win) {
-   common_optimize_on_cflags = []
-   common_optimize_on_ldflags = []
- 
-+  common_optimize_on_cflags += [
-+    "-freroll-loops",
-+    "-mllvm", "-adce-remove-loops",
-+    "-mllvm", "-aggressive-ext-opt",
-+    "-mllvm", "-consthoist-gep",
-+    "-mllvm", "-costmodel-reduxcost",
-+    "-mllvm", "-enable-cse-in-irtranslator",
-+    "-mllvm", "-enable-cse-in-legalizer",
-+    "-mllvm", "-enable-deferred-spilling",
-+    "-mllvm", "-enable-dfa-jump-thread",
-+    "-mllvm", "-enable-gvn-hoist",
-+    "-mllvm", "-enable-interleaved-mem-accesses",
-+    "-mllvm", "-enable-masked-interleaved-mem-accesses",
-+    "-mllvm", "-enable-ipra",
-+    "-mllvm", "-enable-loadstore-runtime-interleave",
-+    "-mllvm", "-enable-local-reassign",
-+    "-mllvm", "-enable-loopinterchange",
-+    "-mllvm", "-enable-loop-distribute",
-+    "-mllvm", "-enable-loop-flatten",
-+    "-mllvm", "-enable-loop-versioning-licm",
-+    "-mllvm", "-enable-unroll-and-jam",
-+    "-mllvm", "-exhaustive-register-search",
-+    "-mllvm", "-inline-enable-cost-benefit-analysis",
-+    "-mllvm", "-interleave-small-loop-scalar-reduction",
-+    "-mllvm", "-loop-rotate-multi",
-+    "-mllvm", "-misched=ilpmax",
-+    "-mllvm", "-pre-RA-sched=list-ilp",
-+    "-mllvm", "-scalar-evolution-use-expensive-range-sharpening",
-+    "-mllvm", "-slp-vectorize-hor-store",
-+    "-mllvm", "-unroll-runtime-multi-exit",
-+    "-mllvm", "-vectorizer-maximize-bandwidth",
-+  ]
-+
-+  common_optimize_on_ldflags += [
-+    "-freroll-loops",
-+    "-Wl,-mllvm,-adce-remove-loops",
-+    "-Wl,-mllvm,-aggressive-ext-opt",
-+    "-Wl,-mllvm,-consthoist-gep",
-+    "-Wl,-mllvm,-costmodel-reduxcost",
-+    "-Wl,-mllvm,-enable-cse-in-irtranslator",
-+    "-Wl,-mllvm,-enable-cse-in-legalizer",
-+    "-Wl,-mllvm,-enable-deferred-spilling",
-+    "-Wl,-mllvm,-enable-dfa-jump-thread",
-+    "-Wl,-mllvm,-enable-gvn-hoist",
-+    "-Wl,-mllvm,-enable-interleaved-mem-accesses",
-+    "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
-+    "-Wl,-mllvm,-enable-ipra",
-+    "-Wl,-mllvm,-enable-loadstore-runtime-interleave",
-+    "-Wl,-mllvm,-enable-local-reassign",
-+    "-Wl,-mllvm,-enable-loopinterchange",
-+    "-Wl,-mllvm,-enable-loop-distribute",
-+    "-Wl,-mllvm,-enable-loop-flatten",
-+    "-Wl,-mllvm,-enable-loop-versioning-licm",
-+    "-Wl,-mllvm,-enable-unroll-and-jam",
-+    "-Wl,-mllvm,-exhaustive-register-search",
-+    "-Wl,-mllvm,-inline-enable-cost-benefit-analysis",
-+    "-Wl,-mllvm,-interleave-small-loop-scalar-reduction",
-+    "-Wl,-mllvm,-loop-rotate-multi",
-+    "-Wl,-mllvm,-misched=ilpmax",
-+    "-Wl,-mllvm,-pre-RA-sched=list-ilp",
-+    "-Wl,-mllvm,-scalar-evolution-use-expensive-range-sharpening",
-+    "-Wl,-mllvm,-slp-vectorize-hor-store",
-+    "-Wl,-mllvm,-unroll-runtime-multi-exit",
-+    "-Wl,-mllvm,-vectorizer-maximize-bandwidth",
-+  ]
-+
-   if (is_android) {
-     # TODO(jdduke) Re-enable on mips after resolving linking
-     # issues with libc++ (crbug.com/456380).
-@@ -2379,12 +2519,12 @@ config("optimize") {
-     } else {
-       # PGO requires all translation units to be compiled with /O2. The actual
-       # optimization level will be decided based on the profiling data.
--      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags + [ "/Oi" ]
- 
-       # https://doc.rust-lang.org/rustc/profile-guided-optimization.html#usage
-       # suggests not using an explicit `-Copt-level` at all, and the default is
-       # to optimize for performance like `/O2` for clang.
--      rustflags = []
-+      rustflags = [ "-Copt-level=3" ]
-     }
-   } else if (optimize_for_size) {
-     # Favor size over speed.
-@@ -2417,7 +2557,7 @@ config("optimize") {
-     # vectorization while otherwise optimizing for size.
-     rustflags = [ "-Copt-level=s" ]
-   } else {
--    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-O3" ] + common_optimize_on_cflags
- 
-     # The `-O3` for clang turns on extra optimizations compared to the standard
-     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2484,11 +2624,11 @@ config("optimize_max") {
+@@ -2483,11 +2486,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -257,7 +50,7 @@ index 80bc79e5fb350..a06eadc88d7ac 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2517,7 +2657,7 @@ config("optimize_speed") {
+@@ -2516,7 +2519,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
@@ -266,7 +59,7 @@ index 80bc79e5fb350..a06eadc88d7ac 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2896,7 +3036,7 @@ config("minimal_symbols") {
+@@ -2895,7 +2898,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -276,7 +69,7 @@ index 80bc79e5fb350..a06eadc88d7ac 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index ddcc94a2d5468..9ebaa625c5e30 100644
+index ddcc94a2d5468..4372edc302c1b 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -127,7 +127,7 @@ config("compiler") {
@@ -284,7 +77,7 @@ index ddcc94a2d5468..9ebaa625c5e30 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-msse3", "-mssse3", "-msse4.1", "-msse4.2", "-mavx", "-mcx16", "-msahf", "-mcrc32", "-mpopcnt", "-mpclmul", "-mxsave", "/clang:-w", ]
++      cflags += [ "-mavx", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
@@ -315,10 +108,10 @@ index ddcc94a2d5468..9ebaa625c5e30 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
-index 07387a69ada91..1d7832f9c22cd 100755
+index 56d34d12c48cb..180b5fb0024be 100755
 --- a/chrome/tools/build/win/create_installer_archive.py
 +++ b/chrome/tools/build/win/create_installer_archive.py
-@@ -80,21 +80,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
+@@ -81,21 +81,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast,
    else:
      cmd.extend(
        [
@@ -366,10 +159,10 @@ index fca63d47b722e..1c2d4f68c9124 100644
      cmd.extend([
          os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 694588bce864f..e0f28ae392808 100644
+index d4d8c455a3eae..6dc83344da048 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -347,7 +347,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+@@ -355,7 +355,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
  // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
  BASE_FEATURE(kPlatformHEVCEncoderSupport,
               "PlatformHEVCEncoderSupport",
@@ -379,10 +172,10 @@ index 694588bce864f..e0f28ae392808 100644
  #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
  
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 7b215e0db3985..21c0d322ce924 100644
+index e789456e87089..552d2230e14bd 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -216,33 +216,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -416,7 +209,7 @@ index 7b215e0db3985..21c0d322ce924 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -427,7 +401,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -435,7 +409,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -446,10 +239,10 @@ index aaab17bdc3b9c..1ea4fdf3408a2 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-index d719925adbf10..4238aba0f1501 100644
+index 8c18c4218a06f..7fb24d18daa0c 100644
 --- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
 +++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-@@ -9519,7 +9519,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
+@@ -9733,7 +9733,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
      const ComputedStyle& style,
      const LayoutObject*,
      bool allow_visited_style) const {
