@@ -6,9 +6,6 @@
 # clang_base_path = "/usr/lib/llvm-18"
 # clang_version = "18"
 
-# Remove # below to disable rust if rustc errors encountered.
-# enable_rust = false
-
 is_clang = true
 is_component_build = false
 is_debug = false
@@ -52,3 +49,7 @@ enable_platform_dolby_vision = true
 enable_platform_mpeg_h_audio = true
 enable_mse_mpeg2ts_stream_parser = true
 use_text_section_splitting = true
+enable_all_rust_features = true
+enable_rust = true
+init_stack_vars_zero = true
+use_qt6 = false
