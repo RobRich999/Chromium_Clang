@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index de1cd6efc67b4..8dfdd4f4e5359 100644
+index de1cd6efc67b4..f117117a6b8f2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -497,10 +497,10 @@ config("compiler") {
+@@ -497,10 +497,16 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -10,14 +10,20 @@ index de1cd6efc67b4..8dfdd4f4e5359 100644
 -    cflags += [ "-fPIC" ]
 -    ldflags += [ "-fPIC" ]
 -    rustflags += [ "-Crelocation-model=pic" ]
-+    asmflags += [ "-fPIC", "-w", ]
-+    cflags += [ "-fPIC", "-w", ]
-+    ldflags += [ "-fPIC", "-w", ]
++    asmflags += [ "-fPIC", "-fno-emulated-tls", "-w", ]
++    cflags += [ "-fPIC","-fno-emulated-tls", "-w", ]
++    ldflags += [ "-fPIC", "-Wl,-plugin-opt=-emulated-tls=0", "-w", ]
 +    rustflags += [ "-Crelocation-model=pic", "-Awarnings", ]
++
++    if (is_clang && chrome_pgo_phase == 2) {
++      asmflags += [ "-fbasic-block-sections=labels" ]
++      cflags += [ "-fbasic-block-sections=labels" ]
++      rustflags += [ "-Cllvm-args=-basic-block-sections=labels" ]
++    }
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -638,7 +638,7 @@ config("compiler") {
+@@ -638,7 +644,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/clang:-ffp-contract=off" ]
      } else {
@@ -26,28 +32,60 @@ index de1cd6efc67b4..8dfdd4f4e5359 100644
      }
    }
  
-@@ -1022,6 +1022,10 @@ config("compiler") {
+@@ -1022,6 +1028,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
 +    "-Ztune-cpu=haswell",
-+    "-Ctarget-feature=+avx,+avx2,+fma,+f16c",
++    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma,+f16c",
 +    "-Cllvm-args=-fp-contract=fast",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1151,7 +1155,8 @@ config("compiler_cpu_abi") {
+@@ -1065,7 +1075,7 @@ config("compiler") {
+     if (is_nacl_saigo) {
+       defines += [ "_LIBCPP_ENABLE_ASSERTIONS=1" ]
+     } else {
+-      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE" ]
++      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST" ]
+     }
+   } else {
+     defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
+@@ -1151,7 +1161,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
 +        "-mtune=haswell",
++        "-msse3", "-mssse3","-msse4.1", "-msse4.2",
 +        "-mavx", "-mavx2", "-mfma", "-mf16c",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2487,7 +2492,7 @@ config("optimize_max") {
+@@ -1159,7 +1171,6 @@ config("compiler_cpu_abi") {
+       if (is_chromeos_lacros) {
+         cflags += [
+           "-mssse3",
+-          "-msse4",
+           "-msse4.1",
+           "-msse4.2",
+         ]
+@@ -2316,11 +2327,12 @@ if (is_win) {
+       # can be removed at link time with --gc-sections.
+       "-fdata-sections",
+       "-ffunction-sections",
++      "-funique-section-names",
+     ]
+     if ((!is_nacl || is_nacl_saigo) && is_clang) {
+       # We don't care about unique section names, this makes object files a bit
+       # smaller.
+-      common_optimize_on_cflags += [ "-fno-unique-section-names" ]
++      # common_optimize_on_cflags += [ "-fno-unique-section-names" ]
+     }
+ 
+     common_optimize_on_ldflags += [
+@@ -2487,7 +2499,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -55,6 +93,32 @@ index de1cd6efc67b4..8dfdd4f4e5359 100644
 +      cflags = [ "-O3" ] + common_optimize_on_cflags
      }
      rustflags = [ "-Copt-level=3" ]
+   }
+diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
+index f8293b2ef03f9..db44e6b9c91c5 100644
+--- a/build/config/compiler/pgo/BUILD.gn
++++ b/build/config/compiler/pgo/BUILD.gn
+@@ -141,14 +141,17 @@ config("pgo_optimization_flags") {
+     # improve icache utilization and reduce the binary size.
+     if (use_thin_lto) {
+       if (is_win) {
+-        ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
++        ldflags = [ "-mllvm:-enable-ext-tsp-block-placement" ]
+       } else {
+-        ldflags = [ "-Wl,-mllvm,-enable-ext-tsp-block-placement=1" ]
++        ldflags = [
++          "-Wl,-mllvm,-enable-ext-tsp-block-placement",
++          "-Wl,-mllvm,-enable-split-machine-functions",
++        ]
+       }
+     } else {
+       cflags += [
+-        "-mllvm",
+-        "-enable-ext-tsp-block-placement=1",
++        "-mllvm", "-enable-ext-tsp-block-placement",
++        "-fsplit-machine-functions",
+       ]
+     }
    }
 diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_linux.cc
 index 62da648c6acb0..e8f5aad43c1a3 100644
@@ -69,6 +133,108 @@ index 62da648c6acb0..e8f5aad43c1a3 100644
  #endif
    *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
    return true;
+diff --git a/chrome/installer/linux/common/installer.include b/chrome/installer/linux/common/installer.include
+index 5d8b4116299b7..687a6eda023d7 100644
+--- a/chrome/installer/linux/common/installer.include
++++ b/chrome/installer/linux/common/installer.include
+@@ -139,16 +139,16 @@ stage_install_common() {
+   # is_component_build flag is true.
+ 
+   # app
+-  STRIPPEDFILE="${OUTPUTDIR}/${PROGNAME}.stripped"
++  STRIPPEDFILE="${OUTPUTDIR}/${PROGNAME}"
+   install -m 755 "${STRIPPEDFILE}" "${STAGEDIR}/${INSTALLDIR}/${PROGNAME}"
+ 
+   # crashpad
+-  strippedfile="${OUTPUTDIR}/chrome_crashpad_handler.stripped"
++  strippedfile="${OUTPUTDIR}/chrome_crashpad_handler"
+   install -m 755 "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/chrome_crashpad_handler"
+ 
+   # Final permissions for the chrome-management-service will be set in
+   # postinst chrome_management_service_setup().
+-  strippedfile="${OUTPUTDIR}/chrome_management_service.stripped"
++  strippedfile="${OUTPUTDIR}/chrome_management_service"
+   install -m 755 "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/chrome-management-service"
+ 
+   # resources
+@@ -184,7 +184,7 @@ stage_install_common() {
+   # where it did not support hyphens, so this is stuck as is to avoid breaking
+   # anyone who expects the build artifact to have the underscore.
+   # the code looks for, but the build targets can't use hyphens (scons bug?)
+-  strippedfile="${OUTPUTDIR}/${PROGNAME}_sandbox.stripped"
++  strippedfile="${OUTPUTDIR}/${PROGNAME}_sandbox"
+   install -m 4755 "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/chrome-sandbox"
+ 
+   # l10n paks
+@@ -219,7 +219,7 @@ stage_install_common() {
+   # ANGLE
+   if [ -f "${OUTPUTDIR}/libEGL.so" ]; then
+     for file in libEGL.so libGLESv2.so; do
+-      strippedfile="${OUTPUTDIR}/${file}.stripped"
++      strippedfile="${OUTPUTDIR}/${file}"
+       install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
+     done
+   fi
+@@ -227,7 +227,7 @@ stage_install_common() {
+   # ANGLE's libvulkan library
+   if [ -f "${OUTPUTDIR}/libvulkan.so.1" ]; then
+     file="libvulkan.so.1"
+-    strippedfile="${OUTPUTDIR}/${file}.stripped"
++    strippedfile="${OUTPUTDIR}/${file}"
+     install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
+   fi
+ 
+@@ -235,7 +235,7 @@ stage_install_common() {
+   if [ -f "${OUTPUTDIR}/libvk_swiftshader.so" ]; then
+     install -m 755 -d "${STAGEDIR}/${INSTALLDIR}/"
+     file="libvk_swiftshader.so"
+-    strippedfile="${OUTPUTDIR}/${file}.stripped"
++    strippedfile="${OUTPUTDIR}/${file}"
+     install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
+     # Install the ICD json file to point ANGLE to libvk_swiftshader.so
+     install -m 644 "${OUTPUTDIR}/vk_swiftshader_icd.json" "${STAGEDIR}/${INSTALLDIR}/"
+@@ -244,19 +244,19 @@ stage_install_common() {
+   # Optimization Guide Internal
+   if [ -f "${OUTPUTDIR}/liboptimization_guide_internal.so" ]; then
+     file="liboptimization_guide_internal.so"
+-    strippedfile="${OUTPUTDIR}/${file}.stripped"
++    strippedfile="${OUTPUTDIR}/${file}"
+     install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
+   fi
+ 
+   # QT shim
+   if [ -f "${OUTPUTDIR}/libqt5_shim.so" ]; then
+     file="libqt5_shim.so"
+-    strippedfile="${OUTPUTDIR}/${file}.stripped"
++    strippedfile="${OUTPUTDIR}/${file}"
+     install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
+   fi
+   if [ -f "${OUTPUTDIR}/libqt6_shim.so" ]; then
+     file="libqt6_shim.so"
+-    strippedfile="${OUTPUTDIR}/${file}.stripped"
++    strippedfile="${OUTPUTDIR}/${file}"
+     install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
+   fi
+ 
+@@ -350,12 +350,12 @@ stage_install_common() {
+   fi
+ 
+   # Check to make sure all the ELF binaries are stripped.
+-  UNSTRIPPED=$(find "${STAGEDIR}/${INSTALLDIR}/" -type f | xargs file |
+-      grep ELF | grep -c "not stripped" || true)
+-  if [ "${UNSTRIPPED}" != "0" ]; then
+-    echo "ERROR: Found ${UNSTRIPPED} unstripped ELF files." 1>&2
+-    exit 1
+-  fi
++  # UNSTRIPPED=$(find "${STAGEDIR}/${INSTALLDIR}/" -type f | xargs file |
++  #     grep ELF | grep -c "not stripped" || true)
++  # if [ "${UNSTRIPPED}" != "0" ]; then
++  #   echo "ERROR: Found ${UNSTRIPPED} unstripped ELF files." 1>&2
++  #   exit 1
++  # fi
+ 
+   # Check to make sure no ELF binaries set RPATH.
+   if [ "${TARGET_OS}" != "chromeos" ]; then
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
 index 15bbf25f2b443..33e25bbaba36b 100755
 --- a/chrome/installer/linux/common/repo.cron
@@ -104,7 +270,7 @@ index 15bbf25f2b443..33e25bbaba36b 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 7cd40b9c37cce..56dd4a72eb385 100755
+index 7cd40b9c37cce..6616978af4f87 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
 @@ -121,7 +121,7 @@ do_package() {
@@ -112,7 +278,7 @@ index 7cd40b9c37cce..56dd4a72eb385 100755
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
 -    xz -z9 -T0 --lzma2='dict=256MiB' "${TMPFILEDIR}/data.tar"
-+    xz -z6 -e -T0 "${TMPFILEDIR}/data.tar"
++    xz -z6 -e --threads=0 "${TMPFILEDIR}/data.tar"
      xz -z0 "${TMPFILEDIR}/control.tar"
      ar -d "${TMPFILEDIR}/${PACKAGEFILE}" control.tar data.tar
      ar -r "${TMPFILEDIR}/${PACKAGEFILE}" "${TMPFILEDIR}/control.tar.xz" \
@@ -143,11 +309,11 @@ index 3e1cadc8296ca..32fbab915001f 100755
 -# Remove any Google repository added by the package.
 -clean_sources_lists
 -uninstall_key
-diff --git a/content/gpu/gpu_sandbox_hook_linux.cc b/content/gpu/gpu_sandbox_hook_linux.cc
-index a6a9e620b743d..b3f2dc4095e03 100644
---- a/content/gpu/gpu_sandbox_hook_linux.cc
-+++ b/content/gpu/gpu_sandbox_hook_linux.cc
-@@ -249,6 +249,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
+index 4468ad1859bb9..0ed2646466c98 100644
+--- a/content/common/gpu_pre_sandbox_hook_linux.cc
++++ b/content/common/gpu_pre_sandbox_hook_linux.cc
+@@ -251,6 +251,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
@@ -227,10 +393,10 @@ index aaab17bdc3b9c..1ea4fdf3408a2 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-index 8c18c4218a06f..7fb24d18daa0c 100644
+index 1e35b90bd3ac3..d0d510a7793e7 100644
 --- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
 +++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-@@ -9733,7 +9733,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
+@@ -9730,7 +9730,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
      const ComputedStyle& style,
      const LayoutObject*,
      bool allow_visited_style) const {
