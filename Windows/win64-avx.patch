@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index de1cd6efc67b4..39460065be3d0 100644
+index de1cd6efc67b4..23299566c4685 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -497,10 +497,10 @@ config("compiler") {
@@ -22,26 +22,43 @@ index de1cd6efc67b4..39460065be3d0 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+avx",
++    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx",
 +    "-Cllvm-args=-fp-contract=off",
    ]
  
    if (!is_win || force_rustc_color_output) {
+@@ -1065,7 +1068,7 @@ config("compiler") {
+     if (is_nacl_saigo) {
+       defines += [ "_LIBCPP_ENABLE_ASSERTIONS=1" ]
+     } else {
+-      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE" ]
++      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST" ]
+     }
+   } else {
+     defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
 @@ -1151,7 +1154,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-mavx",
++        "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2483,11 +2486,11 @@ config("optimize_max") {
+@@ -1159,7 +1162,6 @@ config("compiler_cpu_abi") {
+       if (is_chromeos_lacros) {
+         cflags += [
+           "-mssse3",
+-          "-msse4",
+           "-msse4.1",
+           "-msse4.2",
+         ]
+@@ -2483,11 +2485,11 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
 -      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -50,16 +67,16 @@ index de1cd6efc67b4..39460065be3d0 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2516,7 +2519,7 @@ config("optimize_speed") {
+@@ -2516,7 +2518,7 @@ config("optimize_speed") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
 -      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags + [ "/Oi" ]
++      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2895,7 +2898,7 @@ config("minimal_symbols") {
+@@ -2895,7 +2897,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -69,7 +86,7 @@ index de1cd6efc67b4..39460065be3d0 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index ddcc94a2d5468..4372edc302c1b 100644
+index 6e1417aa40076..7cac09c51108d 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -127,7 +127,7 @@ config("compiler") {
@@ -77,7 +94,7 @@ index ddcc94a2d5468..4372edc302c1b 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mavx", "/clang:-w", ]
++      cflags += [ "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
@@ -159,7 +176,7 @@ index fca63d47b722e..1c2d4f68c9124 100644
      cmd.extend([
          os.path.abspath(compressed_file),
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index d4d8c455a3eae..6dc83344da048 100644
+index 4d402b4b131b0..3875389e7f9a0 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -355,7 +355,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
@@ -239,10 +256,10 @@ index aaab17bdc3b9c..1ea4fdf3408a2 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-index 8c18c4218a06f..7fb24d18daa0c 100644
+index 1e35b90bd3ac3..d0d510a7793e7 100644
 --- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
 +++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-@@ -9733,7 +9733,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
+@@ -9730,7 +9730,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
      const ComputedStyle& style,
      const LayoutObject*,
      bool allow_visited_style) const {
