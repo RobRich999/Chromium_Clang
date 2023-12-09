@@ -18,9 +18,9 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v121.0.6159.0-r1231436
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v121.0.6160.0-r1231884-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6174.0-r1235316-win64-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v121.0.6147.0-r1228869-win64-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6174.0-r1235316-win64-avx
 
 <sub>*Chromium_Clang for Windows builds are cross-compiled under Linux.*</sub>
 
