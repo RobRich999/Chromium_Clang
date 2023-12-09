@@ -1,41 +1,17 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index de1cd6efc67b4..23299566c4685 100644
+index de1cd6efc67b4..85e09ff3a048c 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -497,10 +497,10 @@ config("compiler") {
-   # Linux/Android/Fuchsia common flags setup.
-   # ---------------------------------
-   if (is_linux || is_chromeos || is_android || is_fuchsia) {
--    asmflags += [ "-fPIC" ]
--    cflags += [ "-fPIC" ]
--    ldflags += [ "-fPIC" ]
--    rustflags += [ "-Crelocation-model=pic" ]
-+    asmflags += [ "-fPIC", "-w" ]
-+    cflags += [ "-fPIC", "-w" ]
-+    ldflags += [ "-fPIC", "-w" ]
-+    rustflags += [ "-Crelocation-model=pic", "-Awarnings", ]
- 
-     if (!is_clang) {
-       # Use pipes for communicating between sub-processes. Faster.
 @@ -1022,6 +1022,9 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
-+
++    
 +    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx",
 +    "-Cllvm-args=-fp-contract=off",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1065,7 +1068,7 @@ config("compiler") {
-     if (is_nacl_saigo) {
-       defines += [ "_LIBCPP_ENABLE_ASSERTIONS=1" ]
-     } else {
--      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE" ]
-+      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST" ]
-     }
-   } else {
-     defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
 @@ -1151,7 +1154,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
@@ -45,20 +21,7 @@ index de1cd6efc67b4..23299566c4685 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -1159,7 +1162,6 @@ config("compiler_cpu_abi") {
-       if (is_chromeos_lacros) {
-         cflags += [
-           "-mssse3",
--          "-msse4",
-           "-msse4.1",
-           "-msse4.2",
-         ]
-@@ -2483,11 +2485,11 @@ config("optimize_max") {
-     if (is_win) {
-       # Favor speed over size, /O2 must be before the common flags.
-       # /O2 implies /Ot, /Oi, and /GF.
--      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
+@@ -2487,7 +2490,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -67,16 +30,7 @@ index de1cd6efc67b4..23299566c4685 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2516,7 +2518,7 @@ config("optimize_speed") {
-     if (is_win) {
-       # Favor speed over size, /O2 must be before the common flags.
-       # /O2 implies /Ot, /Oi, and /GF.
--      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
-     } else if (optimize_for_fuzzing) {
-       cflags = [ "-O1" ] + common_optimize_on_cflags
-     } else {
-@@ -2895,7 +2897,7 @@ config("minimal_symbols") {
+@@ -2895,7 +2898,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -86,27 +40,28 @@ index de1cd6efc67b4..23299566c4685 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 6e1417aa40076..7cac09c51108d 100644
+index 6e1417aa40076..5527c7cc3b17c 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
+@@ -86,7 +86,7 @@ config("compiler") {
+ 
+   cflags += [
+     # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
+-    "/Zc:sizedDealloc-",
++    # "/Zc:sizedDealloc-",
+   ]
+ 
+   if (is_clang) {
 @@ -127,7 +127,7 @@ config("compiler") {
      # microarchitecture. MSVC only supports a subset of architectures, and the
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "/clang:-w", ]
++      cflags += [ "-mtune=haswell", "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
-@@ -167,6 +167,7 @@ config("compiler") {
- 
-     # Don't look for libpaths in %LIB%, similar to /X in cflags above.
-     ldflags += [ "/lldignoreenv" ]
-+
-   }
- 
-   # Some binaries create PDBs larger than 4 GiB. Increasing the PDB page size
-@@ -198,7 +199,7 @@ config("compiler") {
+@@ -198,7 +198,7 @@ config("compiler") {
      if (use_lld) {
        # String tail merging leads to smaller binaries, but they don't compress
        # as well, leading to increased mini_installer size (crbug.com/838449).
@@ -115,7 +70,7 @@ index 6e1417aa40076..7cac09c51108d 100644
      }
  
      # TODO(siggi): Is this of any use anymore?
-@@ -206,7 +207,7 @@ config("compiler") {
+@@ -206,7 +206,7 @@ config("compiler") {
      # PDB file by about 5%) but does not otherwise alter the output binary. It
      # is enabled opportunistically for builds where it is not prohibited (not
      # supported when incrementally linking, or using /debug:fastlink).
@@ -124,75 +79,11 @@ index 6e1417aa40076..7cac09c51108d 100644
    }
  
    # arflags apply only to static_libraries. The normal linker configs are only
-diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
-index 56d34d12c48cb..180b5fb0024be 100755
---- a/chrome/tools/build/win/create_installer_archive.py
-+++ b/chrome/tools/build/win/create_installer_archive.py
-@@ -81,21 +81,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast,
-   else:
-     cmd.extend(
-       [
--          # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
--          # pre-filter). This results in a ~2.3MB decrease in installer size on
--          # a 24MB installer.
--          # Additionally, these settings reflect a 7zip 4.42 and up change in
--          # the definition of -mx9, increasting the dicionary size moving to
--          # 26bit = 64MB. This results in an additional ~3.5MB decrease.
--          # Older 7zip versions can support these settings, as these changes
--          # rely on existing functionality in the lzma format.
--          '-m0=BCJ2',
--          '-m1=LZMA:d27:fb128',
--          '-m2=LZMA:d22:fb128:mf=bt2',
--          '-m3=LZMA:d22:fb128:mf=bt2',
--          '-mb0:1',
--          '-mb0s1:2',
--          '-mb0s2:3',
-+          '-mx5',
-+          '-myx=7',
-       ])
-   cmd.extend(
-     [
-diff --git a/chrome/updater/win/installer/create_installer_archive.py b/chrome/updater/win/installer/create_installer_archive.py
-index fca63d47b722e..1c2d4f68c9124 100644
---- a/chrome/updater/win/installer/create_installer_archive.py
-+++ b/chrome/updater/win/installer/create_installer_archive.py
-@@ -42,16 +42,8 @@ def CompressUsingLZMA(build_dir, compressed_file, input_file, verbose, fast):
-         cmd.append('-mx1')
-     else:
-         cmd.extend([
--            # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
--            # pre-filter). These arguments are the similar to what the Chrome
--            # mini-installer is using.
--            '-m0=BCJ2',
--            '-m1=LZMA:d27:fb128',
--            '-m2=LZMA:d22:fb128:mf=bt2',
--            '-m3=LZMA:d22:fb128:mf=bt2',
--            '-mb0:1',
--            '-mb0s1:2',
--            '-mb0s2:3',
-+            '-mx5',
-+            '-myx=7',
-         ])
-     cmd.extend([
-         os.path.abspath(compressed_file),
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 4d402b4b131b0..3875389e7f9a0 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -355,7 +355,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
- // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
- BASE_FEATURE(kPlatformHEVCEncoderSupport,
-              "PlatformHEVCEncoderSupport",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID)
- #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
- 
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index e789456e87089..552d2230e14bd 100644
+index 1360ee1bfb46d..c26dd9a752912 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -221,33 +221,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -226,7 +117,7 @@ index e789456e87089..552d2230e14bd 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -435,7 +409,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -434,7 +408,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -235,8 +126,22 @@ index e789456e87089..552d2230e14bd 100644
      return true;
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
+index af52aeb5173af..c1a826ece8791 100644
+--- a/media/filters/ffmpeg_glue.cc
++++ b/media/filters/ffmpeg_glue.cc
+@@ -166,6 +166,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
+     }
+ #if BUILDFLAG(USE_PROPRIETARY_CODECS)
+     allowed_decoders.push_back("h264");
++#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
++    allowed_decoders.push_back("hevc");
++#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+ #if BUILDFLAG(IS_CHROMEOS)
+     if (base::FeatureList::IsEnabled(kCrOSLegacyMediaFormats)) {
+       allowed_decoders.push_back("mpeg4");
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index aaab17bdc3b9c..1ea4fdf3408a2 100644
+index aaab17bdc3b9c..a8137c4f72270 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -247,27 +152,14 @@ index aaab17bdc3b9c..1ea4fdf3408a2 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -88,6 +87,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
-       // No extra threads for these codecs.
+@@ -89,6 +88,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        break;
  
-+    case VideoCodec::kHEVC:
      case VideoCodec::kH264:
++    case VideoCodec::kHEVC:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
-diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-index 1e35b90bd3ac3..d0d510a7793e7 100644
---- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-+++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-@@ -9730,7 +9730,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
-     const ComputedStyle& style,
-     const LayoutObject*,
-     bool allow_visited_style) const {
--  CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
-+  // CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
-   const FillLayer& fill_layer = style.MaskLayers();
-   return ComputedStyleUtils::BackgroundImageOrWebkitMaskSize(style, fill_layer);
- }
+       // with number of pixels.
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
 index 73080483ab32b..9304584dedea4 100644
 --- a/tools/cfi/ignores.txt
