@@ -1,11 +1,6 @@
 # Build arguments go here.
 # See "gn args <out_dir> --list" for available build arguments.
 
-# If external LLVM checkout used, for example:
-# https://apt.llvm.org/
-# clang_base_path = "/usr/lib/llvm-18"
-# clang_version = "18"
-
 is_clang = true
 is_component_build = false
 is_debug = false
@@ -51,5 +46,3 @@ enable_mse_mpeg2ts_stream_parser = true
 use_text_section_splitting = true
 enable_all_rust_features = true
 enable_rust = true
-init_stack_vars_zero = true
-use_qt6 = false
