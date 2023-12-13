@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index de1cd6efc67b4..f117117a6b8f2 100644
+index de1cd6efc67b4..702cf8ce5a846 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -497,10 +497,16 @@ config("compiler") {
@@ -23,9 +23,12 @@ index de1cd6efc67b4..f117117a6b8f2 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -638,7 +644,7 @@ config("compiler") {
+@@ -636,9 +642,9 @@ config("compiler") {
+ 
+     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
      if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
+-      cflags += [ "/clang:-ffp-contract=off" ]
++      cflags += [ "/clang:-ffp-contract=fast" ]
      } else {
 -      cflags += [ "-ffp-contract=off" ]
 +      cflags += [ "-ffp-contract=fast" ]
@@ -52,7 +55,15 @@ index de1cd6efc67b4..f117117a6b8f2 100644
      }
    } else {
      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
-@@ -1151,7 +1161,9 @@ config("compiler_cpu_abi") {
+@@ -1116,6 +1126,7 @@ config("thinlto_optimize_max") {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist" ]
+     }
+ 
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1151,7 +1162,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -63,15 +74,7 @@ index de1cd6efc67b4..f117117a6b8f2 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -1159,7 +1171,6 @@ config("compiler_cpu_abi") {
-       if (is_chromeos_lacros) {
-         cflags += [
-           "-mssse3",
--          "-msse4",
-           "-msse4.1",
-           "-msse4.2",
-         ]
-@@ -2316,11 +2327,12 @@ if (is_win) {
+@@ -2316,11 +2329,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -85,25 +88,13 @@ index de1cd6efc67b4..f117117a6b8f2 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2487,7 +2499,7 @@ config("optimize_max") {
-     } else if (optimize_for_fuzzing) {
-       cflags = [ "-O1" ] + common_optimize_on_cflags
-     } else {
--      cflags = [ "-O2" ] + common_optimize_on_cflags
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
-     }
-     rustflags = [ "-Copt-level=3" ]
-   }
 diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
-index f8293b2ef03f9..db44e6b9c91c5 100644
+index f8293b2ef03f9..be24ee887c177 100644
 --- a/build/config/compiler/pgo/BUILD.gn
 +++ b/build/config/compiler/pgo/BUILD.gn
-@@ -141,14 +141,17 @@ config("pgo_optimization_flags") {
-     # improve icache utilization and reduce the binary size.
-     if (use_thin_lto) {
+@@ -143,12 +143,15 @@ config("pgo_optimization_flags") {
        if (is_win) {
--        ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
-+        ldflags = [ "-mllvm:-enable-ext-tsp-block-placement" ]
+         ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
        } else {
 -        ldflags = [ "-Wl,-mllvm,-enable-ext-tsp-block-placement=1" ]
 +        ldflags = [
@@ -134,7 +125,7 @@ index 62da648c6acb0..e8f5aad43c1a3 100644
    *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
    return true;
 diff --git a/chrome/installer/linux/common/installer.include b/chrome/installer/linux/common/installer.include
-index 5d8b4116299b7..687a6eda023d7 100644
+index 39c47c22de803..c1ba867f6d660 100644
 --- a/chrome/installer/linux/common/installer.include
 +++ b/chrome/installer/linux/common/installer.include
 @@ -139,16 +139,16 @@ stage_install_common() {
@@ -216,34 +207,50 @@ index 5d8b4116299b7..687a6eda023d7 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
    fi
  
-@@ -350,12 +350,12 @@ stage_install_common() {
+@@ -349,19 +349,6 @@ stage_install_common() {
+       "${STAGEDIR}/usr/share/man/man1/${PACKAGE}.1.gz"
    fi
  
-   # Check to make sure all the ELF binaries are stripped.
--  UNSTRIPPED=$(find "${STAGEDIR}/${INSTALLDIR}/" -type f | xargs file |
--      grep ELF | grep -c "not stripped" || true)
--  if [ "${UNSTRIPPED}" != "0" ]; then
--    echo "ERROR: Found ${UNSTRIPPED} unstripped ELF files." 1>&2
+-  # Check to make sure all the ELF binaries are stripped.
+-  UNSTRIPPED_BINS=
+-  for elf in $(find "${STAGEDIR}/${INSTALLDIR}/" -type f | xargs file |
+-                grep ELF | grep "not stripped" | awk '{print $1;}' |
+-                sed 's/:$//'); do
+-    UNSTRIPPED_BINS="${UNSTRIPPED_BINS} ${elf}"
+-  done
+-
+-  if [ -n "${UNSTRIPPED_BINS}" ]; then
+-    echo "ERROR: Found unstripped ELF files:${UNSTRIPPED_BINS}" 1>&2
 -    exit 1
 -  fi
-+  # UNSTRIPPED=$(find "${STAGEDIR}/${INSTALLDIR}/" -type f | xargs file |
-+  #     grep ELF | grep -c "not stripped" || true)
-+  # if [ "${UNSTRIPPED}" != "0" ]; then
-+  #   echo "ERROR: Found ${UNSTRIPPED} unstripped ELF files." 1>&2
-+  #   exit 1
-+  # fi
- 
+-
    # Check to make sure no ELF binaries set RPATH.
    if [ "${TARGET_OS}" != "chromeos" ]; then
+     RPATH_BINS=
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
-index 15bbf25f2b443..33e25bbaba36b 100755
+index 15bbf25f2b443..8b137891791fe 100755
 --- a/chrome/installer/linux/common/repo.cron
 +++ b/chrome/installer/linux/common/repo.cron
-@@ -16,29 +16,3 @@
- # setting "repo_add_once" and/or "repo_reenable_on_distupgrade" to "true" or
- # "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
- # to "false".
--
+@@ -1,44 +1 @@
+-#!/bin/sh
+-#
+-# Copyright 2009 The Chromium Authors
+-# Use of this source code is governed by a BSD-style license that can be
+-# found in the LICENSE file.
+-#
+-# This script is part of the @@PACKAGE@@ package.
+-#
+-# It creates the repository configuration file for package updates, and it
+-# monitors that config to see if it has been disabled by the overly aggressive
+-# distro upgrade process (e.g.  intrepid -> jaunty). When this situation is
+-# detected, the respository will be re-enabled. If the respository is disabled
+-# for any other reason, this won't re-enable it.
+-#
+-# This functionality can be controlled by creating the $DEFAULTS_FILE and
+-# setting "repo_add_once" and/or "repo_reenable_on_distupgrade" to "true" or
+-# "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
+-# to "false".
+ 
 -@@include@@../common/variables.include
 -
 -@@include@@apt.include
@@ -270,7 +277,7 @@ index 15bbf25f2b443..33e25bbaba36b 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 7cd40b9c37cce..6616978af4f87 100755
+index 7cd40b9c37cce..56dd4a72eb385 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
 @@ -121,7 +121,7 @@ do_package() {
@@ -278,20 +285,21 @@ index 7cd40b9c37cce..6616978af4f87 100755
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
 -    xz -z9 -T0 --lzma2='dict=256MiB' "${TMPFILEDIR}/data.tar"
-+    xz -z6 -e --threads=0 "${TMPFILEDIR}/data.tar"
++    xz -z6 -e -T0 "${TMPFILEDIR}/data.tar"
      xz -z0 "${TMPFILEDIR}/control.tar"
      ar -d "${TMPFILEDIR}/${PACKAGEFILE}" control.tar data.tar
      ar -r "${TMPFILEDIR}/${PACKAGEFILE}" "${TMPFILEDIR}/control.tar.xz" \
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
-index 3e1cadc8296ca..32fbab915001f 100755
+index 3e1cadc8296ca..aa5848db6913f 100755
 --- a/chrome/installer/linux/debian/postrm
 +++ b/chrome/installer/linux/debian/postrm
-@@ -15,22 +15,6 @@ fi
+@@ -15,22 +15,8 @@ fi
  
  @@include@@../common/variables.include
  
 -@@include@@../common/apt.include
--
++# @@include@@../common/apt.include
+ 
  @@include@@../common/symlinks.include
  
  remove_udev_symlinks
@@ -326,10 +334,10 @@ index 4468ad1859bb9..0ed2646466c98 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index e789456e87089..552d2230e14bd 100644
+index 1360ee1bfb46d..c26dd9a752912 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -221,33 +221,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -363,7 +371,7 @@ index e789456e87089..552d2230e14bd 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -435,7 +409,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -434,7 +408,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
    if (codec == VideoCodec::kVP8)
      return true;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -372,8 +380,22 @@ index e789456e87089..552d2230e14bd 100644
      return true;
  #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
+index af52aeb5173af..c1a826ece8791 100644
+--- a/media/filters/ffmpeg_glue.cc
++++ b/media/filters/ffmpeg_glue.cc
+@@ -166,6 +166,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
+     }
+ #if BUILDFLAG(USE_PROPRIETARY_CODECS)
+     allowed_decoders.push_back("h264");
++#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
++    allowed_decoders.push_back("hevc");
++#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+ #if BUILDFLAG(IS_CHROMEOS)
+     if (base::FeatureList::IsEnabled(kCrOSLegacyMediaFormats)) {
+       allowed_decoders.push_back("mpeg4");
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index aaab17bdc3b9c..1ea4fdf3408a2 100644
+index aaab17bdc3b9c..a8137c4f72270 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -384,29 +406,16 @@ index aaab17bdc3b9c..1ea4fdf3408a2 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -88,6 +87,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
-       // No extra threads for these codecs.
+@@ -89,6 +88,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        break;
  
-+    case VideoCodec::kHEVC:
      case VideoCodec::kH264:
++    case VideoCodec::kHEVC:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
-diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-index 1e35b90bd3ac3..d0d510a7793e7 100644
---- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-+++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
-@@ -9730,7 +9730,7 @@ const CSSValue* MaskSize::CSSValueFromComputedStyleInternal(
-     const ComputedStyle& style,
-     const LayoutObject*,
-     bool allow_visited_style) const {
--  CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
-+  // CHECK(RuntimeEnabledFeatures::CSSMaskingInteropEnabled());
-   const FillLayer& fill_layer = style.MaskLayers();
-   return ComputedStyleUtils::BackgroundImageOrWebkitMaskSize(style, fill_layer);
- }
+       // with number of pixels.
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 73080483ab32b..9304584dedea4 100644
+index ff4d595951088..559eb7c08adf2 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
 @@ -144,6 +144,8 @@ type:sandbox::TargetServices
