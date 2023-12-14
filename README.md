@@ -14,6 +14,8 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6184.0-r1237314
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6184.0-r1237314-linux64-deb-avx
 
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6184.0-r1237314-linux64-deb-znver2
+
 ****
 
 **Links to latest Windows build releases:**
@@ -47,6 +49,8 @@ Builds marked with the "+fast-math" tag utilize aggressive floating-point optimi
 Builds marked with the "+avx" tag require processors with AVX instruction set support.
 
 Builds marked with the "+avx2" tag require processors with AVX2 instruction set support.
+
+Builds marked with the "+amd_znver" tag are AVX2 builds tuned for the AMD Zen 2 processor microarchitecture.
 
 Builds marked with the "+fma" tag require processors with FMA instruction set support.
 
