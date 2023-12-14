@@ -46,3 +46,4 @@ enable_mse_mpeg2ts_stream_parser = true
 use_text_section_splitting = true
 enable_all_rust_features = true
 enable_rust = true
+init_stack_vars_zero = true
