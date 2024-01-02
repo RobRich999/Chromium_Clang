@@ -20,7 +20,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6224.0-r1242047
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6174.0-r1235316-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6224.0-r1242047-win64-avx2
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v122.0.6174.0-r1235316-win64-avx
 
