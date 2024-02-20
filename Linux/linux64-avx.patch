@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index de1cd6efc67b4..31352bf817b57 100644
+index 3c7b4d82d0b46..1da0520f9f44a 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -497,10 +497,16 @@ config("compiler") {
+@@ -494,10 +494,16 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -23,17 +23,56 @@ index de1cd6efc67b4..31352bf817b57 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -1022,6 +1028,9 @@ config("compiler") {
+@@ -626,16 +632,16 @@ config("compiler") {
+         if (is_win) {
+           ldflags += [ "-mllvm:-split-threshold-for-reg-with-hint=0" ]
+         } else {
+-          ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
++          # ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
+         }
+       }
+     }
+ 
+     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
+     if (is_win) {
+-      cflags += [ "/clang:-ffp-contract=off" ]
++      cflags += [ "/clang:-ffp-contract=fast" ]
+     } else {
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
+     }
+   }
+ 
+@@ -759,7 +765,7 @@ config("compiler") {
+     # binary size than the default setting of 100.
+     # TODO(gbiv): We ideally shouldn't need to specify this; ThinLTO
+     # should be able to better manage binary size increases on its own.
+-    import_instr_limit = 30
++    # import_instr_limit = 30
+ 
+     if (is_win) {
+       ldflags += [
+@@ -792,7 +798,7 @@ config("compiler") {
+         import_instr_limit = 5
+       }
+ 
+-      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
++      # ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
+ 
+       if (is_apple) {
+         ldflags += [ "-Wcrl,object_path_lto" ]
+@@ -1016,6 +1022,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx",
-+    "-Cllvm-args=-fp-contract=off",
++    "-Ctarget-cpu=x86-64-v2",
++    # "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma,+f16c",
++    "-Cllvm-args=-fp-contract=fast",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1065,7 +1074,7 @@ config("compiler") {
+@@ -1064,7 +1074,7 @@ config("compiler") {
      if (is_nacl_saigo) {
        defines += [ "_LIBCPP_ENABLE_ASSERTIONS=1" ]
      } else {
@@ -42,24 +81,53 @@ index de1cd6efc67b4..31352bf817b57 100644
      }
    } else {
      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
-@@ -1116,6 +1125,7 @@ config("thinlto_optimize_max") {
+@@ -1075,12 +1085,15 @@ config("compiler") {
+ # building with ThinLTO, no optimization is performed in the link step.
+ config("thinlto_optimize_default") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+-    lto_opt_level = 0
++    lto_opt_level = 2
+ 
+     if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      ldflags += [ "-Wl,-mllvm,-import-instr-limit=30" ]
 +      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist" ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1151,7 +1161,7 @@ config("compiler_cpu_abi") {
+@@ -1108,13 +1121,16 @@ config("thinlto_optimize_max") {
+     if (thin_lto_enable_optimizations) {
+       lto_opt_level = 2
+     } else {
+-      lto_opt_level = 0
++      lto_opt_level = 2
+     }
+ 
+     if (is_win) {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      ldflags += [ "-Wl,-mllvm,-import-instr-limit=100" ]
++      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist" ]
+     }
+ 
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1150,7 +1166,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx",
++        "-march=x86-64-v2",
++        # "-msse3", "-mssse3","-msse4.1", "-msse4.2",
++        # "-mavx", "-mavx2", "-mfma", "-mf16c",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2316,11 +2326,12 @@ if (is_win) {
+@@ -2351,11 +2369,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -73,11 +141,29 @@ index de1cd6efc67b4..31352bf817b57 100644
      }
  
      common_optimize_on_ldflags += [
+@@ -2441,7 +2460,7 @@ config("optimize") {
+     # vectorization while otherwise optimizing for size.
+     rustflags = [ "-Copt-level=s" ]
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
+ 
+     # The `-O3` for clang turns on extra optimizations compared to the standard
+     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
+@@ -2512,7 +2531,7 @@ config("optimize_max") {
+     } else if (optimize_for_fuzzing) {
+       cflags = [ "-O1" ] + common_optimize_on_cflags
+     } else {
+-      cflags = [ "-O2" ] + common_optimize_on_cflags
++      cflags = [ "-O3" ] + common_optimize_on_cflags
+     }
+     rustflags = [ "-Copt-level=3" ]
+   }
 diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
-index f8293b2ef03f9..be24ee887c177 100644
+index d047c7e4bb6c1..6467b433e1094 100644
 --- a/build/config/compiler/pgo/BUILD.gn
 +++ b/build/config/compiler/pgo/BUILD.gn
-@@ -143,12 +143,15 @@ config("pgo_optimization_flags") {
+@@ -145,12 +145,15 @@ config("pgo_optimization_flags") {
        if (is_win) {
          ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
        } else {
@@ -110,10 +196,10 @@ index 62da648c6acb0..e8f5aad43c1a3 100644
    *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
    return true;
 diff --git a/chrome/installer/linux/common/installer.include b/chrome/installer/linux/common/installer.include
-index 39c47c22de803..c1ba867f6d660 100644
+index 0651084d828b4..9f2819821bddc 100644
 --- a/chrome/installer/linux/common/installer.include
 +++ b/chrome/installer/linux/common/installer.include
-@@ -139,16 +139,16 @@ stage_install_common() {
+@@ -138,16 +138,16 @@ stage_install_common() {
    # is_component_build flag is true.
  
    # app
@@ -133,7 +219,7 @@ index 39c47c22de803..c1ba867f6d660 100644
    install -m 755 "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/chrome-management-service"
  
    # resources
-@@ -184,7 +184,7 @@ stage_install_common() {
+@@ -183,7 +183,7 @@ stage_install_common() {
    # where it did not support hyphens, so this is stuck as is to avoid breaking
    # anyone who expects the build artifact to have the underscore.
    # the code looks for, but the build targets can't use hyphens (scons bug?)
@@ -142,7 +228,7 @@ index 39c47c22de803..c1ba867f6d660 100644
    install -m 4755 "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/chrome-sandbox"
  
    # l10n paks
-@@ -219,7 +219,7 @@ stage_install_common() {
+@@ -218,7 +218,7 @@ stage_install_common() {
    # ANGLE
    if [ -f "${OUTPUTDIR}/libEGL.so" ]; then
      for file in libEGL.so libGLESv2.so; do
@@ -151,7 +237,7 @@ index 39c47c22de803..c1ba867f6d660 100644
        install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
      done
    fi
-@@ -227,7 +227,7 @@ stage_install_common() {
+@@ -226,7 +226,7 @@ stage_install_common() {
    # ANGLE's libvulkan library
    if [ -f "${OUTPUTDIR}/libvulkan.so.1" ]; then
      file="libvulkan.so.1"
@@ -160,7 +246,7 @@ index 39c47c22de803..c1ba867f6d660 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
    fi
  
-@@ -235,7 +235,7 @@ stage_install_common() {
+@@ -234,7 +234,7 @@ stage_install_common() {
    if [ -f "${OUTPUTDIR}/libvk_swiftshader.so" ]; then
      install -m 755 -d "${STAGEDIR}/${INSTALLDIR}/"
      file="libvk_swiftshader.so"
@@ -169,7 +255,7 @@ index 39c47c22de803..c1ba867f6d660 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
      # Install the ICD json file to point ANGLE to libvk_swiftshader.so
      install -m 644 "${OUTPUTDIR}/vk_swiftshader_icd.json" "${STAGEDIR}/${INSTALLDIR}/"
-@@ -244,19 +244,19 @@ stage_install_common() {
+@@ -243,19 +243,19 @@ stage_install_common() {
    # Optimization Guide Internal
    if [ -f "${OUTPUTDIR}/liboptimization_guide_internal.so" ]; then
      file="liboptimization_guide_internal.so"
@@ -192,7 +278,7 @@ index 39c47c22de803..c1ba867f6d660 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
    fi
  
-@@ -349,19 +349,6 @@ stage_install_common() {
+@@ -348,19 +348,6 @@ stage_install_common() {
        "${STAGEDIR}/usr/share/man/man1/${PACKAGE}.1.gz"
    fi
  
@@ -303,7 +389,7 @@ index 3e1cadc8296ca..aa5848db6913f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index 4468ad1859bb9..0ed2646466c98 100644
+index 28de3c7879de2..7765d79d6670d 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
 @@ -251,6 +251,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
@@ -319,10 +405,10 @@ index 4468ad1859bb9..0ed2646466c98 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 1360ee1bfb46d..c26dd9a752912 100644
+index 1c8698e78b3a7..2664c2e9ae35e 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -221,33 +221,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -356,9 +442,9 @@ index 1360ee1bfb46d..c26dd9a752912 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -434,7 +408,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
-   if (codec == VideoCodec::kVP8)
+@@ -435,7 +409,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
      return true;
+   }
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
 -  if (codec == VideoCodec::kH264)
 +  if (codec == VideoCodec::kH264 || codec == VideoCodec::kHEVC)
@@ -400,10 +486,10 @@ index aaab17bdc3b9c..a8137c4f72270 100644
        // Normalize to three threads for 1080p content, then scale linearly
        // with number of pixels.
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 37acaf789a652..47c5b8358bc21 100644
+index 7a7e228632840..7842706ea3a47 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
-@@ -144,6 +144,8 @@ type:sandbox::TargetServices
+@@ -147,6 +147,8 @@ type:sandbox::TargetServices
  
  [cfi-icall]
  
