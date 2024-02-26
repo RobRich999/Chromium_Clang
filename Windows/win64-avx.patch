@@ -78,7 +78,7 @@ index 39da6404437fc..3454b574b963c 100644
    cflags += [
      # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
 -    "/Zc:sizedDealloc-",
-+    "/Zc:sizedDealloc",
++    # "/Zc:sizedDealloc-",
    ]
  
    if (is_clang) {
