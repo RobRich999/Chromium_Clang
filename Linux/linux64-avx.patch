@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3c7b4d82d0b46..1da0520f9f44a 100644
+index 1b3c1bd478949..08263ce7128a5 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -494,10 +494,16 @@ config("compiler") {
@@ -23,111 +23,34 @@ index 3c7b4d82d0b46..1da0520f9f44a 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -626,16 +632,16 @@ config("compiler") {
-         if (is_win) {
-           ldflags += [ "-mllvm:-split-threshold-for-reg-with-hint=0" ]
-         } else {
--          ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
-+          # ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
-         }
-       }
-     }
- 
-     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
-     if (is_win) {
--      cflags += [ "/clang:-ffp-contract=off" ]
-+      cflags += [ "/clang:-ffp-contract=fast" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
- 
-@@ -759,7 +765,7 @@ config("compiler") {
-     # binary size than the default setting of 100.
-     # TODO(gbiv): We ideally shouldn't need to specify this; ThinLTO
-     # should be able to better manage binary size increases on its own.
--    import_instr_limit = 30
-+    # import_instr_limit = 30
- 
-     if (is_win) {
-       ldflags += [
-@@ -792,7 +798,7 @@ config("compiler") {
-         import_instr_limit = 5
-       }
- 
--      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
-+      # ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
- 
-       if (is_apple) {
-         ldflags += [ "-Wcrl,object_path_lto" ]
-@@ -1016,6 +1022,10 @@ config("compiler") {
+@@ -1016,6 +1022,9 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
-+
-+    "-Ctarget-cpu=x86-64-v2",
-+    # "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma,+f16c",
-+    "-Cllvm-args=-fp-contract=fast",
++   
++    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx",
++    "-Cllvm-args=-fp-contract=off",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1064,7 +1074,7 @@ config("compiler") {
-     if (is_nacl_saigo) {
-       defines += [ "_LIBCPP_ENABLE_ASSERTIONS=1" ]
-     } else {
--      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_EXTENSIVE" ]
-+      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST" ]
-     }
-   } else {
-     defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
-@@ -1075,12 +1085,15 @@ config("compiler") {
- # building with ThinLTO, no optimization is performed in the link step.
- config("thinlto_optimize_default") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
--    lto_opt_level = 0
-+    lto_opt_level = 2
- 
-     if (is_win) {
+@@ -1115,6 +1124,7 @@ config("thinlto_optimize_max") {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-import-instr-limit=30" ]
 +      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist" ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1108,13 +1121,16 @@ config("thinlto_optimize_max") {
-     if (thin_lto_enable_optimizations) {
-       lto_opt_level = 2
-     } else {
--      lto_opt_level = 0
-+      lto_opt_level = 2
-     }
- 
-     if (is_win) {
-       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-     } else {
-       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
-+      ldflags += [ "-Wl,-mllvm,-import-instr-limit=100" ]
-+      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist" ]
-     }
- 
-     if (toolchain_supports_rust_thin_lto) {
-@@ -1150,7 +1166,9 @@ config("compiler_cpu_abi") {
+@@ -1150,7 +1160,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=x86-64-v2",
-+        # "-msse3", "-mssse3","-msse4.1", "-msse4.2",
-+        # "-mavx", "-mavx2", "-mfma", "-mf16c",
++        "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2351,11 +2369,12 @@ if (is_win) {
+@@ -2354,11 +2364,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -141,16 +64,7 @@ index 3c7b4d82d0b46..1da0520f9f44a 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2441,7 +2460,7 @@ config("optimize") {
-     # vectorization while otherwise optimizing for size.
-     rustflags = [ "-Copt-level=s" ]
-   } else {
--    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-O3" ] + common_optimize_on_cflags
- 
-     # The `-O3` for clang turns on extra optimizations compared to the standard
-     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2512,7 +2531,7 @@ config("optimize_max") {
+@@ -2515,7 +2526,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -404,8 +318,21 @@ index 28de3c7879de2..7765d79d6670d 100644
        // Allow libglvnd files and libs.
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
+index 3d81e4765ea5e..f42b770d57cfb 100644
+--- a/media/base/media_switches.cc
++++ b/media/base/media_switches.cc
+@@ -335,7 +335,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+ // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
+ BASE_FEATURE(kPlatformHEVCEncoderSupport,
+              "PlatformHEVCEncoderSupport",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID)
+ #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+ 
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 1c8698e78b3a7..2664c2e9ae35e 100644
+index 58801ea7a994e..78cdb9a13285f 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
 @@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
@@ -442,21 +369,21 @@ index 1c8698e78b3a7..2664c2e9ae35e 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -435,7 +409,7 @@ bool IsBuiltInVideoCodec(VideoCodec codec) {
+@@ -428,7 +402,7 @@ bool IsDefaultSupportedAudioType(const AudioType& type) {
+ 
+ bool IsBuiltInVideoCodec(VideoCodec codec) {
+ #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
+-  if (codec == VideoCodec::kH264) {
++  if (codec == VideoCodec::kH264 || codec == VideoCodec::kHEVC) {
      return true;
    }
- #if BUILDFLAG(USE_PROPRIETARY_CODECS)
--  if (codec == VideoCodec::kH264)
-+  if (codec == VideoCodec::kH264 || codec == VideoCodec::kHEVC)
-     return true;
- #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
- #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+ #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
-index af52aeb5173af..c1a826ece8791 100644
+index 140d90aba760e..80c0292785ae4 100644
 --- a/media/filters/ffmpeg_glue.cc
 +++ b/media/filters/ffmpeg_glue.cc
-@@ -166,6 +166,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
-     }
+@@ -160,6 +160,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
+     std::vector<std::string> allowed_decoders;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
      allowed_decoders.push_back("h264");
 +#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
@@ -466,7 +393,7 @@ index af52aeb5173af..c1a826ece8791 100644
      if (base::FeatureList::IsEnabled(kCrOSLegacyMediaFormats)) {
        allowed_decoders.push_back("mpeg4");
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index aaab17bdc3b9c..a8137c4f72270 100644
+index bd75477feeabb..2b5633c3bdc09 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -477,14 +404,14 @@ index aaab17bdc3b9c..a8137c4f72270 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -89,6 +88,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -88,6 +87,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+       // No extra threads for these codecs.
        break;
  
-     case VideoCodec::kH264:
 +    case VideoCodec::kHEVC:
+     case VideoCodec::kH264:
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
-       // with number of pixels.
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
 index 7a7e228632840..7842706ea3a47 100644
 --- a/tools/cfi/ignores.txt
