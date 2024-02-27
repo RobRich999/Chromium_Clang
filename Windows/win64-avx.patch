@@ -1,29 +1,7 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 1b3c1bd478949..1055f36a1c812 100644
+index 1b3c1bd478949..da302ed2ba8b2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -618,15 +618,15 @@ config("compiler") {
-     # TODO(crbug.com/1491036): This isn't supported by Cronet's mainline llvm version.
-     if (default_toolchain != "//build/toolchain/cros:target" &&
-         !llvm_android_mainline) {
--      cflags += [
--        "-mllvm",
--        "-split-threshold-for-reg-with-hint=0",
--      ]
-+      # cflags += [
-+      #   "-mllvm",
-+      #   "-split-threshold-for-reg-with-hint=0",
-+      # ]
-       if (use_thin_lto && is_a_target_toolchain) {
-         if (is_win) {
--          ldflags += [ "-mllvm:-split-threshold-for-reg-with-hint=0" ]
-+          # ldflags += [ "-mllvm:-split-threshold-for-reg-with-hint=0" ]
-         } else {
--          ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
-+          # ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
-         }
-       }
-     }
 @@ -1016,6 +1016,9 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
@@ -34,14 +12,14 @@ index 1b3c1bd478949..1055f36a1c812 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1115,6 +1118,7 @@ config("thinlto_optimize_max") {
+@@ -1079,6 +1082,7 @@ config("thinlto_optimize_default") {
+ 
+     if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
++      ldflags += [ "-mllvm:-enable-gvn-hoist" ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-mllvm:-enable-gvn-hoist", ]
      }
- 
-     if (toolchain_supports_rust_thin_lto) {
 @@ -1150,7 +1154,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
@@ -70,7 +48,7 @@ index 1b3c1bd478949..1055f36a1c812 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 39da6404437fc..3454b574b963c 100644
+index 39da6404437fc..dc0ca2d03ad51 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -78,7 +56,7 @@ index 39da6404437fc..3454b574b963c 100644
    cflags += [
      # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
 -    "/Zc:sizedDealloc-",
-+    # "/Zc:sizedDealloc-",
++    "/Zc:sizedDealloc",
    ]
  
    if (is_clang) {
@@ -87,7 +65,7 @@ index 39da6404437fc..3454b574b963c 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+       cflags += [ "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "/clang:-w", ]
++      cflags += [ "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
@@ -110,7 +88,7 @@ index 39da6404437fc..3454b574b963c 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index f49d5038e4e1e..a0c60e186d5ed 100644
+index 3d81e4765ea5e..f42b770d57cfb 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -335,7 +335,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
