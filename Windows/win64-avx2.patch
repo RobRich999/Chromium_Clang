@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 1b3c1bd478949..0a6b7e9ca4a91 100644
+index 1b3c1bd478949..84edf59417407 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -633,9 +633,9 @@ config("compiler") {
@@ -25,7 +25,15 @@ index 1b3c1bd478949..0a6b7e9ca4a91 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1150,7 +1154,9 @@ config("compiler_cpu_abi") {
+@@ -1079,6 +1083,7 @@ config("thinlto_optimize_default") {
+ 
+     if (is_win) {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
++      ldflags += [ "-mllvm:-enable-gvn-hoist" ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
+     }
+@@ -1150,7 +1155,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -36,7 +44,7 @@ index 1b3c1bd478949..0a6b7e9ca4a91 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2515,7 +2521,7 @@ config("optimize_max") {
+@@ -2515,7 +2522,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -45,7 +53,7 @@ index 1b3c1bd478949..0a6b7e9ca4a91 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2923,7 +2929,7 @@ config("minimal_symbols") {
+@@ -2923,7 +2930,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -55,7 +63,7 @@ index 1b3c1bd478949..0a6b7e9ca4a91 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 39da6404437fc..c6c37d1460683 100644
+index 39da6404437fc..fc22e7dba3bdb 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -86,7 +86,7 @@ config("compiler") {
@@ -63,7 +71,7 @@ index 39da6404437fc..c6c37d1460683 100644
    cflags += [
      # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
 -    "/Zc:sizedDealloc-",
-+    # "/Zc:sizedDealloc-",
++    "/Zc:sizedDealloc",
    ]
  
    if (is_clang) {
@@ -95,7 +103,7 @@ index 39da6404437fc..c6c37d1460683 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index f49d5038e4e1e..a0c60e186d5ed 100644
+index 3d81e4765ea5e..f42b770d57cfb 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -335,7 +335,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
