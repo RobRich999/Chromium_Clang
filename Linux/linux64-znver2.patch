@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 1b3c1bd478949..04818b11028b3 100644
+index 24e0595962d89..32eb42b20a453 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -494,10 +494,16 @@ config("compiler") {
@@ -43,15 +43,30 @@ index 1b3c1bd478949..04818b11028b3 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1115,6 +1125,7 @@ config("thinlto_optimize_max") {
+@@ -1120,17 +1130,20 @@ config("thinlto_optimize_max") {
+     if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
++      cflags = [ "-march=znver2" ]
++      rustflags = [ "-Ctarget-cpu=znver2" ]
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,-mllvm,-enable-gvn-hoist" ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1150,7 +1161,9 @@ config("compiler_cpu_abi") {
+       # We always point Rust to a linker that performs LTO, so we don't want Rust
+       # to preemptively do so during compilation too or they conflict. But we do
+       # want Rust to generate LTO metadata in order for the linker to do its job.
+-      rustflags = [ "-Clinker-plugin-lto=yes" ]
++      rustflags += [ "-Clinker-plugin-lto=yes" ]
+     } else {
+       # Don't include bitcode if it won't be used.
+-      rustflags = [ "-Cembed-bitcode=no" ]
++      rustflags += [ "-Cembed-bitcode=no" ]
+     }
+   }
+ }
+@@ -1156,7 +1169,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -62,7 +77,7 @@ index 1b3c1bd478949..04818b11028b3 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2354,11 +2367,12 @@ if (is_win) {
+@@ -2335,11 +2350,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -76,7 +91,7 @@ index 1b3c1bd478949..04818b11028b3 100644
      }
  
      common_optimize_on_ldflags += [
-@@ -2515,7 +2529,7 @@ config("optimize_max") {
+@@ -2496,7 +2512,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -315,10 +330,10 @@ index 3e1cadc8296ca..aa5848db6913f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index 28de3c7879de2..7765d79d6670d 100644
+index 3c2e622a759a2..c515d17511360 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
-@@ -251,6 +251,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+@@ -250,6 +250,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
@@ -331,7 +346,7 @@ index 28de3c7879de2..7765d79d6670d 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 3d81e4765ea5e..f42b770d57cfb 100644
+index 803cddfdfdabb..561bbb00bbf59 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -335,7 +335,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
