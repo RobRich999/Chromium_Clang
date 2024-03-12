@@ -32,7 +32,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v124.0.6351.0-r1270729
 
 https://github.com/RobRich999/Chromium_Experimental/releases/tag/v124.0.6351.0-r1270729-win64-avx512
 
-https://github.com/RobRich999/Chromium_Experimental/releases/tag/v124.0.6323.0-r1264984-win64-avx512-znver4
+https://github.com/RobRich999/Chromium_Experimental/releases/tag/v124.0.6351.0-r1270729-win64-avx512-znver4
 
 ****
 
