@@ -56,7 +56,7 @@ Builds marked with the "+avx512" tag require processors with AVX512 instruction 
 
 Builds marked with the "+amd_znver2" tag are AVX2 builds tuned for the AMD Zen 2 processor microarchitecture.
 
-Builds marked with the "+amd_znver4" tag are AVX512 builds targetting thef AMD Zen 4 processor microarchitecture.
+Builds marked with the "+amd_znver4" tag are AVX512 builds targetting the AMD Zen 4 processor microarchitecture.
 
 Builds marked with the "+fma" tag require processors with FMA instruction set support.
 
