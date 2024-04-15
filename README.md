@@ -10,19 +10,19 @@ Implementation of various options are subject to change depending upon performan
 
 **Links to latest Linux build releases in deb package format:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6422.0-r1287427-linux64-deb-avx2
-
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6388.0-r1280310-linux64-deb-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6388.0-r1280310-linux64-deb-znver2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6422.0-r1287427-linux64-deb-avx2
+
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6422.0-r1287427-linux64-deb-avx2-znver2
 
 ****
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6422.0-r1287427-win64-avx2
-
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6422.0-r1287427-win64-avx
+
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v125.0.6422.0-r1287427-win64-avx2
 
 <sub>*Chromium_Clang for Windows builds are cross-compiled under Linux.*</sub>
 
