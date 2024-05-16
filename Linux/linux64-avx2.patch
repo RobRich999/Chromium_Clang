@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 1b3c1bd478949..04818b11028b3 100644
+index 652170b10b339..4caeec900561b 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -494,10 +494,16 @@ config("compiler") {
+@@ -478,10 +478,16 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -23,7 +23,7 @@ index 1b3c1bd478949..04818b11028b3 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -635,7 +641,7 @@ config("compiler") {
+@@ -590,7 +596,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/clang:-ffp-contract=off" ]
      } else {
@@ -32,18 +32,18 @@ index 1b3c1bd478949..04818b11028b3 100644
      }
    }
  
-@@ -1016,6 +1022,10 @@ config("compiler") {
+@@ -1009,6 +1015,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
-+
++    
 +    "-Ztune-cpu=haswell",
 +    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma,+f16c",
 +    "-Cllvm-args=-fp-contract=fast",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1115,6 +1125,7 @@ config("thinlto_optimize_max") {
+@@ -1114,6 +1124,7 @@ config("thinlto_optimize_max") {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
@@ -51,10 +51,11 @@ index 1b3c1bd478949..04818b11028b3 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1150,7 +1161,9 @@ config("compiler_cpu_abi") {
+@@ -1148,8 +1159,9 @@ config("compiler_cpu_abi") {
+     # simplicity we always explicitly set the architecture.
      if (current_cpu == "x64") {
        cflags += [
-         "-m64",
+-        "-m64",
 -        "-msse3",
 +        "-mtune=haswell",
 +        "-msse3", "-mssse3","-msse4.1", "-msse4.2",
@@ -62,7 +63,7 @@ index 1b3c1bd478949..04818b11028b3 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2354,11 +2367,12 @@ if (is_win) {
+@@ -2333,11 +2345,12 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -75,8 +76,8 @@ index 1b3c1bd478949..04818b11028b3 100644
 +      # common_optimize_on_cflags += [ "-fno-unique-section-names" ]
      }
  
-     common_optimize_on_ldflags += [
-@@ -2515,7 +2529,7 @@ config("optimize_max") {
+     if (is_official_build) {
+@@ -2503,7 +2516,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -86,10 +87,10 @@ index 1b3c1bd478949..04818b11028b3 100644
      rustflags = [ "-Copt-level=3" ]
    }
 diff --git a/build/config/compiler/pgo/BUILD.gn b/build/config/compiler/pgo/BUILD.gn
-index d047c7e4bb6c1..6467b433e1094 100644
+index afa4aa28da9d3..7b1a7d0e66255 100644
 --- a/build/config/compiler/pgo/BUILD.gn
 +++ b/build/config/compiler/pgo/BUILD.gn
-@@ -145,12 +145,15 @@ config("pgo_optimization_flags") {
+@@ -151,12 +151,15 @@ config("pgo_optimization_flags") {
        if (is_win) {
          ldflags = [ "-mllvm:-enable-ext-tsp-block-placement=1" ]
        } else {
@@ -122,7 +123,7 @@ index 62da648c6acb0..e8f5aad43c1a3 100644
    *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
    return true;
 diff --git a/chrome/installer/linux/common/installer.include b/chrome/installer/linux/common/installer.include
-index 0651084d828b4..9f2819821bddc 100644
+index 52489b3dfcd15..d3208c967a8ea 100644
 --- a/chrome/installer/linux/common/installer.include
 +++ b/chrome/installer/linux/common/installer.include
 @@ -138,16 +138,16 @@ stage_install_common() {
@@ -204,7 +205,7 @@ index 0651084d828b4..9f2819821bddc 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
    fi
  
-@@ -348,19 +348,6 @@ stage_install_common() {
+@@ -350,19 +350,6 @@ stage_install_common() {
        "${STAGEDIR}/usr/share/man/man1/${PACKAGE}.1.gz"
    fi
  
@@ -274,7 +275,7 @@ index 15bbf25f2b443..8b137891791fe 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 7cd40b9c37cce..56dd4a72eb385 100755
+index 851755cbd219d..dfec16d288aa3 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
 @@ -121,7 +121,7 @@ do_package() {
@@ -315,10 +316,10 @@ index 3e1cadc8296ca..aa5848db6913f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index 28de3c7879de2..7765d79d6670d 100644
+index f5df3c667d3d8..870db06a640d7 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
-@@ -251,6 +251,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+@@ -262,6 +262,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
@@ -331,10 +332,10 @@ index 28de3c7879de2..7765d79d6670d 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 3d81e4765ea5e..f42b770d57cfb 100644
+index f2fe73cd22c61..1ba50637de26b 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -335,7 +335,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+@@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
  // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
  BASE_FEATURE(kPlatformHEVCEncoderSupport,
               "PlatformHEVCEncoderSupport",
@@ -344,10 +345,10 @@ index 3d81e4765ea5e..f42b770d57cfb 100644
  #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
  
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 58801ea7a994e..78cdb9a13285f 100644
+index 8b8ccc617bedb..4c995aa02f78e 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -221,33 +221,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -391,7 +392,7 @@ index 58801ea7a994e..78cdb9a13285f 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
-index 140d90aba760e..80c0292785ae4 100644
+index 5225d07229068..6d7262b37c6ca 100644
 --- a/media/filters/ffmpeg_glue.cc
 +++ b/media/filters/ffmpeg_glue.cc
 @@ -160,6 +160,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
@@ -405,7 +406,7 @@ index 140d90aba760e..80c0292785ae4 100644
      if (base::FeatureList::IsEnabled(kCrOSLegacyMediaFormats)) {
        allowed_decoders.push_back("mpeg4");
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index bd75477feeabb..2b5633c3bdc09 100644
+index c7d477e8c78f1..14f2c484859b7 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -425,7 +426,7 @@ index bd75477feeabb..2b5633c3bdc09 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 7a7e228632840..7842706ea3a47 100644
+index 952e1b6d2ec91..502cdbfbb855c 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
 @@ -147,6 +147,8 @@ type:sandbox::TargetServices
