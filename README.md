@@ -14,7 +14,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v126.0.6424.0-r1288685
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v126.0.6424.0-r1288685-linux64-deb-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v126.0.6424.0-r1288685-linux64-deb-avx2-znver2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v127.0.6483.0-r1301890-linux64-deb-avx2-znver2
 
 ****
 
