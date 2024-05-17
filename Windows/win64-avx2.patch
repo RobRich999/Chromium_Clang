@@ -1,10 +1,23 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 1b3c1bd478949..84edf59417407 100644
+index ea426b1587705..724494288acba 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -633,9 +633,9 @@ config("compiler") {
+@@ -478,9 +478,9 @@ config("compiler") {
+   # Linux/Android/Fuchsia common flags setup.
+   # ---------------------------------
+   if (is_linux || is_chromeos || is_android || is_fuchsia) {
+-    asmflags += [ "-fPIC" ]
+-    cflags += [ "-fPIC" ]
+-    ldflags += [ "-fPIC" ]
++    asmflags += [ "-fPIC", "-w", ]
++    cflags += [ "-fPIC", "-w", ]
++    ldflags += [ "-fPIC", "-w", ]
+     rustflags += [ "-Crelocation-model=pic" ]
  
-     # TODO(crbug.com/1235145): Investigate why/if this should be needed.
+     if (!is_clang) {
+@@ -588,9 +588,9 @@ config("compiler") {
+ 
+     # TODO(crbug.com/40192287): Investigate why/if this should be needed.
      if (is_win) {
 -      cflags += [ "/clang:-ffp-contract=off" ]
 +      cflags += [ "/clang:-ffp-contract=fast" ]
@@ -14,18 +27,19 @@ index 1b3c1bd478949..84edf59417407 100644
      }
    }
  
-@@ -1016,6 +1016,10 @@ config("compiler") {
+@@ -1009,6 +1009,11 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
-+
++    
 +    "-Ztune-cpu=haswell",
 +    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma,+f16c",
 +    "-Cllvm-args=-fp-contract=fast",
++    "-Awarnings",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1079,6 +1083,7 @@ config("thinlto_optimize_default") {
+@@ -1112,6 +1117,7 @@ config("thinlto_optimize_max") {
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
@@ -33,7 +47,7 @@ index 1b3c1bd478949..84edf59417407 100644
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
      }
-@@ -1150,7 +1155,9 @@ config("compiler_cpu_abi") {
+@@ -1149,7 +1155,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -44,7 +58,7 @@ index 1b3c1bd478949..84edf59417407 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2515,7 +2522,7 @@ config("optimize_max") {
+@@ -2503,7 +2511,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -53,7 +67,7 @@ index 1b3c1bd478949..84edf59417407 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2923,7 +2930,7 @@ config("minimal_symbols") {
+@@ -2915,7 +2923,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -63,10 +77,10 @@ index 1b3c1bd478949..84edf59417407 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 39da6404437fc..fc22e7dba3bdb 100644
+index 9ecf8abdcd4cc..7070b0799e650 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
-@@ -86,7 +86,7 @@ config("compiler") {
+@@ -85,7 +85,7 @@ config("compiler") {
  
    cflags += [
      # Work around crbug.com/526851, bug in VS 2015 RTM compiler.
@@ -75,7 +89,7 @@ index 39da6404437fc..fc22e7dba3bdb 100644
    ]
  
    if (is_clang) {
-@@ -127,7 +127,7 @@ config("compiler") {
+@@ -126,7 +126,7 @@ config("compiler") {
      # microarchitecture. MSVC only supports a subset of architectures, and the
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
@@ -84,7 +98,7 @@ index 39da6404437fc..fc22e7dba3bdb 100644
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
-@@ -198,7 +198,7 @@ config("compiler") {
+@@ -197,7 +197,7 @@ config("compiler") {
      if (use_lld) {
        # String tail merging leads to smaller binaries, but they don't compress
        # as well, leading to increased mini_installer size (crbug.com/838449).
@@ -93,7 +107,7 @@ index 39da6404437fc..fc22e7dba3bdb 100644
      }
  
      # TODO(siggi): Is this of any use anymore?
-@@ -206,7 +206,7 @@ config("compiler") {
+@@ -205,7 +205,7 @@ config("compiler") {
      # PDB file by about 5%) but does not otherwise alter the output binary. It
      # is enabled opportunistically for builds where it is not prohibited (not
      # supported when incrementally linking, or using /debug:fastlink).
@@ -103,10 +117,10 @@ index 39da6404437fc..fc22e7dba3bdb 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 3d81e4765ea5e..f42b770d57cfb 100644
+index f2fe73cd22c61..1ba50637de26b 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
-@@ -335,7 +335,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+@@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
  // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
  BASE_FEATURE(kPlatformHEVCEncoderSupport,
               "PlatformHEVCEncoderSupport",
@@ -116,10 +130,10 @@ index 3d81e4765ea5e..f42b770d57cfb 100644
  #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
  
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 58801ea7a994e..78cdb9a13285f 100644
+index 8b8ccc617bedb..4c995aa02f78e 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -221,33 +221,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -163,7 +177,7 @@ index 58801ea7a994e..78cdb9a13285f 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
-index 140d90aba760e..80c0292785ae4 100644
+index 5225d07229068..6d7262b37c6ca 100644
 --- a/media/filters/ffmpeg_glue.cc
 +++ b/media/filters/ffmpeg_glue.cc
 @@ -160,6 +160,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
@@ -177,7 +191,7 @@ index 140d90aba760e..80c0292785ae4 100644
      if (base::FeatureList::IsEnabled(kCrOSLegacyMediaFormats)) {
        allowed_decoders.push_back("mpeg4");
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index bd75477feeabb..2b5633c3bdc09 100644
+index c7d477e8c78f1..14f2c484859b7 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -197,7 +211,7 @@ index bd75477feeabb..2b5633c3bdc09 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 7a7e228632840..7842706ea3a47 100644
+index 952e1b6d2ec91..502cdbfbb855c 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
 @@ -147,6 +147,8 @@ type:sandbox::TargetServices
