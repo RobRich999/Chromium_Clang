@@ -1,8 +1,8 @@
-Chromium_Clang for Linux builds are currently compiled under Unbuntu Server 23.10 (Mantic Minotaur).
+Chromium_Clang for Linux builds are currently compiled under Unbuntu Server 24.04 (Noble Numbat).
 
 https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/linux/build_instructions.md
 
-Add the --unsupported option when using the build depedency script on Ubuntu 23.10 at this time.
+Add the --unsupported option when using the build depedency script on Ubuntu 24.04 at this time.
 
 /build/install-build-deps.sh --unsupported
 
