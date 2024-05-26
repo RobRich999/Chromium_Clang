@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 6efe967eb0a1c..93def479d746f 100644
+index 1a2922ce8e22b..49ea91865d915 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -478,10 +478,16 @@ config("compiler") {
@@ -32,7 +32,24 @@ index 6efe967eb0a1c..93def479d746f 100644
      }
    }
  
-@@ -1009,6 +1015,10 @@ config("compiler") {
+@@ -737,7 +743,7 @@ config("compiler") {
+     # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
+     # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
+     # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
+-    import_instr_limit = 30
++    import_instr_limit = 100
+ 
+     if (is_win) {
+       ldflags += [
+@@ -747,6 +753,7 @@ config("compiler") {
+       ]
+     } else {
+       ldflags += [ "-flto=thin" ]
++      ldflags += [ "-Wl,-mllvm,-polly" ]
+ 
+       # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
+       # usage in crbug.com/1038040. Note this will increase build time in
+@@ -1008,6 +1015,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -43,7 +60,27 @@ index 6efe967eb0a1c..93def479d746f 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1114,16 +1124,19 @@ config("thinlto_optimize_max") {
+@@ -1073,7 +1084,7 @@ config("compiler") {
+ # building with ThinLTO, no optimization is performed in the link step.
+ config("thinlto_optimize_default") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+-    lto_opt_level = 0
++    lto_opt_level = 3
+ 
+     if (is_win) {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
+@@ -1104,25 +1115,28 @@ config("thinlto_optimize_default") {
+ config("thinlto_optimize_max") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+     if (thin_lto_enable_optimizations) {
+-      lto_opt_level = 2
++      lto_opt_level = 3
+     } else {
+-      lto_opt_level = 0
++      lto_opt_level = 3
+     }
+ 
+     if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
@@ -65,7 +102,7 @@ index 6efe967eb0a1c..93def479d746f 100644
      }
    }
  }
-@@ -1148,8 +1161,9 @@ config("compiler_cpu_abi") {
+@@ -1147,8 +1161,9 @@ config("compiler_cpu_abi") {
      # simplicity we always explicitly set the architecture.
      if (current_cpu == "x64") {
        cflags += [
@@ -77,11 +114,12 @@ index 6efe967eb0a1c..93def479d746f 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2336,11 +2350,12 @@ if (is_win) {
+@@ -2332,11 +2347,13 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
 +      "-funique-section-names",
++      "-fseparate-named-sections",
      ]
      if ((!is_nacl || is_nacl_saigo) && is_clang) {
        # We don't care about unique section names, this makes object files a bit
@@ -91,7 +129,16 @@ index 6efe967eb0a1c..93def479d746f 100644
      }
  
      if (is_official_build) {
-@@ -2506,7 +2521,7 @@ config("optimize_max") {
+@@ -2431,7 +2448,7 @@ config("optimize") {
+     # vectorization while otherwise optimizing for size.
+     rustflags = [ "-Copt-level=s" ]
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
+ 
+     # The `-O3` for clang turns on extra optimizations compared to the standard
+     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
+@@ -2502,7 +2519,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -330,7 +377,7 @@ index 3e1cadc8296ca..aa5848db6913f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index f5df3c667d3d8..870db06a640d7 100644
+index 08cafb3f40cc6..590426bb98b4f 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
 @@ -262,6 +262,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
@@ -346,7 +393,7 @@ index f5df3c667d3d8..870db06a640d7 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index eb7f0a1056490..550fd66c4d584 100644
+index a2b6159a14013..0a5c38ca9b086 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
@@ -359,10 +406,10 @@ index eb7f0a1056490..550fd66c4d584 100644
  #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
  
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 7737099b6aa0a..66f4f724f6dce 100644
+index 8b8ccc617bedb..4c995aa02f78e 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -221,33 +221,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -396,7 +443,7 @@ index 7737099b6aa0a..66f4f724f6dce 100644
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -429,7 +403,7 @@ bool IsDefaultSupportedAudioType(const AudioType& type) {
+@@ -428,7 +402,7 @@ bool IsDefaultSupportedAudioType(const AudioType& type) {
  
  bool IsBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -406,7 +453,7 @@ index 7737099b6aa0a..66f4f724f6dce 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
-index ed245ddc186c4..cbfdba30d510e 100644
+index 5225d07229068..6d7262b37c6ca 100644
 --- a/media/filters/ffmpeg_glue.cc
 +++ b/media/filters/ffmpeg_glue.cc
 @@ -160,6 +160,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
@@ -420,7 +467,7 @@ index ed245ddc186c4..cbfdba30d510e 100644
      if (base::FeatureList::IsEnabled(kCrOSLegacyMediaFormats)) {
        allowed_decoders.push_back("mpeg4");
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 67b63d071cc41..9d1980fc96b8c 100644
+index c7d477e8c78f1..14f2c484859b7 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -440,7 +487,7 @@ index 67b63d071cc41..9d1980fc96b8c 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 2e753e1295f08..ca1112a0f2008 100644
+index 952e1b6d2ec91..502cdbfbb855c 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
 @@ -147,6 +147,8 @@ type:sandbox::TargetServices
