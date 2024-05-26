@@ -31,7 +31,7 @@ index ea426b1587705..724494288acba 100644
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
-+    
++
 +    "-Ztune-cpu=haswell",
 +    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma,+f16c",
 +    "-Cllvm-args=-fp-contract=fast",
