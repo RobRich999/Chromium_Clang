@@ -384,14 +384,20 @@ index 3e1cadc8296ca..aa5848db6913f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index 08cafb3f40cc6..590426bb98b4f 100644
+index 08cafb3f40cc6..29b06b71198ba 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
-@@ -262,6 +262,11 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+@@ -262,6 +262,17 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
 +      // GPU Log Warning Workaround
++      "/usr/lib/libEGL.so.1",
++      "/usr/lib/libGLESv2.so.2",
++      "/usr/lib/libglapi.so.0",
++      "/usr/lib/dri/r300_dri.so",
++      "/usr/lib/dri/r600_dri.so",
++      "/usr/lib/dri/radeonsi_dri.so",
 +      "/usr/share/vulkan/icd.d",
 +      "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
 +      "/etc/vulkan/icd.d",
