@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 1a2922ce8e22b..bb148d161a4a6 100644
+index 1a2922ce8e22b..93512becd0b4a 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -478,9 +478,9 @@ config("compiler") {
@@ -31,7 +31,7 @@ index 1a2922ce8e22b..bb148d161a4a6 100644
        "-fsplit-lto-unit",
      ]
  
-+    ldflags += [ "-mllvm:-polly" ]
++    # ldflags += [ "-mllvm:-polly" ]
 +
      if (thin_lto_enable_cache) {
        # Limit the size of the ThinLTO cache to the lesser of 10% of
@@ -166,6 +166,26 @@ index 9ecf8abdcd4cc..5c3e2c18682ba 100644
    }
  
    # arflags apply only to static_libraries. The normal linker configs are only
+diff --git a/chrome/installer/mini_installer/mini_installer_exe_main.cc b/chrome/installer/mini_installer/mini_installer_exe_main.cc
+index f80ca18a8c7a6..e32fbb190b661 100644
+--- a/chrome/installer/mini_installer/mini_installer_exe_main.cc
++++ b/chrome/installer/mini_installer/mini_installer_exe_main.cc
+@@ -54,7 +54,7 @@ void* memset(void* dest, int c, size_t count) {
+   return dest;
+ }
+ 
+-#if defined(_DEBUG) && defined(ARCH_CPU_ARM64)
++// #if defined(_DEBUG) && defined(ARCH_CPU_ARM64)
+ // The compiler generates calls to memcpy for ARM64 debug builds so we need to
+ // supply a memcpy implementation in that configuration.
+ // See comments above for why we do this incantation.
+@@ -66,5 +66,5 @@ void* memcpy(void* destination, const void* source, size_t count) {
+     *dst++ = *src++;
+   return destination;
+ }
+-#endif
++// #endif
+ }  // extern "C"
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
 index a2b6159a14013..0a5c38ca9b086 100644
 --- a/media/base/media_switches.cc
