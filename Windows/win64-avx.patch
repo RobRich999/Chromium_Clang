@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index c460c33fc9dc9..bf1104a73c95d 100644
+index c460c33fc9dc9..74c68e136e252 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -482,9 +482,9 @@ config("compiler") {
@@ -27,7 +27,7 @@ index c460c33fc9dc9..bf1104a73c95d 100644
      }
    }
  
-@@ -585,23 +585,23 @@ config("compiler") {
+@@ -585,14 +585,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -46,17 +46,6 @@ index c460c33fc9dc9..bf1104a73c95d 100644
          }
        }
      }
- 
-     # TODO(crbug.com/40192287): Investigate why/if this should be needed.
-     if (is_win) {
--      cflags += [ "/clang:-ffp-contract=off" ]
-+      cflags += [ "/clang:-ffp-contract=fast" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
-   }
- 
 @@ -754,7 +754,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
