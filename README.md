@@ -24,7 +24,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v128.0.6545.0-r1316811
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v128.0.6545.0-r1316811-win64-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v127.0.6504.0-r1306219-win64-avx512
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v128.0.6545.0-r1316811-win64-avx512
 
 <sub>*Chromium_Clang for Windows builds are cross-compiled under Linux.*</sub>
 
