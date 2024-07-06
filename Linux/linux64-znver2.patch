@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index f598fd188a4ce..4bdaf882e3baf 100644
+index 41c96adc70a27..aa9dd7c89d0f8 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -478,10 +478,17 @@ config("compiler") {
+@@ -482,10 +482,17 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -24,7 +24,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -529,7 +536,7 @@ config("compiler") {
+@@ -533,7 +540,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/Zc:sizedDealloc-" ]
      } else {
@@ -33,7 +33,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
      }
    }
  
-@@ -581,14 +588,14 @@ config("compiler") {
+@@ -585,14 +592,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -51,7 +51,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
          }
        }
      }
-@@ -597,7 +604,7 @@ config("compiler") {
+@@ -601,7 +608,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/clang:-ffp-contract=off" ]
      } else {
@@ -60,7 +60,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
      }
    }
  
-@@ -750,7 +757,7 @@ config("compiler") {
+@@ -754,7 +761,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -69,7 +69,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
  
      if (is_win) {
        ldflags += [
-@@ -760,6 +767,7 @@ config("compiler") {
+@@ -764,6 +771,7 @@ config("compiler") {
        ]
      } else {
        ldflags += [ "-flto=thin" ]
@@ -77,7 +77,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -1021,6 +1029,10 @@ config("compiler") {
+@@ -1023,6 +1031,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -88,7 +88,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1096,12 +1108,13 @@ config("compiler") {
+@@ -1098,12 +1110,13 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -103,7 +103,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1127,25 +1140,28 @@ config("thinlto_optimize_default") {
+@@ -1129,25 +1142,28 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -136,7 +136,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
      }
    }
  }
-@@ -1171,7 +1187,9 @@ config("compiler_cpu_abi") {
+@@ -1173,7 +1189,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -147,7 +147,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2360,11 +2378,13 @@ if (is_win) {
+@@ -2357,11 +2375,13 @@ if (is_win) {
        # can be removed at link time with --gc-sections.
        "-fdata-sections",
        "-ffunction-sections",
@@ -162,7 +162,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
      }
  
      if (is_official_build) {
-@@ -2459,7 +2479,7 @@ config("optimize") {
+@@ -2461,7 +2481,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -171,7 +171,7 @@ index f598fd188a4ce..4bdaf882e3baf 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2530,7 +2550,7 @@ config("optimize_max") {
+@@ -2532,7 +2552,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -217,7 +217,7 @@ index 62da648c6acb0..e8f5aad43c1a3 100644
    *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
    return true;
 diff --git a/chrome/installer/linux/common/installer.include b/chrome/installer/linux/common/installer.include
-index b1c433ece8a6b..e953cf7bda730 100644
+index 5aca79fa700e4..0e5182f3de612 100644
 --- a/chrome/installer/linux/common/installer.include
 +++ b/chrome/installer/linux/common/installer.include
 @@ -138,16 +138,16 @@ stage_install_common() {
@@ -249,7 +249,7 @@ index b1c433ece8a6b..e953cf7bda730 100644
    install -m 4755 "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/chrome-sandbox"
  
    # l10n paks
-@@ -218,7 +218,7 @@ stage_install_common() {
+@@ -225,7 +225,7 @@ stage_install_common() {
    # ANGLE
    if [ -f "${OUTPUTDIR}/libEGL.so" ]; then
      for file in libEGL.so libGLESv2.so; do
@@ -258,7 +258,7 @@ index b1c433ece8a6b..e953cf7bda730 100644
        install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
      done
    fi
-@@ -226,7 +226,7 @@ stage_install_common() {
+@@ -233,7 +233,7 @@ stage_install_common() {
    # ANGLE's libvulkan library
    if [ -f "${OUTPUTDIR}/libvulkan.so.1" ]; then
      file="libvulkan.so.1"
@@ -267,7 +267,7 @@ index b1c433ece8a6b..e953cf7bda730 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
    fi
  
-@@ -234,7 +234,7 @@ stage_install_common() {
+@@ -241,7 +241,7 @@ stage_install_common() {
    if [ -f "${OUTPUTDIR}/libvk_swiftshader.so" ]; then
      install -m 755 -d "${STAGEDIR}/${INSTALLDIR}/"
      file="libvk_swiftshader.so"
@@ -276,7 +276,7 @@ index b1c433ece8a6b..e953cf7bda730 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
      # Install the ICD json file to point ANGLE to libvk_swiftshader.so
      install -m 644 "${OUTPUTDIR}/vk_swiftshader_icd.json" "${STAGEDIR}/${INSTALLDIR}/"
-@@ -243,19 +243,19 @@ stage_install_common() {
+@@ -250,19 +250,19 @@ stage_install_common() {
    # Optimization Guide Internal
    if [ -f "${OUTPUTDIR}/liboptimization_guide_internal.so" ]; then
      file="liboptimization_guide_internal.so"
@@ -299,7 +299,7 @@ index b1c433ece8a6b..e953cf7bda730 100644
      install -m ${SHLIB_PERMS} "${strippedfile}" "${STAGEDIR}/${INSTALLDIR}/${file}"
    fi
  
-@@ -350,19 +350,6 @@ stage_install_common() {
+@@ -357,19 +357,6 @@ stage_install_common() {
        "${STAGEDIR}/usr/share/man/man1/${PACKAGE}.1.gz"
    fi
  
@@ -432,7 +432,7 @@ index e454bcdc19517..4163b5d017ae4 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index dd1708e7a3fa7..d80af94d9d4ed 100644
+index 722164960575e..56154724cd2fb 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
@@ -525,11 +525,32 @@ index 5b8acb47e3848..24475a2f336d0 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
        // with number of pixels.
+diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
+index a0a0649d5e5f6..ed1ffd27092fb 100644
+--- a/media/webrtc/webrtc_features.cc
++++ b/media/webrtc/webrtc_features.cc
+@@ -75,14 +75,14 @@ BASE_FEATURE(kWebRtcApmTellsIfPlayoutReferenceIsNeeded,
+ // negotiate usage of H.265 in SDP in the direction of sending.
+ BASE_FEATURE(kWebRtcAllowH265Send,
+              "WebRtcAllowH265Send",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // When enabled, allow H.265 codec to be used for receiving WebRTC streams.
+ // Platform hardware H.265 decoder needs to be supported and enabled in order to
+ // negotiate usage of H.265 in SDP in the direction of receiving.
+ BASE_FEATURE(kWebRtcAllowH265Receive,
+              "WebRtcAllowH265Receive",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ #if BUILDFLAG(IS_ANDROID)
+ // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
 diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
-index b6e99324c02b0..7602a6b8e6931 100644
+index d0f74df97b98c..12e3fb2af9571 100644
 --- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
 +++ b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
-@@ -214,6 +214,7 @@ WaylandSurfaceFactory::GetAllowedGLImplementations() {
+@@ -213,6 +213,7 @@ WaylandSurfaceFactory::GetAllowedGLImplementations() {
      impls.emplace_back(gl::ANGLEImplementation::kOpenGL);
      impls.emplace_back(gl::ANGLEImplementation::kOpenGLES);
      impls.emplace_back(gl::ANGLEImplementation::kSwiftShader);
