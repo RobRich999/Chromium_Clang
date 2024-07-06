@@ -75,6 +75,10 @@ Use the javascript patcher from here...
 
 https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding
 
+....along with the same repo's /third_party/webtrc patch...
+
+enable-h26x-packet-buffer-by-default.patch
+
 ...then proceed with the Chromium_Clang patches and build arguments.
 
 ****
