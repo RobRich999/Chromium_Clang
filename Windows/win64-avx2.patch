@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index c460c33fc9dc9..f0aa63bacb107 100644
+index 41c96adc70a27..708db2c6b82ef 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -482,9 +482,9 @@ config("compiler") {
@@ -20,10 +20,10 @@ index c460c33fc9dc9..f0aa63bacb107 100644
      # TODO(crbug.com/345541122): investigate the fuchsia binary size increase.
      if (is_win) {
 -      cflags += [ "/Zc:sizedDealloc-" ]
-+      cflags += [ "/Zc:sizedDealloc" ]
++      # cflags += [ "/Zc:sizedDealloc-" ]
      } else {
 -      cflags += [ "-fno-sized-deallocation" ]
-+      cflags += [ "-fsized-deallocation" ]
++      # cflags += [ "-fno-sized-deallocation" ]
      }
    }
  
@@ -66,7 +66,7 @@ index c460c33fc9dc9..f0aa63bacb107 100644
  
      if (is_win) {
        ldflags += [
-@@ -1025,6 +1025,11 @@ config("compiler") {
+@@ -1023,6 +1023,11 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -78,7 +78,7 @@ index c460c33fc9dc9..f0aa63bacb107 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1100,12 +1105,14 @@ config("compiler") {
+@@ -1098,12 +1103,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -94,7 +94,7 @@ index c460c33fc9dc9..f0aa63bacb107 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1131,15 +1138,17 @@ config("thinlto_optimize_default") {
+@@ -1129,15 +1136,17 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -109,13 +109,12 @@ index c460c33fc9dc9..f0aa63bacb107 100644
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
--      ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags = [ "-Wl,--lto-O0" + lto_opt_level ]
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1175,7 +1184,9 @@ config("compiler_cpu_abi") {
+@@ -1173,7 +1182,9 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -126,16 +125,19 @@ index c460c33fc9dc9..f0aa63bacb107 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2435,7 +2446,7 @@ config("default_stack_frames") {
- # [2]: https://crrev.com/c/5447532
- config("optimize") {
+@@ -2430,10 +2441,7 @@ config("optimize") {
    if (is_win) {
--    cflags = [ "/O2" ] + common_optimize_on_cflags
+     # clang-cl's /O2 corresponds to clang's -O3, and really want -O2 for
+     # consistency with the other platforms.
+-    cflags = [
+-               "/O2",
+-               "/clang:-O2",
+-             ] + common_optimize_on_cflags
 +    cflags = [ "/clang:-O3" ] + common_optimize_on_cflags
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2463,7 +2474,7 @@ config("optimize") {
+@@ -2461,7 +2469,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -144,33 +146,16 @@ index c460c33fc9dc9..f0aa63bacb107 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2530,11 +2541,11 @@ config("optimize_max") {
+@@ -2528,7 +2536,7 @@ config("optimize_max") {
      if (is_win) {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
 -      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/clang:-O3" ]+ common_optimize_on_cflags
-     } else if (optimize_for_fuzzing) {
-       cflags = [ "-O1" ] + common_optimize_on_cflags
-     } else {
--      cflags = [ "-O2" ] + common_optimize_on_cflags
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
-     }
-     rustflags = [ "-Copt-level=3" ]
-   }
-@@ -2563,10 +2574,7 @@ config("optimize_speed") {
-     if (is_win) {
-       # Favor speed over size, /O2 must be before the common flags.
-       # /O2 implies /Ot, /Oi, and /GF.
--      cflags = [ "/O2" ] + common_optimize_on_cflags
--      if (is_clang) {
--        cflags += [ "/clang:-O3" ]
--      }
 +      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2945,7 +2953,7 @@ config("minimal_symbols") {
+@@ -2941,7 +2949,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -240,7 +225,7 @@ index f80ca18a8c7a6..e32fbb190b661 100644
 +// #endif
  }  // extern "C"
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index d9604ba957586..bd659c535392d 100644
+index 722164960575e..56154724cd2fb 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
@@ -333,6 +318,27 @@ index 5b8acb47e3848..24475a2f336d0 100644
      case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
        // with number of pixels.
+diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
+index a0a0649d5e5f6..ed1ffd27092fb 100644
+--- a/media/webrtc/webrtc_features.cc
++++ b/media/webrtc/webrtc_features.cc
+@@ -75,14 +75,14 @@ BASE_FEATURE(kWebRtcApmTellsIfPlayoutReferenceIsNeeded,
+ // negotiate usage of H.265 in SDP in the direction of sending.
+ BASE_FEATURE(kWebRtcAllowH265Send,
+              "WebRtcAllowH265Send",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // When enabled, allow H.265 codec to be used for receiving WebRTC streams.
+ // Platform hardware H.265 decoder needs to be supported and enabled in order to
+ // negotiate usage of H.265 in SDP in the direction of receiving.
+ BASE_FEATURE(kWebRtcAllowH265Receive,
+              "WebRtcAllowH265Receive",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ #if BUILDFLAG(IS_ANDROID)
+ // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
 index 8cb5c3679b7fe..855a55fb9a471 100644
 --- a/tools/cfi/ignores.txt
