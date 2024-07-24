@@ -9,3 +9,5 @@ Add the --unsupported option when using the build depedency script on Ubuntu 24.
 Additional options listed in script:
 
 https://chromium.googlesource.com/chromium/src/+/refs/heads/main/build/install-build-deps.sh
+
+Note the linux64-avx512.patch currently cross-compiles Linux AVX-512 core browser binaries on a Linux AVX2-class build server.
