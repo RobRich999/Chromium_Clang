@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ff6c84d598631..188de9c08c154 100644
+index ff6c84d598631..aff41439f6aa2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -482,9 +482,9 @@ config("compiler") {
@@ -60,7 +60,7 @@ index ff6c84d598631..188de9c08c154 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx",
++    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+xsave,+xsaveopt",
 +    "-Cllvm-args=-fp-contract=off",
 +    "-Awarnings",
    ]
@@ -104,7 +104,7 @@ index ff6c84d598631..188de9c08c154 100644
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx",
++        "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "-mxsave", "-mxsaveopt",
        ]
  
        # Minimum SIMD support for devices running lacros.
@@ -128,7 +128,7 @@ index ff6c84d598631..188de9c08c154 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 9ecf8abdcd4cc..acd93db57e4a6 100644
+index 9ecf8abdcd4cc..17d3ed413a77e 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
@@ -145,7 +145,7 @@ index 9ecf8abdcd4cc..acd93db57e4a6 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "/clang:-w",  ]
++      cflags += [ "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "-mxsave", "-mxsaveopt", "/clang:-w",  ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
