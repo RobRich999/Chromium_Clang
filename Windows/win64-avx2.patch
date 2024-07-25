@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 41c96adc70a27..708db2c6b82ef 100644
+index ff6c84d598631..a0d478defd5d0 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -482,9 +482,9 @@ config("compiler") {
@@ -66,96 +66,70 @@ index 41c96adc70a27..708db2c6b82ef 100644
  
      if (is_win) {
        ldflags += [
-@@ -1023,6 +1023,11 @@ config("compiler") {
+@@ -1023,6 +1023,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ztune-cpu=haswell",
-+    "-Ctarget-feature=+sse3,+ssse3,+sse4.1,+sse4.2,+avx,+avx2,+fma,+f16c",
++    "-Ctarget-cpu=haswell",
 +    "-Cllvm-args=-fp-contract=fast",
 +    "-Awarnings",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1098,12 +1103,14 @@ config("compiler") {
+@@ -1098,12 +1102,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 3
++    lto_opt_level = 2
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
++      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      # ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1129,15 +1136,17 @@ config("thinlto_optimize_default") {
- config("thinlto_optimize_max") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+@@ -1131,13 +1137,15 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
--      lto_opt_level = 2
-+      lto_opt_level = 3
+       lto_opt_level = 2
      } else {
 -      lto_opt_level = 0
-+      lto_opt_level = 3
++      lto_opt_level = 2
      }
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
++      # ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      # ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1173,7 +1182,9 @@ config("compiler_cpu_abi") {
+@@ -1173,7 +1181,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-mtune=haswell",
-+        "-msse3", "-mssse3","-msse4.1", "-msse4.2",
-+        "-mavx", "-mavx2", "-mfma", "-mf16c",
++        "-march=haswell",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2430,10 +2441,7 @@ config("optimize") {
-   if (is_win) {
-     # clang-cl's /O2 corresponds to clang's -O3, and really want -O2 for
-     # consistency with the other platforms.
--    cflags = [
--               "/O2",
--               "/clang:-O2",
--             ] + common_optimize_on_cflags
-+    cflags = [ "/clang:-O3" ] + common_optimize_on_cflags
- 
-     # The `-O3` for clang turns on extra optimizations compared to the standard
-     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2461,7 +2469,7 @@ config("optimize") {
-     # vectorization while otherwise optimizing for size.
-     rustflags = [ "-Copt-level=s" ]
-   } else {
--    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-O3" ] + common_optimize_on_cflags
- 
-     # The `-O3` for clang turns on extra optimizations compared to the standard
-     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2528,7 +2536,7 @@ config("optimize_max") {
-     if (is_win) {
+@@ -2562,6 +2570,9 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
--      cflags = [ "/O2" ] + common_optimize_on_cflags
-+      cflags = [ "/clang:-O3" ] + common_optimize_on_cflags
+       cflags = [ "/O2" ] + common_optimize_on_cflags
++      if (is_clang) {
++        cflags += [ "/clang:-O3" ]
++      }
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2941,7 +2949,7 @@ config("minimal_symbols") {
+@@ -2975,7 +2986,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -165,7 +139,7 @@ index 41c96adc70a27..708db2c6b82ef 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 9ecf8abdcd4cc..7070b0799e650 100644
+index 9ecf8abdcd4cc..2fbbf0e011a56 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
@@ -182,7 +156,7 @@ index 9ecf8abdcd4cc..7070b0799e650 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mtune=haswell", "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma", "-mf16c", "-mlzcnt", "-mbmi2", "/clang:-w", ]
++      cflags += [ "-mtune=haswell", "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma", "-mf16c", "-mlzcnt", "-mbmi", "-mbmi2", "-mmovbe", "-minvpcid", "-mxsave", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
@@ -225,7 +199,7 @@ index f80ca18a8c7a6..e32fbb190b661 100644
 +// #endif
  }  // extern "C"
 diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index 722164960575e..56154724cd2fb 100644
+index c1033de7b245d..4af2571304acd 100644
 --- a/media/base/media_switches.cc
 +++ b/media/base/media_switches.cc
 @@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
@@ -238,10 +212,10 @@ index 722164960575e..56154724cd2fb 100644
  #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
  
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index b3ca9c106e406..a6e3b0d5ea5db 100644
+index b3ca9c106e406..787272cd6d623 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -222,33 +222,7 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -222,33 +222,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsHevcProfileSupported(const VideoType& type) {
@@ -265,17 +239,20 @@ index b3ca9c106e406..a6e3b0d5ea5db 100644
 -    return false;
 -  }
 -#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
--  return GetSupplementalProfileCache()->IsProfileSupported(type.profile);
--#else
++#if BUILDFLAG(IS_ANDROID)
++  // Android doesn't bundle FFMpegVideoDecoder, so this is not always supported.
+   return GetSupplementalProfileCache()->IsProfileSupported(type.profile);
+ #else
    return true;
 -#endif  // BUIDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_SUPPORT)
 -#else
 -  return false;
 -#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
++#endif  // BUILDFLAG(IS_ANDROID)
  }
  
  bool IsVp9ProfileSupported(const VideoType& type) {
-@@ -441,7 +415,7 @@ bool IsDefaultSupportedAudioType(const AudioType& type) {
+@@ -441,7 +420,7 @@ bool IsDefaultSupportedAudioType(const AudioType& type) {
  
  bool IsBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -285,21 +262,21 @@ index b3ca9c106e406..a6e3b0d5ea5db 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
-index e3a8c01362707..3d30a437e010d 100644
+index e3a8c01362707..5e542172a0e20 100644
 --- a/media/filters/ffmpeg_glue.cc
 +++ b/media/filters/ffmpeg_glue.cc
-@@ -156,6 +156,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
+@@ -155,6 +155,9 @@ const char* FFmpegGlue::GetAllowedVideoDecoders() {
+     std::vector<std::string> allowed_decoders;
  #if BUILDFLAG(USE_PROPRIETARY_CODECS)
      allowed_decoders.push_back("h264");
- #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
 +#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
 +    allowed_decoders.push_back("hevc");
 +#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+ #endif  // BUILDFLAG(USE_PROPRIETARY_CODECS)
      return base::JoinString(allowed_decoders, ",");
  #else
-     return std::string();
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 5b8acb47e3848..24475a2f336d0 100644
+index 4935ef5fd6122..f85f7dda8cf0b 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -76,7 +76,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -310,14 +287,14 @@ index 5b8acb47e3848..24475a2f336d0 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -89,6 +88,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
-       break;
+@@ -87,6 +86,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+       NOTREACHED();
  
      case VideoCodec::kH264:
 +    case VideoCodec::kHEVC:
-     case VideoCodec::kVP8:
        // Normalize to three threads for 1080p content, then scale linearly
        // with number of pixels.
+       // Examples:
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
 index a0a0649d5e5f6..ed1ffd27092fb 100644
 --- a/media/webrtc/webrtc_features.cc
