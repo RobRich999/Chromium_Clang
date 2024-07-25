@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ff6c84d598631..a0d478defd5d0 100644
+index ff6c84d598631..1e785a3069d35 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -482,9 +482,9 @@ config("compiler") {
@@ -139,7 +139,7 @@ index ff6c84d598631..a0d478defd5d0 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 9ecf8abdcd4cc..2fbbf0e011a56 100644
+index 9ecf8abdcd4cc..f8008d03701d0 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
@@ -156,7 +156,7 @@ index 9ecf8abdcd4cc..2fbbf0e011a56 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mtune=haswell", "-msse3", "-mssse3", "-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma", "-mf16c", "-mlzcnt", "-mbmi", "-mbmi2", "-mmovbe", "-mxsave", "-mcx16", "-mcrc32", "-mpopcnt", "/clang:-w", ]
++      cflags += [ "-mtune=haswell", "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma", "-mf16c", "-mlzcnt", "-mbmi", "-mbmi2", "-mmovbe", "-mxsave", "-mcx16", "-mcrc32", "-mpopcnt", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
