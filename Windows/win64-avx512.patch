@@ -71,7 +71,7 @@ index ff6c84d598631..72d40fd55b7fa 100644
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
-+    "-Ctarget-cpu=haswell",
++    "-Ctarget-cpu=x86-64-v3",
 +    "-Ztune-cpu=skylake-avx512",
 +    "-Cllvm-args=-fp-contract=fast",
 +    "-Awarnings",
@@ -116,7 +116,7 @@ index ff6c84d598631..72d40fd55b7fa 100644
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=haswell",
++        "-march=x86-64-v3",
 +        "-mtune=skylake-avx512",
        ]
  
