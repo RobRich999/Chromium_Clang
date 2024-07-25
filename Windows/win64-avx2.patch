@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ff6c84d598631..72d40fd55b7fa 100644
+index ff6c84d598631..a0d478defd5d0 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -482,9 +482,9 @@ config("compiler") {
@@ -66,19 +66,18 @@ index ff6c84d598631..72d40fd55b7fa 100644
  
      if (is_win) {
        ldflags += [
-@@ -1023,6 +1023,11 @@ config("compiler") {
+@@ -1023,6 +1023,10 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
 +
 +    "-Ctarget-cpu=haswell",
-+    "-Ztune-cpu=skylake-avx512",
 +    "-Cllvm-args=-fp-contract=fast",
 +    "-Awarnings",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1098,12 +1103,14 @@ config("compiler") {
+@@ -1098,12 +1102,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -94,7 +93,7 @@ index ff6c84d598631..72d40fd55b7fa 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1131,13 +1138,15 @@ config("thinlto_optimize_max") {
+@@ -1131,13 +1137,15 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -111,17 +110,16 @@ index ff6c84d598631..72d40fd55b7fa 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1173,7 +1182,8 @@ config("compiler_cpu_abi") {
+@@ -1173,7 +1181,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
 +        "-march=haswell",
-+        "-mtune=skylake-avx512",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2562,6 +2572,9 @@ config("optimize_max") {
+@@ -2562,6 +2570,9 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -131,7 +129,7 @@ index ff6c84d598631..72d40fd55b7fa 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2975,7 +2988,7 @@ config("minimal_symbols") {
+@@ -2975,7 +2986,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -141,7 +139,7 @@ index ff6c84d598631..72d40fd55b7fa 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 9ecf8abdcd4cc..db394c1986958 100644
+index 9ecf8abdcd4cc..2fbbf0e011a56 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
@@ -158,7 +156,7 @@ index 9ecf8abdcd4cc..db394c1986958 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "/arch:AVX512", "-mtune=skylake-avx512", "/clang:-w", ]
++      cflags += [ "-mtune=haswell", "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma", "-mf16c", "-mlzcnt", "-mbmi", "-mbmi2", "-mmovbe", "-minvpcid", "-mxsave", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
