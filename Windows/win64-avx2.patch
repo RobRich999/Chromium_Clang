@@ -156,7 +156,7 @@ index 9ecf8abdcd4cc..2fbbf0e011a56 100644
      # next step after SSE2 will be AVX.
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-mtune=haswell", "-msse3", "-mssse3","-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma", "-mf16c", "-mlzcnt", "-mbmi", "-mbmi2", "-mmovbe", "-mxsave", "-mcx16", "-mcrc32", "-mpopcnt", "/clang:-w", ]
++      cflags += [ "-mtune=haswell", "-msse3", "-mssse3", "-msse4.1", "-msse4.2", "-mavx", "-mavx2", "-mfma", "-mf16c", "-mlzcnt", "-mbmi", "-mbmi2", "-mmovbe", "-mxsave", "-mcx16", "-mcrc32", "-mpopcnt", "/clang:-w", ]
      }
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
