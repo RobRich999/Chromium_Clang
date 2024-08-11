@@ -16,8 +16,6 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v129.0.6614.0-r1331996
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v129.0.6614.0-r1331996-linux64-deb-avx2-znver2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v129.0.6614.0-r1331996-linux64-deb-avx512
-
 ****
 
 **Links to latest Windows build releases:**
