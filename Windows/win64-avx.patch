@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index f0c7adf4c1e91..07df33944ddb0 100644
+index 3b809a3c065f6..20b1e7935ec69 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -482,9 +482,9 @@ config("compiler") {
+@@ -488,9 +488,9 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -15,7 +15,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
      rustflags += [ "-Crelocation-model=pic" ]
  
      if (!is_clang) {
-@@ -531,9 +531,9 @@ config("compiler") {
+@@ -537,9 +537,9 @@ config("compiler") {
  
      # TODO(crbug.com/345541122): investigate the fuchsia binary size increase.
      if (is_win) {
@@ -27,7 +27,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
      }
    }
  
-@@ -585,14 +585,14 @@ config("compiler") {
+@@ -591,14 +591,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -46,7 +46,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
          }
        }
      }
-@@ -754,7 +754,7 @@ config("compiler") {
+@@ -760,7 +760,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -55,7 +55,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
  
      if (is_win) {
        ldflags += [
-@@ -1023,6 +1023,11 @@ config("compiler") {
+@@ -1042,6 +1042,11 @@ config("compiler") {
      # For deterministic builds, keep the local machine's current working
      # directory from appearing in build outputs.
      "-Zremap-cwd-prefix=.",
@@ -67,7 +67,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1098,12 +1103,14 @@ config("compiler") {
+@@ -1117,12 +1122,14 @@ config("compiler") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -83,7 +83,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1131,13 +1138,15 @@ config("thinlto_optimize_max") {
+@@ -1150,13 +1157,15 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -100,7 +100,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1173,7 +1182,7 @@ config("compiler_cpu_abi") {
+@@ -1192,7 +1201,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -109,7 +109,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2567,6 +2576,9 @@ config("optimize_max") {
+@@ -2592,6 +2601,9 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -119,7 +119,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -2980,7 +2992,7 @@ config("minimal_symbols") {
+@@ -3005,7 +3017,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -129,7 +129,7 @@ index f0c7adf4c1e91..07df33944ddb0 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 9ecf8abdcd4cc..aeaf86c28cdb0 100644
+index 9ecf8abdcd4cc..3c4725f2ab7f7 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
@@ -169,10 +169,10 @@ index 9ecf8abdcd4cc..aeaf86c28cdb0 100644
  
    # arflags apply only to static_libraries. The normal linker configs are only
 diff --git a/chrome/installer/mini_installer/mini_installer_exe_main.cc b/chrome/installer/mini_installer/mini_installer_exe_main.cc
-index f80ca18a8c7a6..e32fbb190b661 100644
+index aff0370044046..811529a08db83 100644
 --- a/chrome/installer/mini_installer/mini_installer_exe_main.cc
 +++ b/chrome/installer/mini_installer/mini_installer_exe_main.cc
-@@ -54,7 +54,7 @@ void* memset(void* dest, int c, size_t count) {
+@@ -59,7 +59,7 @@ void* memset(void* dest, int c, size_t count) {
    return dest;
  }
  
@@ -181,16 +181,196 @@ index f80ca18a8c7a6..e32fbb190b661 100644
  // The compiler generates calls to memcpy for ARM64 debug builds so we need to
  // supply a memcpy implementation in that configuration.
  // See comments above for why we do this incantation.
-@@ -66,5 +66,5 @@ void* memcpy(void* destination, const void* source, size_t count) {
+@@ -71,5 +71,5 @@ void* memcpy(void* destination, const void* source, size_t count) {
      *dst++ = *src++;
    return destination;
  }
 -#endif
 +// #endif
  }  // extern "C"
-
+diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
+index ef06f16b7bb5b..c40b02790981e 100644
+--- a/media/base/media_switches.cc
++++ b/media/base/media_switches.cc
+@@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
+ // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
+ BASE_FEATURE(kPlatformHEVCEncoderSupport,
+              "PlatformHEVCEncoderSupport",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID)
+ #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
+ 
+diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
+index de9d4be3b92e8..71adb49d815db 100644
+--- a/media/base/supported_types.cc
++++ b/media/base/supported_types.cc
+@@ -223,33 +223,14 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+ #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
+ 
+ bool IsHevcProfileSupported(const VideoType& type) {
+-  if (!IsColorSpaceSupported(type.color_space))
+-    return false;
+-
+-#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
+-#if BUILDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_SUPPORT)
+-#if BUILDFLAG(IS_CHROMEOS_LACROS)
+-  // TODO(b/171813538): For Lacros, the supplemental profile cache will be
+-  // asking lacros-gpu, but we will be doing decoding in ash-gpu. Until the
+-  // codec detection is plumbed through to ash-gpu we can do this extra check
+-  // for HEVC support.
+-  if (base::CommandLine::ForCurrentProcess()->HasSwitch(
+-          switches::kLacrosEnablePlatformHevc)) {
++#if BUILDFLAG(IS_ANDROID)
++  if (base::FeatureList::IsEnabled(kBuiltInH264Decoder)) {
+     return true;
+   }
+-#endif  // BUILDFLAG(IS_CHROMEOS_LACROS)
+-#if BUILDFLAG(IS_CHROMEOS_ASH)
+-  if (!base::FeatureList::IsEnabled(kPlatformHEVCDecoderSupport)) {
+-    return false;
+-  }
+-#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   return GetSupplementalProfileCache()->IsProfileSupported(type.profile);
+ #else
+   return true;
+-#endif  // BUIDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_SUPPORT)
+-#else
+-  return false;
+-#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
++#endif  // BUILDFLAG(IS_ANDROID)
+ }
+ 
+ bool IsVp9ProfileSupported(const VideoType& type) {
+@@ -442,7 +423,9 @@ bool IsDefaultSupportedAudioType(const AudioType& type) {
+ 
+ bool IsBuiltInVideoCodec(VideoCodec codec) {
+ #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
+-  if (codec == VideoCodec::kH264 &&
++  // Android does bundle `FFMpegVideoDecoder` for `non-arm32` devices,
++  // but not enabled by default.
++  if ((codec == VideoCodec::kH264 || codec == VideoCodec::kHEVC) &&
+       base::FeatureList::IsEnabled(kBuiltInH264Decoder)) {
+     return true;
+   }
+diff --git a/media/filters/ffmpeg_glue.cc b/media/filters/ffmpeg_glue.cc
+index 229818059dc2c..605996037378b 100644
+--- a/media/filters/ffmpeg_glue.cc
++++ b/media/filters/ffmpeg_glue.cc
+@@ -174,7 +174,7 @@ const char* FFmpegGlue::GetAllowedAudioDecoders() {
+ const char* FFmpegGlue::GetAllowedVideoDecoders() {
+   // This should match the configured lists in //third_party/ffmpeg.
+ #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+-  return IsBuiltInVideoCodec(VideoCodec::kH264) ? "h264" : "";
++  return IsBuiltInVideoCodec(VideoCodec::kH264) ? "h264,hevc" : "";
+ #else
+   return "";
+ #endif
+diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
+index 3f9cef0391af5..a5954f298ca38 100644
+--- a/media/filters/ffmpeg_video_decoder.cc
++++ b/media/filters/ffmpeg_video_decoder.cc
+@@ -2,6 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
++#include "media/base/video_codecs.h"
+ #ifdef UNSAFE_BUFFERS_BUILD
+ // TODO(crbug.com/40285824): Remove this and convert code to safer constructs.
+ #pragma allow_unsafe_buffers
+@@ -82,7 +83,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+     case VideoCodec::kUnknown:
+     case VideoCodec::kVC1:
+     case VideoCodec::kMPEG2:
+-    case VideoCodec::kHEVC:
+     case VideoCodec::kVP9:
+     case VideoCodec::kAV1:
+     case VideoCodec::kDolbyVision:
+@@ -93,6 +93,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+       NOTREACHED();
+ 
+     case VideoCodec::kH264:
++    case VideoCodec::kHEVC:
+       // Normalize to three threads for 1080p content, then scale linearly
+       // with number of pixels.
+       // Examples:
+@@ -126,8 +127,9 @@ static void ReleaseVideoBufferImpl(void* opaque, uint8_t* data) {
+ 
+ // static
+ bool FFmpegVideoDecoder::IsCodecSupported(VideoCodec codec) {
+-  // We only build support for H.264.
+-  return codec == VideoCodec::kH264 && IsBuiltInVideoCodec(codec);
++  // We only build support for H.264 / H.264.
++  return (codec == VideoCodec::kH264 || codec == VideoCodec::kHEVC) &&
++         IsBuiltInVideoCodec(codec);
+ }
+ 
+ FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
+diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
+index a0a0649d5e5f6..ed1ffd27092fb 100644
+--- a/media/webrtc/webrtc_features.cc
++++ b/media/webrtc/webrtc_features.cc
+@@ -75,14 +75,14 @@ BASE_FEATURE(kWebRtcApmTellsIfPlayoutReferenceIsNeeded,
+ // negotiate usage of H.265 in SDP in the direction of sending.
+ BASE_FEATURE(kWebRtcAllowH265Send,
+              "WebRtcAllowH265Send",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // When enabled, allow H.265 codec to be used for receiving WebRTC streams.
+ // Platform hardware H.265 decoder needs to be supported and enabled in order to
+ // negotiate usage of H.265 in SDP in the direction of receiving.
+ BASE_FEATURE(kWebRtcAllowH265Receive,
+              "WebRtcAllowH265Receive",
+-             base::FEATURE_DISABLED_BY_DEFAULT);
++             base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ #if BUILDFLAG(IS_ANDROID)
+ // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
+diff --git a/third_party/angle b/third_party/angle
+index 790e0162111b6..41309a2f0d43b 160000
+--- a/third_party/angle
++++ b/third_party/angle
+@@ -1 +1 @@
+-Subproject commit 790e0162111b6c22689c84ca6bce14a0d2c5f339
++Subproject commit 41309a2f0d43b26e417ba53237246e09dd4e6e8f
+diff --git a/third_party/depot_tools b/third_party/depot_tools
+index 2aba33b7038d5..04a2e71a925ee 160000
+--- a/third_party/depot_tools
++++ b/third_party/depot_tools
+@@ -1 +1 @@
+-Subproject commit 2aba33b7038d5f67847e336995a3042b726f1069
++Subproject commit 04a2e71a925ee4df863d6973df488dac0e087505
+diff --git a/third_party/ffmpeg b/third_party/ffmpeg
+index 14d16cd143ad1..67060f141b527 160000
+--- a/third_party/ffmpeg
++++ b/third_party/ffmpeg
+@@ -1 +1 @@
+-Subproject commit 14d16cd143ad1993900c276e37592956702443a9
++Subproject commit 67060f141b527403b3f641296bcdaf2a57d19ab2
+diff --git a/third_party/perfetto b/third_party/perfetto
+index 89b467dcade1c..a77d6ed22ef8e 160000
+--- a/third_party/perfetto
++++ b/third_party/perfetto
+@@ -1 +1 @@
+-Subproject commit 89b467dcade1ca61717d83bac5d0af0156d04e27
++Subproject commit a77d6ed22ef8e9c1da5f8d7d583bbedd2937b0fd
+diff --git a/third_party/skia b/third_party/skia
+index 452a306052e34..249d3f07c4d53 160000
+--- a/third_party/skia
++++ b/third_party/skia
+@@ -1 +1 @@
+-Subproject commit 452a306052e344ab496a98ea7e4ab6164869e12c
++Subproject commit 249d3f07c4d53ea856336acc322fa4cb463f4d3f
+diff --git a/third_party/webgpu-cts/src b/third_party/webgpu-cts/src
+index 66327462a9b5f..a96693cd274c5 160000
+--- a/third_party/webgpu-cts/src
++++ b/third_party/webgpu-cts/src
+@@ -1 +1 @@
+-Subproject commit 66327462a9b5f01270f39ccf158372d31563dcd7
++Subproject commit a96693cd274c5b340ffe37df6ff265596059dd1e
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index 8cb5c3679b7fe..855a55fb9a471 100644
+index c8c4180c1f4a4..322ec797702e3 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
 @@ -147,6 +147,8 @@ type:sandbox::TargetServices
