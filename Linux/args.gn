@@ -48,5 +48,5 @@ use_text_section_splitting = true
 enable_rust = true
 enable_all_rust_features = true
 toolchain_supports_rust_thin_lto = true
-init_stack_vars_zero = true
+# init_stack_vars_zero = true
 dcheck_always_on = false
