@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3b809a3c065f6..20b1e7935ec69 100644
+index 2f0e0c47b74d6..8b3f3581625b2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -488,9 +488,9 @@ config("compiler") {
@@ -67,7 +67,7 @@ index 3b809a3c065f6..20b1e7935ec69 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1117,12 +1122,14 @@ config("compiler") {
+@@ -1119,12 +1124,14 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -83,7 +83,7 @@ index 3b809a3c065f6..20b1e7935ec69 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1150,13 +1157,15 @@ config("thinlto_optimize_max") {
+@@ -1152,13 +1159,15 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -100,7 +100,7 @@ index 3b809a3c065f6..20b1e7935ec69 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1192,7 +1201,7 @@ config("compiler_cpu_abi") {
+@@ -1194,7 +1203,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -109,7 +109,7 @@ index 3b809a3c065f6..20b1e7935ec69 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2592,6 +2601,9 @@ config("optimize_max") {
+@@ -2602,6 +2611,9 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -119,7 +119,7 @@ index 3b809a3c065f6..20b1e7935ec69 100644
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
-@@ -3005,7 +3017,7 @@ config("minimal_symbols") {
+@@ -3027,7 +3039,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -129,7 +129,7 @@ index 3b809a3c065f6..20b1e7935ec69 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 9ecf8abdcd4cc..3c4725f2ab7f7 100644
+index dc6935b1c4b36..54dc5dfa750f7 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
@@ -188,19 +188,6 @@ index aff0370044046..811529a08db83 100644
 -#endif
 +// #endif
  }  // extern "C"
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index ef06f16b7bb5b..c40b02790981e 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -346,7 +346,7 @@ BASE_FEATURE(kPlatformHEVCDecoderSupport,
- // Enables HEVC hardware accelerated encoding for Windows, Mac, and Android.
- BASE_FEATURE(kPlatformHEVCEncoderSupport,
-              "PlatformHEVCEncoderSupport",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_ANDROID)
- #endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
- 
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index de9d4be3b92e8..71adb49d815db 100644
 --- a/media/base/supported_types.cc
@@ -327,50 +314,8 @@ index a0a0649d5e5f6..ed1ffd27092fb 100644
  
  #if BUILDFLAG(IS_ANDROID)
  // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
-diff --git a/third_party/angle b/third_party/angle
-index 790e0162111b6..41309a2f0d43b 160000
---- a/third_party/angle
-+++ b/third_party/angle
-@@ -1 +1 @@
--Subproject commit 790e0162111b6c22689c84ca6bce14a0d2c5f339
-+Subproject commit 41309a2f0d43b26e417ba53237246e09dd4e6e8f
-diff --git a/third_party/depot_tools b/third_party/depot_tools
-index 2aba33b7038d5..04a2e71a925ee 160000
---- a/third_party/depot_tools
-+++ b/third_party/depot_tools
-@@ -1 +1 @@
--Subproject commit 2aba33b7038d5f67847e336995a3042b726f1069
-+Subproject commit 04a2e71a925ee4df863d6973df488dac0e087505
-diff --git a/third_party/ffmpeg b/third_party/ffmpeg
-index 14d16cd143ad1..67060f141b527 160000
---- a/third_party/ffmpeg
-+++ b/third_party/ffmpeg
-@@ -1 +1 @@
--Subproject commit 14d16cd143ad1993900c276e37592956702443a9
-+Subproject commit 67060f141b527403b3f641296bcdaf2a57d19ab2
-diff --git a/third_party/perfetto b/third_party/perfetto
-index 89b467dcade1c..a77d6ed22ef8e 160000
---- a/third_party/perfetto
-+++ b/third_party/perfetto
-@@ -1 +1 @@
--Subproject commit 89b467dcade1ca61717d83bac5d0af0156d04e27
-+Subproject commit a77d6ed22ef8e9c1da5f8d7d583bbedd2937b0fd
-diff --git a/third_party/skia b/third_party/skia
-index 452a306052e34..249d3f07c4d53 160000
---- a/third_party/skia
-+++ b/third_party/skia
-@@ -1 +1 @@
--Subproject commit 452a306052e344ab496a98ea7e4ab6164869e12c
-+Subproject commit 249d3f07c4d53ea856336acc322fa4cb463f4d3f
-diff --git a/third_party/webgpu-cts/src b/third_party/webgpu-cts/src
-index 66327462a9b5f..a96693cd274c5 160000
---- a/third_party/webgpu-cts/src
-+++ b/third_party/webgpu-cts/src
-@@ -1 +1 @@
--Subproject commit 66327462a9b5f01270f39ccf158372d31563dcd7
-+Subproject commit a96693cd274c5b340ffe37df6ff265596059dd1e
 diff --git a/tools/cfi/ignores.txt b/tools/cfi/ignores.txt
-index c8c4180c1f4a4..322ec797702e3 100644
+index ff12e6dbb2bdb..6b897ca64043c 100644
 --- a/tools/cfi/ignores.txt
 +++ b/tools/cfi/ignores.txt
 @@ -147,6 +147,8 @@ type:sandbox::TargetServices
