@@ -20,9 +20,9 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6671.0-r1345087-win64-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-win64-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6671.0-r1345087-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-win64-avx2
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6671.0-r1345087-win64-avx512
 
