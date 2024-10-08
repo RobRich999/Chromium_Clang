@@ -12,9 +12,9 @@ Implementation of various options are subject to change depending upon performan
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-linux64-deb-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-linux64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v131.0.6764.0-r1364961-linux64-deb-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-linux64-avx2-znver2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v131.0.6764.0-r1364961-linux64-deb-avx2-znver2
 
 ****
 
@@ -22,9 +22,9 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-win64-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v131.0.6764.0-r1365216-win64-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v130.0.6715.0-r1354555-win64-avx512
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v131.0.6764.0-r1365216-win64-avx512
 
 <sub>*Chromium_Clang for Windows builds are cross-compiled under Linux.*</sub>
 
