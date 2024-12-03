@@ -75,10 +75,10 @@ https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding
 
 Apply the following patches in the appropriate directories:
 
-add-hevc-ffmpeg-decoder-parser.js
-change-libavcodec-header.patch
-enable-hevc-media-recorder-support.patch
-enable-h26x-packet-buffer-by-default.patch
+* add-hevc-ffmpeg-decoder-parser.js
+* change-libavcodec-header.patch
+* enable-hevc-media-recorder-support.patch
+* enable-h26x-packet-buffer-by-default.patch
 
 Then proceed with the Chromium_Clang patches and build arguments.
 
