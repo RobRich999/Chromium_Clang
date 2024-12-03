@@ -79,6 +79,7 @@ Apply the following patches in the appropriate directories:
 * change-libavcodec-header.patch
 * enable-hevc-media-recorder-support.patch
 * enable-h26x-packet-buffer-by-default.patch
+* enable-hevc-webrtc-send-receive-by-default.patch
 
 Then proceed with the Chromium_Clang patches and build arguments.
 
