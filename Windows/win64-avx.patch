@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3e7f033378bc4..131cc70e2a3d7 100644
+index 33a232ed73248..d8466720e03bf 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -487,9 +487,9 @@ config("compiler") {
+@@ -498,9 +498,9 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -15,7 +15,7 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
      rustflags += [ "-Crelocation-model=pic" ]
  
      if (!is_clang) {
-@@ -542,9 +542,9 @@ config("compiler") {
+@@ -553,9 +553,9 @@ config("compiler") {
  
      # TODO(crbug.com/345541122): investigate the fuchsia binary size increase.
      if (is_win) {
@@ -27,7 +27,7 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
      }
    }
  
-@@ -596,14 +596,14 @@ config("compiler") {
+@@ -607,14 +607,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -46,7 +46,7 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
          }
        }
      }
-@@ -773,7 +773,7 @@ config("compiler") {
+@@ -784,7 +784,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -55,20 +55,19 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
  
      if (is_win) {
        ldflags += [
-@@ -1058,6 +1058,12 @@ config("compiler") {
+@@ -1058,6 +1058,11 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
 +
 +    "-Ctarget-cpu=x86-64-v2",
 +    "-Ctarget-feature=+avx",
-+    "-Ztune-cpu=skylake-avx512",
-+    "-Cllvm-args=-fp-contract=fast",
++    "-Cllvm-args=-fp-contract=off",
 +    "-Awarnings",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1141,7 +1147,7 @@ config("libcxx_hardening") {
+@@ -1141,7 +1146,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -77,7 +76,7 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1174,7 +1180,7 @@ config("thinlto_optimize_max") {
+@@ -1174,7 +1179,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -86,18 +85,17 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
      }
  
      if (is_win) {
-@@ -1216,7 +1222,9 @@ config("compiler_cpu_abi") {
+@@ -1216,7 +1221,8 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
 +        "-march=x86-64-v2",
 +        "-mavx",
-+        "-mtune=skylake-avx512",
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2646,10 +2654,13 @@ config("optimize_max") {
+@@ -2661,10 +2667,13 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -112,7 +110,7 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -3071,7 +3082,7 @@ config("minimal_symbols") {
+@@ -3086,7 +3095,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -122,7 +120,7 @@ index 3e7f033378bc4..131cc70e2a3d7 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 9b062d6000372..e50adaeb38c69 100644
+index 9928e76832cce..2fc467bcf7b05 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -85,7 +85,7 @@ config("compiler") {
@@ -181,19 +179,6 @@ index aff0370044046..811529a08db83 100644
 -#endif
 +// #endif
  }  // extern "C"
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index e359362d926a1..d0a4de52ee8bd 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -350,7 +350,7 @@ BASE_FEATURE(kPlatformHEVCEncoderSupport,
- // Enables HEVC MediaRecorder muxer support.
- BASE_FEATURE(kMediaRecorderHEVCSupport,
-              "MediaRecorderHEVCSupport",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- #endif  // BUILDFLAG(ENABLE_HEVC_PARSER_AND_HW_DECODER)
- 
- // Let videos be resumed via remote controls (for example, the notification)
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 8db4b2d5cf1f5..2a338248f6f0b 100644
 --- a/media/base/supported_types.cc
@@ -248,7 +233,7 @@ index 8db4b2d5cf1f5..2a338248f6f0b 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index e9b4ab2378361..00eaaa973164f 100644
+index cfd0552ee3108..29452291bde43 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
 @@ -67,7 +67,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
