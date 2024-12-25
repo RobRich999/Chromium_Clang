@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 3e7f033378bc4..280d6e47a16d0 100644
+index 33a232ed73248..c1c984c9f572a 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -487,10 +487,10 @@ config("compiler") {
+@@ -498,10 +498,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index 3e7f033378bc4..280d6e47a16d0 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -544,7 +544,7 @@ config("compiler") {
+@@ -555,7 +555,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/Zc:sizedDealloc-" ]
      } else {
@@ -26,7 +26,7 @@ index 3e7f033378bc4..280d6e47a16d0 100644
      }
    }
  
-@@ -596,21 +596,21 @@ config("compiler") {
+@@ -607,21 +607,21 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -47,12 +47,12 @@ index 3e7f033378bc4..280d6e47a16d0 100644
  
      # TODO(crbug.com/40192287): Investigate why/if this should be needed.
      if (is_win) {
-      cflags += [ "/clang:-ffp-contract=off" ]
+-      cflags += [ "/clang:-ffp-contract=off" ]
++      cflags += [ "/clang:-ffp-contract=fast" ]
      } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
+       cflags += [ "-ffp-contract=off" ]
      }
-@@ -773,7 +773,7 @@ config("compiler") {
+@@ -784,7 +784,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -96,11 +96,11 @@ index 3e7f033378bc4..280d6e47a16d0 100644
          "-m64",
 -        "-msse3",
 +        "-march=x86-64-v3",
-+        "-mtune=znver2",
++        "-march=znver2"
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2649,7 +2654,7 @@ config("optimize_max") {
+@@ -2664,7 +2669,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -172,10 +172,10 @@ index 15bbf25f2b443..8b137891791fe 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 851755cbd219d..dfec16d288aa3 100755
+index 2038b7aebd65f..82d78e2c22f69 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
-@@ -121,7 +121,7 @@ do_package() {
+@@ -122,7 +122,7 @@ do_package() {
    local PACKAGEFILE="${PACKAGE}-${CHANNEL}_${VERSIONFULL}_${ARCHITECTURE}.deb"
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
@@ -185,16 +185,10 @@ index 851755cbd219d..dfec16d288aa3 100755
      ar -d "${TMPFILEDIR}/${PACKAGEFILE}" control.tar data.tar
      ar -r "${TMPFILEDIR}/${PACKAGEFILE}" "${TMPFILEDIR}/control.tar.xz" \
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
-index 3e1cadc8296ca..aa5848db6913f 100755
+index 3e1cadc8296ca..0cb44dbf7ad77 100755
 --- a/chrome/installer/linux/debian/postrm
 +++ b/chrome/installer/linux/debian/postrm
-@@ -15,22 +15,8 @@ fi
- 
- @@include@@../common/variables.include
- 
--@@include@@../common/apt.include
-+# @@include@@../common/apt.include
- 
+@@ -20,17 +20,3 @@ fi
  @@include@@../common/symlinks.include
  
  remove_udev_symlinks
@@ -213,10 +207,10 @@ index 3e1cadc8296ca..aa5848db6913f 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index d2b5ece44c1f2..ae22bff4c7ab7 100644
+index 1e0cd989c0d3e..f515b8b9f5663 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
-@@ -270,6 +270,18 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+@@ -266,6 +266,18 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
@@ -235,19 +229,104 @@ index d2b5ece44c1f2..ae22bff4c7ab7 100644
        // Allow libglvnd files and libs.
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
-diff --git a/media/base/media_switches.cc b/media/base/media_switches.cc
-index e359362d926a1..d0a4de52ee8bd 100644
---- a/media/base/media_switches.cc
-+++ b/media/base/media_switches.cc
-@@ -350,7 +350,7 @@ BASE_FEATURE(kPlatformHEVCEncoderSupport,
- // Enables HEVC MediaRecorder muxer support.
- BASE_FEATURE(kMediaRecorderHEVCSupport,
-              "MediaRecorderHEVCSupport",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- #endif  // BUILDFLAG(ENABLE_HEVC_PARSER_AND_HW_DECODER)
+diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
+index 8db4b2d5cf1f5..2a338248f6f0b 100644
+--- a/media/base/supported_types.cc
++++ b/media/base/supported_types.cc
+@@ -230,35 +230,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+ #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
- // Let videos be resumed via remote controls (for example, the notification)
+ bool IsDecoderHevcProfileSupported(const VideoType& type) {
+-  if (!IsDecoderColorSpaceSupported(type.color_space)) {
+-    return false;
+-  }
+-
+-#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
+-#if BUILDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_DECODE_SUPPORT)
+-#if BUILDFLAG(IS_CHROMEOS_LACROS)
+-  // TODO(b/171813538): For Lacros, the supplemental profile cache will be
+-  // asking lacros-gpu, but we will be doing decoding in ash-gpu. Until the
+-  // codec detection is plumbed through to ash-gpu we can do this extra check
+-  // for HEVC support.
+-  if (base::CommandLine::ForCurrentProcess()->HasSwitch(
+-          switches::kLacrosEnablePlatformHevc)) {
+-    return true;
+-  }
+-#endif  // BUILDFLAG(IS_CHROMEOS_LACROS)
+-#if BUILDFLAG(IS_CHROMEOS_ASH)
+-  if (!base::FeatureList::IsEnabled(kPlatformHEVCDecoderSupport)) {
+-    return false;
+-  }
+-#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+-  return GetSupplementalDecoderVideoProfileCache()->IsProfileSupported(
+-      type.profile);
+-#else
++#if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+   return true;
+-#endif  // BUIDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_DECODE_SUPPORT)
+ #else
+-  return false;
+-#endif  // BUILDFLAG(ENABLE_PLATFORM_HEVC)
++  return GetSupplementalDecoderVideoProfileCache()->IsProfileSupported(
++      type.profile);
++#endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+ }
+ 
+ bool IsDecoderVp9ProfileSupported(const VideoType& type) {
+@@ -580,7 +557,7 @@ bool IsDefaultEncoderSupportedVideoType(const VideoType& type) {
+ 
+ bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
+ #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
+-  if (codec == VideoCodec::kH264) {
++  if (codec == VideoCodec::kH264 || codec == VideoCodec::kHEVC) {
+     return true;
+   }
+ #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
+diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
+index cfd0552ee3108..29452291bde43 100644
+--- a/media/ffmpeg/ffmpeg_common.cc
++++ b/media/ffmpeg/ffmpeg_common.cc
+@@ -67,7 +67,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
+ const char* GetAllowedVideoDecoders() {
+   // This should match the configured lists in //third_party/ffmpeg.
+ #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
+-  return "h264";
++  return "h264,hevc";
+ #else
+   return "";
+ #endif
+diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
+index b3b22e2d0045f..96cc8c3640737 100644
+--- a/media/filters/ffmpeg_video_decoder.cc
++++ b/media/filters/ffmpeg_video_decoder.cc
+@@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+     case VideoCodec::kUnknown:
+     case VideoCodec::kVC1:
+     case VideoCodec::kMPEG2:
+-    case VideoCodec::kHEVC:
+     case VideoCodec::kVP9:
+     case VideoCodec::kAV1:
+     case VideoCodec::kDolbyVision:
+@@ -93,6 +92,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+       NOTREACHED();
+ 
+     case VideoCodec::kH264:
++    case VideoCodec::kHEVC:
+       // Normalize to three threads for 1080p content, then scale linearly
+       // with number of pixels.
+       // Examples:
+@@ -126,8 +126,9 @@ static void ReleaseVideoBufferImpl(void* opaque, uint8_t* data) {
+ 
+ // static
+ bool FFmpegVideoDecoder::IsCodecSupported(VideoCodec codec) {
+-  // We only build support for H.264.
+-  return codec == VideoCodec::kH264 && IsDecoderBuiltInVideoCodec(codec);
++  // We only build support for H.264 / H.265.
++  return (codec == VideoCodec::kH264 || codec == VideoCodec::kHEVC) &&
++         IsDecoderBuiltInVideoCodec(codec);
+ }
+ 
+ FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
 index d92cfff6ff317..b363f83d984d1 100644
 --- a/media/webrtc/webrtc_features.cc
