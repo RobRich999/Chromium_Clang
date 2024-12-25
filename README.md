@@ -69,19 +69,11 @@ https://johnk.dev/blogs/generated/vex-transition-penalties.html
 
 **Note regarding FFmpeg:**
 
-Use the patches available here:
+Apply the /third_party/ffmpeg and /third_party/webrtc patches available here:
 
 https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding
 
-Apply the following patches in the appropriate directories:
-
-* add-hevc-ffmpeg-decoder-parser.js
-* change-libavcodec-header.patch
-* enable-hevc-media-recorder-support.patch
-* enable-h26x-packet-buffer-by-default.patch
-* enable-hevc-webrtc-send-receive-by-default.patch
-
-Then proceed with the Chromium_Clang patches and build arguments.
+The other changes are present already in the Chromium-Clang diff patches.
 
 ****
 
