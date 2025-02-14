@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 33a232ed73248..a2a469de8779f 100644
+index ae6cbc24eabb3..b44f22add6d6f 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -498,10 +498,10 @@ config("compiler") {
@@ -71,7 +71,7 @@ index 33a232ed73248..a2a469de8779f 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1141,7 +1144,7 @@ config("libcxx_hardening") {
+@@ -1135,7 +1138,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -80,7 +80,7 @@ index 33a232ed73248..a2a469de8779f 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1174,7 +1177,7 @@ config("thinlto_optimize_max") {
+@@ -1168,7 +1171,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -89,7 +89,7 @@ index 33a232ed73248..a2a469de8779f 100644
      }
  
      if (is_win) {
-@@ -1216,7 +1219,7 @@ config("compiler_cpu_abi") {
+@@ -1210,7 +1213,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -98,7 +98,7 @@ index 33a232ed73248..a2a469de8779f 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2664,7 +2667,7 @@ config("optimize_max") {
+@@ -2647,7 +2650,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -205,10 +205,10 @@ index 3e1cadc8296ca..0cb44dbf7ad77 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index 1e0cd989c0d3e..f515b8b9f5663 100644
+index 97f7221cb1a56..ed37714df4e07 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
-@@ -266,6 +266,18 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
+@@ -262,6 +262,18 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
        "/usr/lib64/dri/r300_dri.so",
        "/usr/lib64/dri/r600_dri.so",
        "/usr/lib64/dri/radeonsi_dri.so",
@@ -228,10 +228,10 @@ index 1e0cd989c0d3e..f515b8b9f5663 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 8db4b2d5cf1f5..2a338248f6f0b 100644
+index 2ce29798709ef..10f5407d8dd6c 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -230,35 +230,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -229,25 +229,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsDecoderHevcProfileSupported(const VideoType& type) {
@@ -241,21 +241,11 @@ index 8db4b2d5cf1f5..2a338248f6f0b 100644
 -
 -#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
 -#if BUILDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_DECODE_SUPPORT)
--#if BUILDFLAG(IS_CHROMEOS_LACROS)
--  // TODO(b/171813538): For Lacros, the supplemental profile cache will be
--  // asking lacros-gpu, but we will be doing decoding in ash-gpu. Until the
--  // codec detection is plumbed through to ash-gpu we can do this extra check
--  // for HEVC support.
--  if (base::CommandLine::ForCurrentProcess()->HasSwitch(
--          switches::kLacrosEnablePlatformHevc)) {
--    return true;
--  }
--#endif  // BUILDFLAG(IS_CHROMEOS_LACROS)
--#if BUILDFLAG(IS_CHROMEOS_ASH)
+-#if BUILDFLAG(IS_CHROMEOS)
 -  if (!base::FeatureList::IsEnabled(kPlatformHEVCDecoderSupport)) {
 -    return false;
 -  }
--#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+-#endif  // BUILDFLAG(IS_CHROMEOS)
 -  return GetSupplementalDecoderVideoProfileCache()->IsProfileSupported(
 -      type.profile);
 -#else
@@ -271,7 +261,7 @@ index 8db4b2d5cf1f5..2a338248f6f0b 100644
  }
  
  bool IsDecoderVp9ProfileSupported(const VideoType& type) {
-@@ -580,7 +557,7 @@ bool IsDefaultEncoderSupportedVideoType(const VideoType& type) {
+@@ -586,7 +573,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
  
  bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -294,7 +284,7 @@ index cfd0552ee3108..29452291bde43 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index b3b22e2d0045f..96cc8c3640737 100644
+index cc15e1edd8ebe..273d0969de054 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -361,3 +351,27 @@ index d92cfff6ff317..b363f83d984d1 100644
  
  #if BUILDFLAG(IS_ANDROID)
  // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
+diff --git a/third_party/ffmpeg b/third_party/ffmpeg
+index 5b22c2869c0e7..d10a0f8bf5ddc 160000
+--- a/third_party/ffmpeg
++++ b/third_party/ffmpeg
+@@ -1 +1 @@
+-Subproject commit 5b22c2869c0e710bd2a2312240790a013a060c23
++Subproject commit d10a0f8bf5ddcce572df95105152bc74041cae0c
+diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
+index 91f415b330b18..7c653f480f45b 100644
+--- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
++++ b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
+@@ -230,9 +230,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
+ std::unique_ptr<gpu::VulkanImplementation>
+ WaylandSurfaceFactory::CreateVulkanImplementation(bool use_swiftshader,
+                                                   bool allow_protected_memory) {
+-  LOG_IF(ERROR, !use_swiftshader)
+-      << "'--ozone-platform=wayland' is not compatible with Vulkan. "
+-         "Consider switching to '--ozone-platform=x11' or disabling Vulkan";
++  // LOG_IF(ERROR, !use_swiftshader)
++  //     << "'--ozone-platform=wayland' is not compatible with Vulkan. "
++  //        "Consider switching to '--ozone-platform=x11' or disabling Vulkan";
+   return std::make_unique<VulkanImplementationWayland>(use_swiftshader);
+ }
+ #endif
