@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 33a232ed73248..d8466720e03bf 100644
+index ae6cbc24eabb3..d5ff8bed5c4ed 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -498,9 +498,9 @@ config("compiler") {
@@ -61,13 +61,13 @@ index 33a232ed73248..d8466720e03bf 100644
      "-Zexternal-clangrt",
 +
 +    "-Ctarget-cpu=x86-64-v2",
-+    "-Ctarget-feature=+avx",
++    "-Ctarget-feature=+avx"
 +    "-Cllvm-args=-fp-contract=off",
 +    "-Awarnings",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1141,7 +1146,7 @@ config("libcxx_hardening") {
+@@ -1135,7 +1140,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -76,7 +76,7 @@ index 33a232ed73248..d8466720e03bf 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1174,7 +1179,7 @@ config("thinlto_optimize_max") {
+@@ -1168,7 +1173,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -85,7 +85,7 @@ index 33a232ed73248..d8466720e03bf 100644
      }
  
      if (is_win) {
-@@ -1216,7 +1221,8 @@ config("compiler_cpu_abi") {
+@@ -1210,7 +1215,8 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -95,7 +95,7 @@ index 33a232ed73248..d8466720e03bf 100644
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2661,10 +2667,13 @@ config("optimize_max") {
+@@ -2644,10 +2650,13 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -110,7 +110,7 @@ index 33a232ed73248..d8466720e03bf 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -3086,7 +3095,7 @@ config("minimal_symbols") {
+@@ -3069,7 +3078,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -180,10 +180,10 @@ index aff0370044046..811529a08db83 100644
 +// #endif
  }  // extern "C"
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 8db4b2d5cf1f5..2a338248f6f0b 100644
+index 2ce29798709ef..10f5407d8dd6c 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -230,35 +230,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -229,25 +229,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsDecoderHevcProfileSupported(const VideoType& type) {
@@ -193,21 +193,11 @@ index 8db4b2d5cf1f5..2a338248f6f0b 100644
 -
 -#if BUILDFLAG(ENABLE_PLATFORM_HEVC)
 -#if BUILDFLAG(PLATFORM_HAS_OPTIONAL_HEVC_DECODE_SUPPORT)
--#if BUILDFLAG(IS_CHROMEOS_LACROS)
--  // TODO(b/171813538): For Lacros, the supplemental profile cache will be
--  // asking lacros-gpu, but we will be doing decoding in ash-gpu. Until the
--  // codec detection is plumbed through to ash-gpu we can do this extra check
--  // for HEVC support.
--  if (base::CommandLine::ForCurrentProcess()->HasSwitch(
--          switches::kLacrosEnablePlatformHevc)) {
--    return true;
--  }
--#endif  // BUILDFLAG(IS_CHROMEOS_LACROS)
--#if BUILDFLAG(IS_CHROMEOS_ASH)
+-#if BUILDFLAG(IS_CHROMEOS)
 -  if (!base::FeatureList::IsEnabled(kPlatformHEVCDecoderSupport)) {
 -    return false;
 -  }
--#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+-#endif  // BUILDFLAG(IS_CHROMEOS)
 -  return GetSupplementalDecoderVideoProfileCache()->IsProfileSupported(
 -      type.profile);
 -#else
@@ -223,7 +213,7 @@ index 8db4b2d5cf1f5..2a338248f6f0b 100644
  }
  
  bool IsDecoderVp9ProfileSupported(const VideoType& type) {
-@@ -580,7 +557,7 @@ bool IsDefaultEncoderSupportedVideoType(const VideoType& type) {
+@@ -586,7 +573,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
  
  bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -246,7 +236,7 @@ index cfd0552ee3108..29452291bde43 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index b3b22e2d0045f..96cc8c3640737 100644
+index cc15e1edd8ebe..273d0969de054 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
