@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ffbd381f00929..5b2716f4678ba 100644
+index ae6cbc24eabb3..90a22bdd8afc9 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -498,10 +498,10 @@ config("compiler") {
@@ -96,11 +96,11 @@ index ffbd381f00929..5b2716f4678ba 100644
          "-m64",
 -        "-msse3",
 +        "-march=x86-64-v3",
-+        "-march=znver2"
++        "-mtune=znver2"
        ]
  
        # Minimum SIMD support for devices running lacros.
-@@ -2633,7 +2638,7 @@ config("optimize_max") {
+@@ -2647,7 +2652,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -286,7 +286,7 @@ index cfd0552ee3108..29452291bde43 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index b3b22e2d0045f..96cc8c3640737 100644
+index cc15e1edd8ebe..273d0969de054 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -353,3 +353,20 @@ index d92cfff6ff317..b363f83d984d1 100644
  
  #if BUILDFLAG(IS_ANDROID)
  // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
+diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
+index 91f415b330b18..7c653f480f45b 100644
+--- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
++++ b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
+@@ -230,9 +230,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
+ std::unique_ptr<gpu::VulkanImplementation>
+ WaylandSurfaceFactory::CreateVulkanImplementation(bool use_swiftshader,
+                                                   bool allow_protected_memory) {
+-  LOG_IF(ERROR, !use_swiftshader)
+-      << "'--ozone-platform=wayland' is not compatible with Vulkan. "
+-         "Consider switching to '--ozone-platform=x11' or disabling Vulkan";
++  // LOG_IF(ERROR, !use_swiftshader)
++  //     << "'--ozone-platform=wayland' is not compatible with Vulkan. "
++  //        "Consider switching to '--ozone-platform=x11' or disabling Vulkan";
+   return std::make_unique<VulkanImplementationWayland>(use_swiftshader);
+ }
+ #endif
