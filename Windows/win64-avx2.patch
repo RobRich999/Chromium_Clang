@@ -312,10 +312,3 @@ index d92cfff6ff317..b363f83d984d1 100644
  
  #if BUILDFLAG(IS_ANDROID)
  // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
-diff --git a/third_party/ffmpeg b/third_party/ffmpeg
-index 5b22c2869c0e7..d10a0f8bf5ddc 160000
---- a/third_party/ffmpeg
-+++ b/third_party/ffmpeg
-@@ -1 +1 @@
--Subproject commit 5b22c2869c0e710bd2a2312240790a013a060c23
-+Subproject commit d10a0f8bf5ddcce572df95105152bc74041cae0c
