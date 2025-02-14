@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ae6cbc24eabb3..52d32f21a5e02 100644
+index ae6cbc24eabb3..5d94423590a3d 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -498,10 +498,10 @@ config("compiler") {
@@ -88,7 +88,7 @@ index ae6cbc24eabb3..52d32f21a5e02 100644
          "-m64",
 -        "-msse3",
 +        "-march=x86-64-v2",
-+        "-mavx,"
++        "-mavx",
        ]
  
        # Minimum SIMD support for devices running lacros.
