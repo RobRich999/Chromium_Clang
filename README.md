@@ -20,11 +20,11 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v136.0.7066.0-r1431519
 
 **Links to latest Windows build releases:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v135.0.7018.0-r1420436-win64-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v136.0.7066.0-r1431519-win64-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v135.0.7018.0-r1420436-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v136.0.7066.0-r1431519-win64-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v135.0.7018.0-r1420436-win64-avx512
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v136.0.7066.0-r1431519-win64-avx512
 
 <sub>*Chromium_Clang for Windows builds are cross-compiled under Linux.*</sub>
 
