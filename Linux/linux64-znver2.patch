@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ae6cbc24eabb3..90a22bdd8afc9 100644
+index d95a15b31e6e9..c4e29fec19c6d 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -498,10 +498,10 @@ config("compiler") {
+@@ -497,10 +497,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -555,7 +555,7 @@ config("compiler") {
+@@ -554,7 +554,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/Zc:sizedDealloc-" ]
      } else {
@@ -26,7 +26,7 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
      }
    }
  
-@@ -607,21 +607,21 @@ config("compiler") {
+@@ -606,14 +606,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -44,15 +44,16 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
          }
        }
      }
- 
-     # TODO(crbug.com/40192287): Investigate why/if this should be needed.
+@@ -622,7 +622,7 @@ config("compiler") {
      if (is_win) {
--      cflags += [ "/clang:-ffp-contract=off" ]
-+      cflags += [ "/clang:-ffp-contract=fast" ]
+       cflags += [ "/clang:-ffp-contract=off" ]
      } else {
-       cflags += [ "-ffp-contract=off" ]
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
      }
-@@ -784,7 +784,7 @@ config("compiler") {
+ 
+     # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
+@@ -783,7 +783,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -61,7 +62,7 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
  
      if (is_win) {
        ldflags += [
-@@ -1058,6 +1058,10 @@ config("compiler") {
+@@ -1057,6 +1057,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -72,7 +73,7 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1135,7 +1139,7 @@ config("libcxx_hardening") {
+@@ -1134,7 +1138,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -81,7 +82,7 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1168,7 +1172,7 @@ config("thinlto_optimize_max") {
+@@ -1167,7 +1171,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -90,17 +91,17 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
      }
  
      if (is_win) {
-@@ -1210,7 +1214,8 @@ config("compiler_cpu_abi") {
+@@ -1209,7 +1213,8 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
 +        "-march=x86-64-v3",
-+        "-mtune=znver2"
++        "-mtune=znver2",
        ]
- 
-       # Minimum SIMD support for devices running lacros.
-@@ -2647,7 +2652,7 @@ config("optimize_max") {
+       ldflags += [ "-m64" ]
+     } else if (current_cpu == "x86") {
+@@ -2637,7 +2642,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -110,10 +111,10 @@ index ae6cbc24eabb3..90a22bdd8afc9 100644
      rustflags = [ "-Copt-level=3" ]
    }
 diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_linux.cc
-index 62da648c6acb0..e8f5aad43c1a3 100644
+index 65fd67c746260..df8cdb1b525ab 100644
 --- a/chrome/common/chrome_paths_linux.cc
 +++ b/chrome/common/chrome_paths_linux.cc
-@@ -94,7 +94,7 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
+@@ -93,7 +93,7 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
  #elif BUILDFLAG(GOOGLE_CHROME_BRANDING)
    std::string data_dir_basename = "google-chrome";
  #else
@@ -172,10 +173,10 @@ index 15bbf25f2b443..8b137891791fe 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 2038b7aebd65f..82d78e2c22f69 100755
+index 09c528257d342..477ba4b24c4ee 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
-@@ -122,7 +122,7 @@ do_package() {
+@@ -126,7 +126,7 @@ do_package() {
    local PACKAGEFILE="${PACKAGE}-${CHANNEL}_${VERSIONFULL}_${ARCHITECTURE}.deb"
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
