@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ae6cbc24eabb3..5d94423590a3d 100644
+index d95a15b31e6e9..d8e9160efdb28 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -498,10 +498,10 @@ config("compiler") {
+@@ -497,10 +497,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index ae6cbc24eabb3..5d94423590a3d 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -555,7 +555,7 @@ config("compiler") {
+@@ -554,7 +554,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/Zc:sizedDealloc-" ]
      } else {
@@ -26,7 +26,7 @@ index ae6cbc24eabb3..5d94423590a3d 100644
      }
    }
  
-@@ -607,14 +607,14 @@ config("compiler") {
+@@ -606,14 +606,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -44,7 +44,7 @@ index ae6cbc24eabb3..5d94423590a3d 100644
          }
        }
      }
-@@ -784,7 +784,7 @@ config("compiler") {
+@@ -783,7 +783,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -53,7 +53,7 @@ index ae6cbc24eabb3..5d94423590a3d 100644
  
      if (is_win) {
        ldflags += [
-@@ -1058,6 +1058,10 @@ config("compiler") {
+@@ -1057,6 +1057,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -64,7 +64,7 @@ index ae6cbc24eabb3..5d94423590a3d 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1135,7 +1139,7 @@ config("libcxx_hardening") {
+@@ -1134,7 +1138,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -73,7 +73,7 @@ index ae6cbc24eabb3..5d94423590a3d 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1168,7 +1172,7 @@ config("thinlto_optimize_max") {
+@@ -1167,7 +1171,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -82,7 +82,7 @@ index ae6cbc24eabb3..5d94423590a3d 100644
      }
  
      if (is_win) {
-@@ -1210,7 +1214,8 @@ config("compiler_cpu_abi") {
+@@ -1209,7 +1213,8 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -90,9 +90,9 @@ index ae6cbc24eabb3..5d94423590a3d 100644
 +        "-march=x86-64-v2",
 +        "-mavx",
        ]
- 
-       # Minimum SIMD support for devices running lacros.
-@@ -2647,7 +2652,7 @@ config("optimize_max") {
+       ldflags += [ "-m64" ]
+     } else if (current_cpu == "x86") {
+@@ -2637,7 +2642,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -102,10 +102,10 @@ index ae6cbc24eabb3..5d94423590a3d 100644
      rustflags = [ "-Copt-level=3" ]
    }
 diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_linux.cc
-index 62da648c6acb0..e8f5aad43c1a3 100644
+index 65fd67c746260..df8cdb1b525ab 100644
 --- a/chrome/common/chrome_paths_linux.cc
 +++ b/chrome/common/chrome_paths_linux.cc
-@@ -94,7 +94,7 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
+@@ -93,7 +93,7 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
  #elif BUILDFLAG(GOOGLE_CHROME_BRANDING)
    std::string data_dir_basename = "google-chrome";
  #else
@@ -164,10 +164,10 @@ index 15bbf25f2b443..8b137891791fe 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 2038b7aebd65f..82d78e2c22f69 100755
+index 09c528257d342..477ba4b24c4ee 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
-@@ -122,7 +122,7 @@ do_package() {
+@@ -126,7 +126,7 @@ do_package() {
    local PACKAGEFILE="${PACKAGE}-${CHANNEL}_${VERSIONFULL}_${ARCHITECTURE}.deb"
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
@@ -345,13 +345,6 @@ index d92cfff6ff317..b363f83d984d1 100644
  
  #if BUILDFLAG(IS_ANDROID)
  // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
-diff --git a/third_party/ffmpeg b/third_party/ffmpeg
-index 5b22c2869c0e7..d10a0f8bf5ddc 160000
---- a/third_party/ffmpeg
-+++ b/third_party/ffmpeg
-@@ -1 +1 @@
--Subproject commit 5b22c2869c0e710bd2a2312240790a013a060c23
-+Subproject commit d10a0f8bf5ddcce572df95105152bc74041cae0c
 diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
 index 91f415b330b18..7c653f480f45b 100644
 --- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
