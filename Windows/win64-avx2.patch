@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 11c7442b16c66..d5269bc2990a4 100644
+index 052d5e1519108..428db780c64b6 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -497,9 +497,9 @@ config("compiler") {
+@@ -487,9 +487,9 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -15,19 +15,19 @@ index 11c7442b16c66..d5269bc2990a4 100644
      rustflags += [ "-Crelocation-model=pic" ]
  
      if (!is_clang) {
-@@ -552,9 +552,9 @@ config("compiler") {
+@@ -542,9 +542,9 @@ config("compiler") {
  
-     # TODO(crbug.com/345541122): investigate the fuchsia binary size increase.
-     if (is_win) {
--      cflags += [ "/Zc:sizedDealloc-" ]
-+      cflags += [ "/Zc:sizedDealloc" ]
-     } else {
--      cflags += [ "-fno-sized-deallocation" ]
-+      cflags += [ "-fsized-deallocation" ]
+     if (!use_sized_deallocation) {
+       if (is_win) {
+-        cflags += [ "/Zc:sizedDealloc-" ]
++        cflags += [ "/Zc:sizedDealloc" ]
+       } else {
+-        cflags += [ "-fno-sized-deallocation" ]
++        cflags += [ "-fsized-deallocation" ]
+       }
      }
    }
- 
-@@ -606,23 +606,23 @@ config("compiler") {
+@@ -597,23 +597,23 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -57,7 +57,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
      }
  
      # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
-@@ -783,7 +783,7 @@ config("compiler") {
+@@ -773,7 +773,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -66,7 +66,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
  
      if (is_win) {
        ldflags += [
-@@ -1057,6 +1057,10 @@ config("compiler") {
+@@ -1048,6 +1048,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -77,7 +77,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1134,7 +1138,7 @@ config("libcxx_hardening") {
+@@ -1125,7 +1129,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -86,7 +86,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1167,7 +1171,7 @@ config("thinlto_optimize_max") {
+@@ -1158,7 +1162,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -95,7 +95,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
      }
  
      if (is_win) {
-@@ -1209,7 +1213,7 @@ config("compiler_cpu_abi") {
+@@ -1200,7 +1204,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
@@ -104,7 +104,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2643,10 +2647,13 @@ config("optimize_max") {
+@@ -2665,10 +2669,13 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -119,17 +119,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -2676,9 +2683,6 @@ config("optimize_speed") {
-       # Favor speed over size, /O2 must be before the common flags.
-       # /O2 implies /Ot, /Oi, and /GF.
-       cflags = [ "/O2" ] + common_optimize_on_cflags
--      if (is_clang) {
--        cflags += [ "/clang:-O3" ]
--      }
-     } else if (optimize_for_fuzzing) {
-       cflags = [ "-O1" ] + common_optimize_on_cflags
-     } else {
-@@ -3068,7 +3072,7 @@ config("minimal_symbols") {
+@@ -3090,7 +3097,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -139,7 +129,7 @@ index 11c7442b16c66..d5269bc2990a4 100644
      # All configs using /DEBUG should include this:
      configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 716b48be1691c..788135f97e8f2 100644
+index a71603fb1b14b..2a9b521c865ad 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -121,7 +121,7 @@ config("compiler") {
@@ -237,7 +227,7 @@ index cfd0552ee3108..29452291bde43 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index cc15e1edd8ebe..273d0969de054 100644
+index 2bb60fbbc2f8f..73fd773f8ae1e 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -269,25 +259,10 @@ index cc15e1edd8ebe..273d0969de054 100644
  
  FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
-index d92cfff6ff317..b363f83d984d1 100644
+index 897e5de5253ee..3165bdbb8bc66 100644
 --- a/media/webrtc/webrtc_features.cc
 +++ b/media/webrtc/webrtc_features.cc
-@@ -63,27 +63,27 @@ BASE_FEATURE(kWebRtcApmTellsIfPlayoutReferenceIsNeeded,
- // negotiate usage of H.265 in SDP in the direction of sending.
- BASE_FEATURE(kWebRtcAllowH265Send,
-              "WebRtcAllowH265Send",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- 
- // When enabled, allow H.265 codec to be used for receiving WebRTC streams.
- // Platform hardware H.265 decoder needs to be supported and enabled in order to
- // negotiate usage of H.265 in SDP in the direction of receiving.
- BASE_FEATURE(kWebRtcAllowH265Receive,
-              "WebRtcAllowH265Receive",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
- 
- // When enabled, allows H.265 L1T2 to be used for sending WebRTC streams, if the
+@@ -76,14 +76,14 @@ BASE_FEATURE(kWebRtcAllowH265Receive,
  // accelerator reports support of encoding in L1T2.
  BASE_FEATURE(kWebRtcH265L1T2,
               "WebRtcH265L1T2",
@@ -302,5 +277,5 @@ index d92cfff6ff317..b363f83d984d1 100644
 -             base::FEATURE_DISABLED_BY_DEFAULT);
 +             base::FEATURE_ENABLED_BY_DEFAULT);
  
- #if BUILDFLAG(IS_ANDROID)
- // Kill-switch for using 48 kHz as sample rate for Audio Processing Module
+ // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
+ // platform accelerator supports encoding of AV1.
