@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 052d5e1519108..9a86afa869ab1 100644
+index 052d5e1519108..271f901fdfef2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -487,10 +487,10 @@ config("compiler") {
@@ -44,6 +44,15 @@ index 052d5e1519108..9a86afa869ab1 100644
          }
        }
      }
+@@ -613,7 +613,7 @@ config("compiler") {
+     if (is_win) {
+       cflags += [ "/clang:-ffp-contract=off" ]
+     } else {
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
+     }
+ 
+     # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
 @@ -773,7 +773,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
@@ -53,18 +62,17 @@ index 052d5e1519108..9a86afa869ab1 100644
  
      if (is_win) {
        ldflags += [
-@@ -1048,6 +1048,10 @@ config("compiler") {
+@@ -1048,6 +1048,9 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
 +
-+    "-Ctarget-cpu=x86-64-v2",
-+    "-Ctarget-feature=+avx",
-+    "-Cllvm-args=-fp-contract=off",
++    "-Ctarget-cpu=x86-64-v3",
++    "-Cllvm-args=-fp-contract=fast",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1125,7 +1129,7 @@ config("libcxx_hardening") {
+@@ -1125,7 +1128,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -73,7 +81,7 @@ index 052d5e1519108..9a86afa869ab1 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1158,7 +1162,7 @@ config("thinlto_optimize_max") {
+@@ -1158,7 +1161,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -82,17 +90,16 @@ index 052d5e1519108..9a86afa869ab1 100644
      }
  
      if (is_win) {
-@@ -1200,7 +1204,8 @@ config("compiler_cpu_abi") {
+@@ -1200,7 +1203,7 @@ config("compiler_cpu_abi") {
      if (current_cpu == "x64") {
        cflags += [
          "-m64",
 -        "-msse3",
-+        "-march=x86-64-v2",
-+        "-mavx",
++        "-march=x86-64-v3",
        ]
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
-@@ -2668,7 +2673,7 @@ config("optimize_max") {
+@@ -2668,7 +2671,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
