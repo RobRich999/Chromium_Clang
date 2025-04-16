@@ -48,13 +48,13 @@ Builds marked with the "+avx2" tag require processors with AVX2 instruction set 
 
 Builds marked with the "+avx512" tag require processors with AVX512 instruction set support.
 
-Builds marked with the "+amd_znver2" tag are AVX2 builds tuned for the AMD Zen 2 processor microarchitecture.
-
 Builds marked with the "+fma" tag require processors with FMA instruction set support.
 
 Builds marked with the "+sse2" tag (deprecated) require processors with SSE2 instruction set support. AVX support is not required.
 
 Builds marked with the "+sse3" tag (deprecated) require processors with SSE3 instruction set support. AVX support is not required.
+
+Builds marked with the "+amd_znver2" (deprecated) tag are AVX2 builds tuned for the AMD Zen 2 processor microarchitecture.
 
 *SSE3 support is the Chromium project's own minimum SIMD requirement on x86 platforms as of v89 builds.*
 
