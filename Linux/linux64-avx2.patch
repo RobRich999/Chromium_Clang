@@ -337,3 +337,20 @@ index 897e5de5253ee..3165bdbb8bc66 100644
  
  // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
  // platform accelerator supports encoding of AV1.
+diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
+index 91f415b330b18..7c653f480f45b 100644
+--- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
++++ b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
+@@ -230,9 +230,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
+ std::unique_ptr<gpu::VulkanImplementation>
+ WaylandSurfaceFactory::CreateVulkanImplementation(bool use_swiftshader,
+                                                   bool allow_protected_memory) {
+-  LOG_IF(ERROR, !use_swiftshader)
+-      << "'--ozone-platform=wayland' is not compatible with Vulkan. "
+-         "Consider switching to '--ozone-platform=x11' or disabling Vulkan";
++  // LOG_IF(ERROR, !use_swiftshader)
++  //     << "'--ozone-platform=wayland' is not compatible with Vulkan. "
++  //        "Consider switching to '--ozone-platform=x11' or disabling Vulkan";
+   return std::make_unique<VulkanImplementationWayland>(use_swiftshader);
+ }
+ #endif
