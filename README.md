@@ -68,7 +68,7 @@ https://johnk.dev/articles/vex-transition-penalties.html
 
 **Note regarding FFmpeg:**
 
-Apply the /third_party/ffmpeg and /third_party/webrtc patches available here:
+Apply the /third_party/ffmpeg patches available here:
 
 https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding
 
