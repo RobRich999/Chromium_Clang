@@ -10,7 +10,7 @@ Implementation of various options are subject to change depending upon performan
 
 **Links to latest Linux build releases in deb package format:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v136.0.7066.0-r1431519-linux64-deb-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v137.0.7129.0-r1447845-linux64-deb-avx
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v137.0.7129.0-r1447845-linux64-deb-avx2
 
