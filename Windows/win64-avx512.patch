@@ -1,21 +1,23 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 052d5e1519108..586c4f90bcfef 100644
+index 07c881e0f6555..6200c0d1757d4 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -487,9 +487,9 @@ config("compiler") {
+@@ -490,10 +490,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
 -    asmflags += [ "-fPIC" ]
 -    cflags += [ "-fPIC" ]
 -    ldflags += [ "-fPIC" ]
+-    rustflags += [ "-Crelocation-model=pic" ]
 +    asmflags += [ "-fPIC", "-w", ]
 +    cflags += [ "-fPIC", "-w", ]
 +    ldflags += [ "-fPIC", "-w", ]
-     rustflags += [ "-Crelocation-model=pic" ]
++    rustflags += [ "-Crelocation-model=pic", "-Awarnings", ]
  
      if (!is_clang) {
-@@ -542,9 +542,9 @@ config("compiler") {
+       # Use pipes for communicating between sub-processes. Faster.
+@@ -545,9 +545,9 @@ config("compiler") {
  
      if (!use_sized_deallocation) {
        if (is_win) {
@@ -27,7 +29,7 @@ index 052d5e1519108..586c4f90bcfef 100644
        }
      }
    }
-@@ -597,23 +597,23 @@ config("compiler") {
+@@ -600,23 +600,23 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -57,7 +59,7 @@ index 052d5e1519108..586c4f90bcfef 100644
      }
  
      # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
-@@ -773,7 +773,7 @@ config("compiler") {
+@@ -784,7 +784,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -66,7 +68,7 @@ index 052d5e1519108..586c4f90bcfef 100644
  
      if (is_win) {
        ldflags += [
-@@ -1048,6 +1048,11 @@ config("compiler") {
+@@ -1059,6 +1059,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -74,11 +76,10 @@ index 052d5e1519108..586c4f90bcfef 100644
 +    "-Ctarget-cpu=x86-64-v3",
 +    "-Ztune-cpu=skylake-avx512",
 +    "-Cllvm-args=-fp-contract=fast",
-+    "-Awarnings",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1125,7 +1130,7 @@ config("libcxx_hardening") {
+@@ -1142,7 +1146,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -87,7 +88,7 @@ index 052d5e1519108..586c4f90bcfef 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1158,7 +1163,7 @@ config("thinlto_optimize_max") {
+@@ -1175,7 +1179,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -96,17 +97,16 @@ index 052d5e1519108..586c4f90bcfef 100644
      }
  
      if (is_win) {
-@@ -1200,7 +1205,8 @@ config("compiler_cpu_abi") {
-     if (current_cpu == "x64") {
-       cflags += [
-         "-m64",
--        "-msse3",
-+        "-march=x86-64-v3",
-+        "-mtune=skylake-avx512",
-       ]
-       ldflags += [ "-m64" ]
+@@ -1223,7 +1227,7 @@ config("compiler_cpu_abi") {
+         cflags += [ "-m64" ]
+         ldflags += [ "-m64" ]
+       }
+-      cflags += [ "-msse3" ]
++      cflags += [ "-march=x86-64-v3", "-mtune=skylake-avx512", ]
      } else if (current_cpu == "x86") {
-@@ -2665,10 +2671,13 @@ config("optimize_max") {
+       if (is_clang && !is_android && !is_nacl && !is_chromeos_device) {
+         cflags += [ "--target=i386-unknown-linux-gnu" ]
+@@ -2756,10 +2760,13 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -121,7 +121,7 @@ index 052d5e1519108..586c4f90bcfef 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -3090,7 +3099,7 @@ config("minimal_symbols") {
+@@ -3181,7 +3188,7 @@ config("minimal_symbols") {
  # names in the final debug information.
  config("no_symbols") {
    if (is_win) {
@@ -216,7 +216,7 @@ index 2ce29798709ef..10f5407d8dd6c 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index cfd0552ee3108..29452291bde43 100644
+index 23ba2cc392f6f..8a0084dbf0465 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
 @@ -67,7 +67,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
@@ -229,7 +229,7 @@ index cfd0552ee3108..29452291bde43 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 2bb60fbbc2f8f..73fd773f8ae1e 100644
+index 331d1e778f9df..a036f55b33e81 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -261,10 +261,10 @@ index 2bb60fbbc2f8f..73fd773f8ae1e 100644
  
  FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
-index 897e5de5253ee..3165bdbb8bc66 100644
+index c9ddc5453c80c..c8727221fea3a 100644
 --- a/media/webrtc/webrtc_features.cc
 +++ b/media/webrtc/webrtc_features.cc
-@@ -76,14 +76,14 @@ BASE_FEATURE(kWebRtcAllowH265Receive,
+@@ -77,14 +77,14 @@ BASE_FEATURE(kWebRtcAllowH265Receive,
  // accelerator reports support of encoding in L1T2.
  BASE_FEATURE(kWebRtcH265L1T2,
               "WebRtcH265L1T2",
@@ -281,3 +281,10 @@ index 897e5de5253ee..3165bdbb8bc66 100644
  
  // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
  // platform accelerator supports encoding of AV1.
+diff --git a/third_party/ffmpeg b/third_party/ffmpeg
+index dcdd0fa51b65a..01f23648c6b84 160000
+--- a/third_party/ffmpeg
++++ b/third_party/ffmpeg
+@@ -1 +1 @@
+-Subproject commit dcdd0fa51b65a0b1688ff6b8f0cc81908f09ded2
++Subproject commit 01f23648c6b84de6c0f717fa4e1816f53b9ee72e
