@@ -270,10 +270,3 @@ index c9ddc5453c80c..c8727221fea3a 100644
  
  // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
  // platform accelerator supports encoding of AV1.
-diff --git a/third_party/ffmpeg b/third_party/ffmpeg
-index dcdd0fa51b65a..01f23648c6b84 160000
---- a/third_party/ffmpeg
-+++ b/third_party/ffmpeg
-@@ -1 +1 @@
--Subproject commit dcdd0fa51b65a0b1688ff6b8f0cc81908f09ded2
-+Subproject commit 01f23648c6b84de6c0f717fa4e1816f53b9ee72e
