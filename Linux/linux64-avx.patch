@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 052d5e1519108..9a86afa869ab1 100644
+index e398456589a6b..659b9dc2aa3ac 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -487,10 +487,10 @@ config("compiler") {
+@@ -490,10 +490,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,16 +17,7 @@ index 052d5e1519108..9a86afa869ab1 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -544,7 +544,7 @@ config("compiler") {
-       if (is_win) {
-         cflags += [ "/Zc:sizedDealloc-" ]
-       } else {
--        cflags += [ "-fno-sized-deallocation" ]
-+        cflags += [ "-fsized-deallocation" ]
-       }
-     }
-   }
-@@ -597,14 +597,14 @@ config("compiler") {
+@@ -600,23 +600,23 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -44,7 +35,18 @@ index 052d5e1519108..9a86afa869ab1 100644
          }
        }
      }
-@@ -773,7 +773,7 @@ config("compiler") {
+ 
+     # TODO(crbug.com/40192287): Investigate why/if this should be needed.
+     if (is_win) {
+-      cflags += [ "/clang:-ffp-contract=off" ]
++      cflags += [ "/clang:-ffp-contract=fast" ]
+     } else {
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
+     }
+ 
+     # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
+@@ -777,7 +777,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -53,18 +55,18 @@ index 052d5e1519108..9a86afa869ab1 100644
  
      if (is_win) {
        ldflags += [
-@@ -1048,6 +1048,10 @@ config("compiler") {
+@@ -1052,6 +1052,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
 +
 +    "-Ctarget-cpu=x86-64-v2",
 +    "-Ctarget-feature=+avx",
-+    "-Cllvm-args=-fp-contract=off",
++    "-Cllvm-args=-fp-contract=fast",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1125,7 +1129,7 @@ config("libcxx_hardening") {
+@@ -1135,7 +1139,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -73,7 +75,7 @@ index 052d5e1519108..9a86afa869ab1 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1158,7 +1162,7 @@ config("thinlto_optimize_max") {
+@@ -1168,7 +1172,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -82,17 +84,16 @@ index 052d5e1519108..9a86afa869ab1 100644
      }
  
      if (is_win) {
-@@ -1200,7 +1204,8 @@ config("compiler_cpu_abi") {
-     if (current_cpu == "x64") {
-       cflags += [
-         "-m64",
--        "-msse3",
-+        "-march=x86-64-v2",
-+        "-mavx",
-       ]
-       ldflags += [ "-m64" ]
+@@ -1216,7 +1220,7 @@ config("compiler_cpu_abi") {
+         cflags += [ "-m64" ]
+         ldflags += [ "-m64" ]
+       }
+-      cflags += [ "-msse3" ]
++      cflags += [ "-march=x86-64-v2", "-mavx", ]
      } else if (current_cpu == "x86") {
-@@ -2668,7 +2673,7 @@ config("optimize_max") {
+       if (is_clang && !is_android && !is_nacl && !is_chromeos_device) {
+         cflags += [ "--target=i386-unknown-linux-gnu" ]
+@@ -2770,7 +2774,7 @@ config("optimize_max") {
      } else if (optimize_for_fuzzing) {
        cflags = [ "-O1" ] + common_optimize_on_cflags
      } else {
@@ -265,7 +266,7 @@ index 2ce29798709ef..10f5407d8dd6c 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index cfd0552ee3108..29452291bde43 100644
+index 023b25cbac969..123705cf5945e 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
 @@ -67,7 +67,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
@@ -278,7 +279,7 @@ index cfd0552ee3108..29452291bde43 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 2bb60fbbc2f8f..73fd773f8ae1e 100644
+index 276591c46d919..74e1ec1db52b4 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -310,10 +311,10 @@ index 2bb60fbbc2f8f..73fd773f8ae1e 100644
  
  FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
-index 897e5de5253ee..3165bdbb8bc66 100644
+index c9ddc5453c80c..c8727221fea3a 100644
 --- a/media/webrtc/webrtc_features.cc
 +++ b/media/webrtc/webrtc_features.cc
-@@ -76,14 +76,14 @@ BASE_FEATURE(kWebRtcAllowH265Receive,
+@@ -77,14 +77,14 @@ BASE_FEATURE(kWebRtcAllowH265Receive,
  // accelerator reports support of encoding in L1T2.
  BASE_FEATURE(kWebRtcH265L1T2,
               "WebRtcH265L1T2",
