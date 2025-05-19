@@ -58,7 +58,7 @@ Builds marked with the "+amd_znver2" (deprecated) tag are AVX2 builds tuned for 
 
 ****
 
-**Primary reason for AVX/AVX2 build recommendation:**
+**Primary reason for AVX/AVX2/AVX512 build recommendation:**
 
 https://johnk.dev/articles/vex-transition-penalties.html
 
