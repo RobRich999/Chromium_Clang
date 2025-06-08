@@ -12,7 +12,7 @@ Implementation of various options are subject to change depending upon performan
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v138.0.7189.0-r1462098-linux64-deb-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v138.0.7189.0-r1462098-linux64-deb-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v139.0.7226.0-r1470985-linux64-deb-avx2
 
 **Links to Linux build releases via Arch AUR repo (thanks [Solvaxis!](https://github.com/Solvaxis)):**
 
