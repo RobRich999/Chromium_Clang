@@ -49,4 +49,3 @@ enable_rust = true
 enable_all_rust_features = true
 toolchain_supports_rust_thin_lto = true
 dcheck_always_on = false
-use_sized_deallocation = true
