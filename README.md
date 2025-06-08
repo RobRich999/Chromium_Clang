@@ -14,7 +14,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v138.0.7189.0-r1462098
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v138.0.7189.0-r1462098-linux64-deb-avx2
 
-**Links to Linux build releases via Arch AUR repo (thanks [Solvaxis!](https://github.com/Solvaxis) :**
+**Links to Linux build releases via Arch AUR repo (thanks [Solvaxis!](https://github.com/Solvaxis)):**
 
 https://aur.archlinux.org/packages/chromium-clang-avx-bin
 https://aur.archlinux.org/packages/chromium-clang-avx2-bin
