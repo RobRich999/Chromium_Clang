@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 07c881e0f6555..6200c0d1757d4 100644
+index 24cbbfea6f25b..9f8ca1815fd5f 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -490,10 +490,10 @@ config("compiler") {
+@@ -510,10 +510,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,9 +17,12 @@ index 07c881e0f6555..6200c0d1757d4 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -545,9 +545,9 @@ config("compiler") {
+@@ -563,13 +563,13 @@ config("compiler") {
+     # (https://crbug.com/829795).
+     cflags += [ "-fmerge-all-constants" ]
  
-     if (!use_sized_deallocation) {
+-    if (!use_sized_deallocation) {
++    # if (!use_sized_deallocation) {
        if (is_win) {
 -        cflags += [ "/Zc:sizedDealloc-" ]
 +        cflags += [ "/Zc:sizedDealloc" ]
@@ -27,9 +30,12 @@ index 07c881e0f6555..6200c0d1757d4 100644
 -        cflags += [ "-fno-sized-deallocation" ]
 +        cflags += [ "-fsized-deallocation" ]
        }
-     }
+-    }
++    # }
    }
-@@ -600,23 +600,23 @@ config("compiler") {
+ 
+   if (use_lld) {
+@@ -620,23 +620,23 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -59,7 +65,7 @@ index 07c881e0f6555..6200c0d1757d4 100644
      }
  
      # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
-@@ -784,7 +784,7 @@ config("compiler") {
+@@ -811,7 +811,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -68,7 +74,7 @@ index 07c881e0f6555..6200c0d1757d4 100644
  
      if (is_win) {
        ldflags += [
-@@ -1059,6 +1059,10 @@ config("compiler") {
+@@ -1086,6 +1086,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -79,7 +85,7 @@ index 07c881e0f6555..6200c0d1757d4 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1142,7 +1146,7 @@ config("libcxx_hardening") {
+@@ -1169,7 +1173,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -88,7 +94,7 @@ index 07c881e0f6555..6200c0d1757d4 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1175,7 +1179,7 @@ config("thinlto_optimize_max") {
+@@ -1202,7 +1206,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -97,7 +103,7 @@ index 07c881e0f6555..6200c0d1757d4 100644
      }
  
      if (is_win) {
-@@ -1223,7 +1227,7 @@ config("compiler_cpu_abi") {
+@@ -1250,7 +1254,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
@@ -106,7 +112,7 @@ index 07c881e0f6555..6200c0d1757d4 100644
      } else if (current_cpu == "x86") {
        if (is_clang && !is_android && !is_nacl && !is_chromeos_device) {
          cflags += [ "--target=i386-unknown-linux-gnu" ]
-@@ -2756,10 +2760,13 @@ config("optimize_max") {
+@@ -2824,10 +2828,13 @@ config("optimize_max") {
        # Favor speed over size, /O2 must be before the common flags.
        # /O2 implies /Ot, /Oi, and /GF.
        cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -121,17 +127,8 @@ index 07c881e0f6555..6200c0d1757d4 100644
      }
      rustflags = [ "-Copt-level=3" ]
    }
-@@ -3181,7 +3188,7 @@ config("minimal_symbols") {
- # names in the final debug information.
- config("no_symbols") {
-   if (is_win) {
--    ldflags = [ "/DEBUG" ]
-+    ldflags = [ "/DEBUG:NONE" ]
- 
-     # All configs using /DEBUG should include this:
-     configs = [ ":win_pdbaltpath" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index a71603fb1b14b..a6e29d3f7fa61 100644
+index aaeadc3132781..1d3e2838409be 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -121,7 +121,7 @@ config("compiler") {
@@ -216,10 +213,10 @@ index 2ce29798709ef..10f5407d8dd6c 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index 23ba2cc392f6f..8a0084dbf0465 100644
+index 92f2cde644193..c494ea6ca88b3 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
-@@ -67,7 +67,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
+@@ -65,7 +65,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
  const char* GetAllowedVideoDecoders() {
    // This should match the configured lists in //third_party/ffmpeg.
  #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
@@ -229,7 +226,7 @@ index 23ba2cc392f6f..8a0084dbf0465 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 331d1e778f9df..a036f55b33e81 100644
+index 276591c46d919..74e1ec1db52b4 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
