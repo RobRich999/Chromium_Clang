@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 24cbbfea6f25b..5db833a2a2379 100644
+index 29c284ee01947..3aa3baab38e89 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -510,10 +510,10 @@ config("compiler") {
+@@ -509,10 +509,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index 24cbbfea6f25b..5db833a2a2379 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -563,13 +563,13 @@ config("compiler") {
+@@ -573,13 +573,13 @@ config("compiler") {
      # (https://crbug.com/829795).
      cflags += [ "-fmerge-all-constants" ]
  
@@ -32,10 +32,10 @@ index 24cbbfea6f25b..5db833a2a2379 100644
        }
 -    }
 +    # }
-   }
  
-   if (use_lld) {
-@@ -620,14 +620,14 @@ config("compiler") {
+     if (diagnostics_print_source_range_info && !is_win) {
+       cflags += [ "-fdiagnostics-print-source-range-info" ]
+@@ -634,14 +634,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -54,7 +54,7 @@ index 24cbbfea6f25b..5db833a2a2379 100644
          }
        }
      }
-@@ -811,7 +811,7 @@ config("compiler") {
+@@ -814,7 +814,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -63,7 +63,7 @@ index 24cbbfea6f25b..5db833a2a2379 100644
  
      if (is_win) {
        ldflags += [
-@@ -1086,6 +1086,10 @@ config("compiler") {
+@@ -1088,6 +1088,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -74,7 +74,7 @@ index 24cbbfea6f25b..5db833a2a2379 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1169,7 +1173,7 @@ config("libcxx_hardening") {
+@@ -1171,7 +1175,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -83,7 +83,7 @@ index 24cbbfea6f25b..5db833a2a2379 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1202,7 +1206,7 @@ config("thinlto_optimize_max") {
+@@ -1204,7 +1208,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -92,30 +92,30 @@ index 24cbbfea6f25b..5db833a2a2379 100644
      }
  
      if (is_win) {
-@@ -1250,7 +1254,7 @@ config("compiler_cpu_abi") {
+@@ -1251,7 +1255,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
 -      cflags += [ "-msse3" ]
 +      cflags += [ "-march=x86-64-v2", "-mavx", ]
      } else if (current_cpu == "x86") {
-       if (is_clang && !is_android && !is_nacl && !is_chromeos_device) {
+       if (is_clang && !is_android && !is_chromeos_device) {
          cflags += [ "--target=i386-unknown-linux-gnu" ]
-@@ -2824,10 +2828,13 @@ config("optimize_max") {
-       # Favor speed over size, /O2 must be before the common flags.
-       # /O2 implies /Ot, /Oi, and /GF.
-       cflags = [ "/O2" ] + common_optimize_on_cflags
-+      if (is_clang) {
-+        cflags += [ "/clang:-O3" ]
-+      }
-     } else if (optimize_for_fuzzing) {
-       cflags = [ "-O1" ] + common_optimize_on_cflags
-     } else {
--      cflags = [ "-O2" ] + common_optimize_on_cflags
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
-     }
-     rustflags = [ "-Copt-level=3" ]
+@@ -2803,10 +2807,13 @@ config("optimize_max") {
+     # Favor speed over size, /O2 must be before the common flags.
+     # /O2 implies /Ot, /Oi, and /GF.
+     cflags = [ "/O2" ] + common_optimize_on_cflags
++    if (is_clang) {
++      cflags += [ "/clang:-O3" ]
++    }
+   } else if (optimize_for_fuzzing) {
+     cflags = [ "-O1" ] + common_optimize_on_cflags
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
    }
+   rustflags = [ "-Copt-level=3" ]
+ }
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
 index aaeadc3132781..5ff0402d9e908 100644
 --- a/build/config/win/BUILD.gn
@@ -215,10 +215,10 @@ index 92f2cde644193..c494ea6ca88b3 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 276591c46d919..74e1ec1db52b4 100644
+index fef13f6b8ab58..2e967ac8c9214 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
-@@ -82,7 +82,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -73,7 +73,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
      case VideoCodec::kUnknown:
      case VideoCodec::kVC1:
      case VideoCodec::kMPEG2:
@@ -226,7 +226,7 @@ index 276591c46d919..74e1ec1db52b4 100644
      case VideoCodec::kVP9:
      case VideoCodec::kAV1:
      case VideoCodec::kDolbyVision:
-@@ -93,6 +92,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
+@@ -84,6 +83,7 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
        NOTREACHED();
  
      case VideoCodec::kH264:
@@ -234,7 +234,7 @@ index 276591c46d919..74e1ec1db52b4 100644
        // Normalize to three threads for 1080p content, then scale linearly
        // with number of pixels.
        // Examples:
-@@ -126,8 +126,9 @@ static void ReleaseVideoBufferImpl(void* opaque, uint8_t* data) {
+@@ -117,8 +117,9 @@ static void ReleaseVideoBufferImpl(void* opaque, uint8_t* data) {
  
  // static
  bool FFmpegVideoDecoder::IsCodecSupported(VideoCodec codec) {
