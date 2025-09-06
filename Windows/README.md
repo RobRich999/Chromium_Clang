@@ -1,4 +1,4 @@
-Chromium_Clang for Windows builds are cross-compiled under Linux; currently Ubuntu Server 24.04 LTS (Noble Numbat).
+Chromium_Clang for Windows builds are cross-compiled under Linux; currently CachyOS.
 
 https://chromium.googlesource.com/chromium/src/+/master/docs/win_cross.md
 
