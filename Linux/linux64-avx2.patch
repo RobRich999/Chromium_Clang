@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 29c284ee01947..da8ecc396f873 100644
+index 9cf9079bc5199..8c657dce0bcfd 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -509,10 +509,10 @@ config("compiler") {
+@@ -538,10 +538,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index 29c284ee01947..da8ecc396f873 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -573,13 +573,13 @@ config("compiler") {
+@@ -602,13 +602,13 @@ config("compiler") {
      # (https://crbug.com/829795).
      cflags += [ "-fmerge-all-constants" ]
  
@@ -34,7 +34,7 @@ index 29c284ee01947..da8ecc396f873 100644
  
      if (diagnostics_print_source_range_info && !is_win) {
        cflags += [ "-fdiagnostics-print-source-range-info" ]
-@@ -634,14 +634,14 @@ config("compiler") {
+@@ -663,14 +663,14 @@ config("compiler") {
      if (default_toolchain != "//build/toolchain/cros:target" &&
          !llvm_android_mainline) {
        cflags += [
@@ -53,7 +53,7 @@ index 29c284ee01947..da8ecc396f873 100644
          }
        }
      }
-@@ -650,7 +650,7 @@ config("compiler") {
+@@ -679,7 +679,7 @@ config("compiler") {
      if (is_win) {
        cflags += [ "/clang:-ffp-contract=off" ]
      } else {
@@ -61,8 +61,20 @@ index 29c284ee01947..da8ecc396f873 100644
 +      cflags += [ "-ffp-contract=fast" ]
      }
  
-     # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
-@@ -814,7 +814,7 @@ config("compiler") {
+     # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF.
+@@ -807,8 +807,11 @@ config("compiler") {
+     cflags += [
+       "-flto=thin",
+       "-fsplit-lto-unit",
++      "-mllvm", "-indexed-codegen-data-read-function-map-names=false",
+     ]
+ 
++    ldflags +=[ "-Wl,-mllvm,-indexed-codegen-data-read-function-map-names=false" ]
++
+     if (thin_lto_enable_cache) {
+       # Limit the size of the ThinLTO cache to the lesser of 10% of
+       # available disk space, 40GB and 100000 files.
+@@ -844,7 +847,7 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -71,7 +83,7 @@ index 29c284ee01947..da8ecc396f873 100644
  
      if (is_win) {
        ldflags += [
-@@ -1088,6 +1088,9 @@ config("compiler") {
+@@ -1118,6 +1121,9 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -81,7 +93,7 @@ index 29c284ee01947..da8ecc396f873 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1171,7 +1174,7 @@ config("libcxx_hardening") {
+@@ -1201,7 +1207,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -90,7 +102,7 @@ index 29c284ee01947..da8ecc396f873 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1204,7 +1207,7 @@ config("thinlto_optimize_max") {
+@@ -1234,7 +1240,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -99,7 +111,7 @@ index 29c284ee01947..da8ecc396f873 100644
      }
  
      if (is_win) {
-@@ -1251,7 +1254,7 @@ config("compiler_cpu_abi") {
+@@ -1281,7 +1287,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
@@ -108,7 +120,7 @@ index 29c284ee01947..da8ecc396f873 100644
      } else if (current_cpu == "x86") {
        if (is_clang && !is_android && !is_chromeos_device) {
          cflags += [ "--target=i386-unknown-linux-gnu" ]
-@@ -2806,7 +2809,7 @@ config("optimize_max") {
+@@ -2825,7 +2831,7 @@ config("optimize_max") {
    } else if (optimize_for_fuzzing) {
      cflags = [ "-O1" ] + common_optimize_on_cflags
    } else {
@@ -180,10 +192,10 @@ index 15bbf25f2b443..8b137891791fe 100755
 -  handle_distro_upgrade
 -fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
-index 09c528257d342..477ba4b24c4ee 100755
+index be01c4ccb46ef..c60054a2316eb 100755
 --- a/chrome/installer/linux/debian/build.sh
 +++ b/chrome/installer/linux/debian/build.sh
-@@ -126,7 +126,7 @@ do_package() {
+@@ -123,7 +123,7 @@ do_package() {
    local PACKAGEFILE="${PACKAGE}-${CHANNEL}_${VERSIONFULL}_${ARCHITECTURE}.deb"
    if [ ${IS_OFFICIAL_BUILD} -ne 0 ]; then
      (cd "${TMPFILEDIR}" && ar -x "${TMPFILEDIR}/${PACKAGEFILE}")
@@ -215,7 +227,7 @@ index 3e1cadc8296ca..0cb44dbf7ad77 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/content/common/gpu_pre_sandbox_hook_linux.cc b/content/common/gpu_pre_sandbox_hook_linux.cc
-index 97f7221cb1a56..ed37714df4e07 100644
+index 2e53794fa3374..80eede44ea2e3 100644
 --- a/content/common/gpu_pre_sandbox_hook_linux.cc
 +++ b/content/common/gpu_pre_sandbox_hook_linux.cc
 @@ -262,6 +262,18 @@ void AddAmdGpuPermissions(std::vector<BrokerFilePermission>* permissions) {
@@ -238,10 +250,10 @@ index 97f7221cb1a56..ed37714df4e07 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 2ce29798709ef..10f5407d8dd6c 100644
+index c58769075b399..a7c86b5032b0f 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -229,25 +229,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -228,25 +228,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsDecoderHevcProfileSupported(const VideoType& type) {
@@ -271,7 +283,7 @@ index 2ce29798709ef..10f5407d8dd6c 100644
  }
  
  bool IsDecoderVp9ProfileSupported(const VideoType& type) {
-@@ -586,7 +573,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
+@@ -585,7 +572,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
  
  bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -281,10 +293,10 @@ index 2ce29798709ef..10f5407d8dd6c 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index 92f2cde644193..c494ea6ca88b3 100644
+index f3434e8bbb002..2ef4df42df2b2 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
-@@ -65,7 +65,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
+@@ -63,7 +63,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
  const char* GetAllowedVideoDecoders() {
    // This should match the configured lists in //third_party/ffmpeg.
  #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
@@ -326,28 +338,26 @@ index fef13f6b8ab58..2e967ac8c9214 100644
  
  FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
-index c9ddc5453c80c..c8727221fea3a 100644
+index 465c1ea7e7745..22eaebc3166a4 100644
 --- a/media/webrtc/webrtc_features.cc
 +++ b/media/webrtc/webrtc_features.cc
-@@ -77,14 +77,14 @@ BASE_FEATURE(kWebRtcAllowH265Receive,
+@@ -67,12 +67,12 @@ BASE_FEATURE(kWebRtcAllowH265Receive, base::FEATURE_ENABLED_BY_DEFAULT);
+ 
+ // When enabled, allows H.265 L1T2 to be used for sending WebRTC streams, if the
  // accelerator reports support of encoding in L1T2.
- BASE_FEATURE(kWebRtcH265L1T2,
-              "WebRtcH265L1T2",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
+-BASE_FEATURE(kWebRtcH265L1T2, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kWebRtcH265L1T2, base::FEATURE_ENABLED_BY_DEFAULT);
  
  // When enabled, allows H.265 L1T3 to be used for sending WebRTC streams, if the
  // accelerator reports support of encoding in L1T3. If this is enabled, L1T2 is
  // also implied to be enabled.
- BASE_FEATURE(kWebRtcH265L1T3,
-              "WebRtcH265L1T3",
--             base::FEATURE_DISABLED_BY_DEFAULT);
-+             base::FEATURE_ENABLED_BY_DEFAULT);
+-BASE_FEATURE(kWebRtcH265L1T3, base::FEATURE_DISABLED_BY_DEFAULT);
++BASE_FEATURE(kWebRtcH265L1T3, base::FEATURE_ENABLED_BY_DEFAULT);
  
  // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
  // platform accelerator supports encoding of AV1.
 diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
-index 0f747b75226d4..771c777c7333e 100644
+index 952654e0c0f7d..66511a471602c 100644
 --- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
 +++ b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
 @@ -247,9 +247,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
