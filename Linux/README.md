@@ -1,4 +1,4 @@
-Chromium_Clang for Linux builds are currently compiled under Ubuntu Server 24.04 LTS (Noble Numbat).
+Chromium_Clang for Linux builds are currently compiled under CachyOS via a Ubuntu Server 24.04 LTS (Noble Numbat) chroot.
 
 https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/linux/build_instructions.md
 
