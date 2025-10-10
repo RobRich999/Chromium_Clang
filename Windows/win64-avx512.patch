@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 2ef2d2f859c49..17fac7f8d16a6 100644
+index 7b1dd92cbe698..4c5ba034c2bfc 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -546,10 +546,10 @@ config("compiler") {
+@@ -551,10 +551,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -625,13 +625,13 @@ config("compiler") {
+@@ -630,13 +630,13 @@ config("compiler") {
      # (https://crbug.com/829795).
      cflags += [ "-fmerge-all-constants" ]
  
@@ -35,7 +35,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
  
      if (diagnostics_print_source_range_info && !is_win) {
        cflags += [ "-fdiagnostics-print-source-range-info" ]
-@@ -684,23 +684,23 @@ config("compiler") {
+@@ -689,23 +689,23 @@ config("compiler") {
      # other problems.
      if (default_toolchain != "//build/toolchain/cros:target") {
        cflags += [
@@ -65,7 +65,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
      }
  
      # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF.
-@@ -827,6 +827,7 @@ config("compiler") {
+@@ -832,6 +832,7 @@ config("compiler") {
      cflags += [
        "-flto=thin",
        "-fsplit-lto-unit",
@@ -73,7 +73,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
      ]
  
      if (thin_lto_enable_cache) {
-@@ -864,13 +865,14 @@ config("compiler") {
+@@ -869,16 +870,18 @@ config("compiler") {
      # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
      # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
      # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
@@ -89,7 +89,11 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
        ]
      } else {
        ldflags += [ "-flto=thin" ]
-@@ -1138,6 +1140,10 @@ config("compiler") {
++      ldflags +=[ "-Wl,-mllvm,-indexed-codegen-data-read-function-map-names=false" ]
+ 
+       # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
+       # usage in crbug.com/1038040. Note this will increase build time in
+@@ -1143,6 +1146,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -100,7 +104,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1242,7 +1248,7 @@ config("libcxx_hardening") {
+@@ -1247,7 +1254,7 @@ config("libcxx_hardening") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -109,7 +113,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1275,7 +1281,7 @@ config("thinlto_optimize_max") {
+@@ -1280,7 +1287,7 @@ config("thinlto_optimize_max") {
      if (thin_lto_enable_optimizations) {
        lto_opt_level = 2
      } else {
@@ -118,7 +122,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
      }
  
      if (is_win) {
-@@ -1322,7 +1328,7 @@ config("compiler_cpu_abi") {
+@@ -1327,7 +1334,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
@@ -127,7 +131,7 @@ index 2ef2d2f859c49..17fac7f8d16a6 100644
      } else if (current_cpu == "x86") {
        if (is_clang && !is_android && !is_chromeos_device) {
          cflags += [ "--target=i386-unknown-linux-gnu" ]
-@@ -2867,6 +2873,9 @@ config("optimize_max") {
+@@ -2872,6 +2879,9 @@ config("optimize_max") {
      # Favor speed over size, /O2 must be before the common flags.
      # /O2 implies /Ot, /Oi, and /GF.
      cflags = [ "/O2" ] + common_optimize_on_cflags
