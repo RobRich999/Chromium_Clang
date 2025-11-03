@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 69b579f6ad56e..d637ea5cca97b 100644
+index 1b4d88fee68dc..fb2597b3a99be 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -539,10 +539,10 @@ config("compiler") {
+@@ -558,10 +558,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index 69b579f6ad56e..d637ea5cca97b 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -603,13 +603,13 @@ config("compiler") {
+@@ -637,13 +637,13 @@ config("compiler") {
      # (https://crbug.com/829795).
      cflags += [ "-fmerge-all-constants" ]
  
@@ -34,25 +34,25 @@ index 69b579f6ad56e..d637ea5cca97b 100644
  
      if (diagnostics_print_source_range_info && !is_win) {
        cflags += [ "-fdiagnostics-print-source-range-info" ]
-@@ -647,14 +647,14 @@ config("compiler") {
-     # TODO(hans): Remove this once Clang generates better optimized debug info
-     # by default. https://crbug.com/765793
-     cflags += [
--      "-mllvm",
--      "-instcombine-lower-dbg-declare=0",
-+      # "-mllvm",
-+      # "-instcombine-lower-dbg-declare=0",
-     ]
-     if (!is_debug && use_thin_lto && is_a_target_toolchain) {
-       if (is_win) {
-         ldflags += [ "-mllvm:-instcombine-lower-dbg-declare=0" ]
-       } else {
--        ldflags += [ "-Wl,-mllvm,-instcombine-lower-dbg-declare=0" ]
-+        # ldflags += [ "-Wl,-mllvm,-instcombine-lower-dbg-declare=0" ]
+@@ -696,14 +696,14 @@ config("compiler") {
+     # other problems.
+     if (default_toolchain != "//build/toolchain/cros:target") {
+       cflags += [
+-        "-mllvm",
+-        "-split-threshold-for-reg-with-hint=0",
++        # "-mllvm",
++        # "-split-threshold-for-reg-with-hint=0",
+       ]
+       if (use_thin_lto && is_a_target_toolchain) {
+         if (is_win) {
+           ldflags += [ "-mllvm:-split-threshold-for-reg-with-hint=0" ]
+         } else {
+-          ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
++          # ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
+         }
        }
      }
- 
-@@ -805,6 +805,7 @@ config("compiler") {
+@@ -839,6 +839,7 @@ config("compiler") {
      cflags += [
        "-flto=thin",
        "-fsplit-lto-unit",
@@ -60,16 +60,7 @@ index 69b579f6ad56e..d637ea5cca97b 100644
      ]
  
      if (thin_lto_enable_cache) {
-@@ -842,7 +843,7 @@ config("compiler") {
-     # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
-     # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
-     # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
--    import_instr_limit = 30
-+    import_instr_limit = 100
- 
-     if (is_win) {
-       ldflags += [
-@@ -852,6 +853,7 @@ config("compiler") {
+@@ -886,6 +887,7 @@ config("compiler") {
        ]
      } else {
        ldflags += [ "-flto=thin" ]
@@ -77,36 +68,39 @@ index 69b579f6ad56e..d637ea5cca97b 100644
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -1116,6 +1118,10 @@ config("compiler") {
+@@ -1153,6 +1155,10 @@ config("compiler") {
  
-     # We use clang-rt sanitizer runtimes.
-     "-Zexternal-clangrt",
+       # We use clang-rt sanitizer runtimes.
+       "-Zexternal-clangrt",
 +
-+    "-Ctarget-cpu=x86-64-v2",
-+    "-Ctarget-feature=+avx",
-+    "-Cllvm-args=-fp-contract=off",
-   ]
++     "-Ctarget-cpu=x86-64-v2",
++     "-Ctarget-feature=+avx",
++     "-Cllvm-args=-fp-contract=off",
+     ]
+   }
  
-   if (!is_win || force_rustc_color_output) {
-@@ -1199,7 +1205,7 @@ config("libcxx_hardening") {
+@@ -1230,7 +1236,7 @@ config("disallow_unstable_features") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 2
++    lto_opt_level = 3
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1232,7 +1238,7 @@ config("thinlto_optimize_max") {
+@@ -1261,9 +1267,9 @@ config("thinlto_optimize_default") {
+ config("thinlto_optimize_max") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
-       lto_opt_level = 2
+-      lto_opt_level = 2
++      lto_opt_level = 3
      } else {
 -      lto_opt_level = 0
-+      lto_opt_level = 2
++      lto_opt_level = 3
      }
  
      if (is_win) {
-@@ -1279,7 +1285,7 @@ config("compiler_cpu_abi") {
+@@ -1310,7 +1316,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
@@ -115,7 +109,48 @@ index 69b579f6ad56e..d637ea5cca97b 100644
      } else if (current_cpu == "x86") {
        if (is_clang && !is_android && !is_chromeos_device) {
          cflags += [ "--target=i386-unknown-linux-gnu" ]
-@@ -2813,7 +2819,7 @@ config("optimize_max") {
+@@ -2693,6 +2699,31 @@ if (is_win) {
+   common_optimize_on_cflags = []
+   common_optimize_on_ldflags = []
+ 
++  common_optimize_on_cflags += [
++   "-mllvm", "-adce-remove-loops",
++   "-mllvm", "-enable-gvn-hoist",
++   "-mllvm", "-enable-local-reassign",
++   "-mllvm", "-enable-nontrivial-unswitch",
++   "-mllvm", "-enable-loopinterchange",
++   "-mllvm", "-enable-loop-distribute",
++   "-mllvm", "-enable-unroll-and-jam",
++   "-mllvm", "-enable-loop-flatten",
++   "-mllvm", "-enable-loop-versioning-licm",
++  ]
++
++  common_optimize_on_ldflags += [
++   "-Wl,-mllvm,-adce-remove-loops",
++   "-Wl,-mllvm,-enable-gvn-hoist",
++   "-Wl,-mllvm,-enable-local-reassign",
++   "-Wl,-mllvm,-enable-nontrivial-unswitch",
++   "-Wl,-mllvm,-enable-loopinterchange",
++   "-Wl,-mllvm,-enable-loop-distribute",
++   "-Wl,-mllvm,-enable-unroll-and-jam",
++   "-Wl,-mllvm,-enable-loop-flatten",
++   "-Wl,-mllvm,-enable-loop-versioning-licm",
++   # "-Wl,-mllvm,-pass-remarks=vector",
++  ]
++
+   if (is_android) {
+     # TODO(jdduke) Re-enable on mips after resolving linking
+     # issues with libc++ (crbug.com/456380).
+@@ -2829,7 +2860,7 @@ config("optimize") {
+     # vectorization while otherwise optimizing for size.
+     rustflags = [ "-Copt-level=s" ]
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
+ 
+     # The `-O3` for clang turns on extra optimizations compared to the standard
+     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
+@@ -2884,7 +2915,7 @@ config("optimize_max") {
    } else if (optimize_for_fuzzing) {
      cflags = [ "-O1" ] + common_optimize_on_cflags
    } else {
@@ -186,6 +221,70 @@ index 15bbf25f2b443..8b137891791fe 100755
 -if [ "$repo_reenable_on_distupgrade" = "true" ]; then
 -  handle_distro_upgrade
 -fi
+diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux/common/rpmrepo.cron
+index 7f2df3ad9e77e..e69de29bb2d1d 100755
+--- a/chrome/installer/linux/common/rpmrepo.cron
++++ b/chrome/installer/linux/common/rpmrepo.cron
+@@ -1,59 +0,0 @@
+-#!/bin/sh
+-#
+-# Copyright 2009 The Chromium Authors
+-# Use of this source code is governed by a BSD-style license that can be
+-# found in the LICENSE file.
+-#
+-# This script is part of the @@PACKAGE@@ package.
+-#
+-# It creates the repository configuration file for package updates, since
+-# we cannot do this during the @@PACKAGE@@ installation since the repository
+-# is locked.
+-#
+-# This functionality can be controlled by creating the $DEFAULTS_FILE and
+-# setting "repo_add_once" to "true" or "false" as desired. An empty
+-# $DEFAULTS_FILE is the same as setting the value to "false".
+-
+-@@include@@../common/variables.include
+-
+-@@include@@rpm.include
+-
+-## MAIN ##
+-if [ -r "$DEFAULTS_FILE" ]; then
+-  . "$DEFAULTS_FILE"
+-fi
+-
+-install_rpm_key
+-
+-if [ "$repo_add_once" = "true" ]; then
+-  determine_rpm_package_manager
+-
+-  # Let's run through this for each supported package manager as detected...
+-  for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-  do
+-    # The initial install happens in the post-install scripts, but there have been
+-    # reports of configuration problems, so just verify that everything looks
+-    # good, and if not, try to install again.
+-    verify_install $PACKAGEMANAGER
+-    if [ $? -ne 0 ]; then
+-      install_${PACKAGEMANAGER}
+-    fi
+-  done
+-
+-  if [ $? -eq 0 ]; then
+-    # Do this for each supported package manager...
+-    for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-    do
+-      # Before we quit auto-configuration, check that everything looks sane, since
+-      # part of this happened during package install and we don't have the return
+-      # value of that process.
+-      verify_install $PACKAGEMANAGER
+-      if [ $? -eq 0 ]; then
+-        sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' \
+-          "$DEFAULTS_FILE"
+-      fi
+-    done
+-  fi
+-else
+-  update_bad_repo
+-fi
 diff --git a/chrome/installer/linux/debian/build.sh b/chrome/installer/linux/debian/build.sh
 index be01c4ccb46ef..c60054a2316eb 100755
 --- a/chrome/installer/linux/debian/build.sh
@@ -245,10 +344,10 @@ index 2e53794fa3374..80eede44ea2e3 100644
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index c58769075b399..a7c86b5032b0f 100644
+index 9018c21260515..c94a98cab42ff 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -228,25 +228,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -229,25 +229,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsDecoderHevcProfileSupported(const VideoType& type) {
@@ -278,7 +377,7 @@ index c58769075b399..a7c86b5032b0f 100644
  }
  
  bool IsDecoderVp9ProfileSupported(const VideoType& type) {
-@@ -585,7 +572,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
+@@ -581,7 +568,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
  
  bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -288,7 +387,7 @@ index c58769075b399..a7c86b5032b0f 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index bcbb74fd56852..01d3fdbbb2210 100644
+index eba1a21b3be2c..a4be993fc7c4b 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
 @@ -64,7 +64,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
@@ -333,10 +432,10 @@ index fef13f6b8ab58..2e967ac8c9214 100644
  
  FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
-index 465c1ea7e7745..22eaebc3166a4 100644
+index 8e650078a5816..6614714c08c78 100644
 --- a/media/webrtc/webrtc_features.cc
 +++ b/media/webrtc/webrtc_features.cc
-@@ -67,12 +67,12 @@ BASE_FEATURE(kWebRtcAllowH265Receive, base::FEATURE_ENABLED_BY_DEFAULT);
+@@ -59,12 +59,12 @@ BASE_FEATURE(kWebRtcAllowH265Receive, base::FEATURE_ENABLED_BY_DEFAULT);
  
  // When enabled, allows H.265 L1T2 to be used for sending WebRTC streams, if the
  // accelerator reports support of encoding in L1T2.
@@ -352,10 +451,10 @@ index 465c1ea7e7745..22eaebc3166a4 100644
  // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
  // platform accelerator supports encoding of AV1.
 diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
-index 952654e0c0f7d..66511a471602c 100644
+index 7be015502f5d2..e65809bc98c95 100644
 --- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
 +++ b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
-@@ -247,9 +247,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
+@@ -248,9 +248,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
  std::unique_ptr<gpu::VulkanImplementation>
  WaylandSurfaceFactory::CreateVulkanImplementation(bool use_swiftshader,
                                                    bool allow_protected_memory) {
