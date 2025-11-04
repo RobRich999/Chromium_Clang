@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 7b1dd92cbe698..4c5ba034c2bfc 100644
+index 1b4d88fee68dc..bccd97c5b65dc 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -551,10 +551,10 @@ config("compiler") {
+@@ -558,10 +558,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index 7b1dd92cbe698..4c5ba034c2bfc 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -630,13 +630,13 @@ config("compiler") {
+@@ -637,13 +637,13 @@ config("compiler") {
      # (https://crbug.com/829795).
      cflags += [ "-fmerge-all-constants" ]
  
@@ -35,7 +35,7 @@ index 7b1dd92cbe698..4c5ba034c2bfc 100644
  
      if (diagnostics_print_source_range_info && !is_win) {
        cflags += [ "-fdiagnostics-print-source-range-info" ]
-@@ -689,23 +689,23 @@ config("compiler") {
+@@ -696,23 +696,23 @@ config("compiler") {
      # other problems.
      if (default_toolchain != "//build/toolchain/cros:target") {
        cflags += [
@@ -65,7 +65,7 @@ index 7b1dd92cbe698..4c5ba034c2bfc 100644
      }
  
      # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF.
-@@ -832,6 +832,7 @@ config("compiler") {
+@@ -839,6 +839,7 @@ config("compiler") {
      cflags += [
        "-flto=thin",
        "-fsplit-lto-unit",
@@ -73,15 +73,7 @@ index 7b1dd92cbe698..4c5ba034c2bfc 100644
      ]
  
      if (thin_lto_enable_cache) {
-@@ -869,16 +870,18 @@ config("compiler") {
-     # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
-     # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
-     # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
--    import_instr_limit = 30
-+    import_instr_limit = 100
- 
-     if (is_win) {
-       ldflags += [
+@@ -883,9 +884,11 @@ config("compiler") {
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
          "-mllvm:-disable-auto-upgrade-debug-info",
@@ -93,36 +85,39 @@ index 7b1dd92cbe698..4c5ba034c2bfc 100644
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -1143,6 +1146,10 @@ config("compiler") {
+@@ -1153,6 +1156,10 @@ config("compiler") {
  
-     # We use clang-rt sanitizer runtimes.
-     "-Zexternal-clangrt",
+       # We use clang-rt sanitizer runtimes.
+       "-Zexternal-clangrt",
 +
-+    "-Ctarget-cpu=x86-64-v3",
-+    "-Ztune-cpu=skylake-avx512",
-+    "-Cllvm-args=-fp-contract=fast",
-   ]
++     "-Ctarget-cpu=x86-64-v3",
++     "-Ztune-cpu=skylake-avx512",
++     "-Cllvm-args=-fp-contract=fast",
+     ]
+   }
  
-   if (!is_win || force_rustc_color_output) {
-@@ -1247,7 +1254,7 @@ config("libcxx_hardening") {
+@@ -1230,7 +1237,7 @@ config("disallow_unstable_features") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 2
++    lto_opt_level = 3
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1280,7 +1287,7 @@ config("thinlto_optimize_max") {
+@@ -1261,9 +1268,9 @@ config("thinlto_optimize_default") {
+ config("thinlto_optimize_max") {
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
-       lto_opt_level = 2
+-      lto_opt_level = 2
++      lto_opt_level = 3
      } else {
 -      lto_opt_level = 0
-+      lto_opt_level = 2
++      lto_opt_level = 3
      }
  
      if (is_win) {
-@@ -1327,7 +1334,7 @@ config("compiler_cpu_abi") {
+@@ -1310,7 +1317,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
@@ -131,7 +126,93 @@ index 7b1dd92cbe698..4c5ba034c2bfc 100644
      } else if (current_cpu == "x86") {
        if (is_clang && !is_android && !is_chromeos_device) {
          cflags += [ "--target=i386-unknown-linux-gnu" ]
-@@ -2872,6 +2879,9 @@ config("optimize_max") {
+@@ -2667,6 +2674,15 @@ if (is_win) {
+   common_optimize_on_cflags = [
+     "/Oy-",  # Disable omitting frame pointers, must be after /O2.
+     "/Zc:inline",  # Remove unreferenced COMDAT (faster links).
++   "-mllvm", "-adce-remove-loops",
++   "-mllvm", "-enable-gvn-hoist",
++   "-mllvm", "-enable-local-reassign",
++   "-mllvm", "-enable-nontrivial-unswitch",
++   "-mllvm", "-enable-loopinterchange",
++   "-mllvm", "-enable-loop-distribute",
++   "-mllvm", "-enable-unroll-and-jam",
++   "-mllvm", "-enable-loop-flatten",
++   "-mllvm", "-enable-loop-versioning-licm",
+   ]
+   if (!is_asan) {
+     common_optimize_on_cflags += [
+@@ -2680,6 +2696,19 @@ if (is_win) {
+   }
+   common_optimize_on_ldflags = []
+ 
++  common_optimize_on_ldflags += [
++   "-mllvm:-adce-remove-loops",
++   "-mllvm:-enable-gvn-hoist",
++   "-mllvm:-enable-local-reassign",
++   "-mllvm:-enable-nontrivial-unswitch",
++   "-mllvm:-enable-loopinterchange",
++   "-mllvm:-enable-loop-distribute",
++   "-mllvm:-enable-unroll-and-jam",
++   "-mllvm:-enable-loop-flatten",
++   "-mllvm:-enable-loop-versioning-licm",
++   # "-mllvm:-pass-remarks=vector",
++  ]
++
+   # /OPT:ICF is not desirable in Debug builds, since code-folding can result in
+   # misleading symbols in stack traces.
+   if (!is_debug && !is_component_build) {
+@@ -2693,6 +2722,31 @@ if (is_win) {
+   common_optimize_on_cflags = []
+   common_optimize_on_ldflags = []
+ 
++  common_optimize_on_cflags += [
++   "-mllvm", "-adce-remove-loops",
++   "-mllvm", "-enable-gvn-hoist",
++   "-mllvm", "-enable-local-reassign",
++   "-mllvm", "-enable-nontrivial-unswitch",
++   "-mllvm", "-enable-loopinterchange",
++   "-mllvm", "-enable-loop-distribute",
++   "-mllvm", "-enable-unroll-and-jam",
++   "-mllvm", "-enable-loop-flatten",
++   "-mllvm", "-enable-loop-versioning-licm",
++  ]
++
++  common_optimize_on_ldflags += [
++   "-Wl,-mllvm,-adce-remove-loops",
++   "-Wl,-mllvm,-enable-gvn-hoist",
++   "-Wl,-mllvm,-enable-local-reassign",
++   "-Wl,-mllvm,-enable-nontrivial-unswitch",
++   "-Wl,-mllvm,-enable-loopinterchange",
++   "-Wl,-mllvm,-enable-loop-distribute",
++   "-Wl,-mllvm,-enable-unroll-and-jam",
++   "-Wl,-mllvm,-enable-loop-flatten",
++   "-Wl,-mllvm,-enable-loop-versioning-licm",
++   # "-Wl,-mllvm,-pass-remarks=vector",
++  ]
++
+   if (is_android) {
+     # TODO(jdduke) Re-enable on mips after resolving linking
+     # issues with libc++ (crbug.com/456380).
+@@ -2797,7 +2851,7 @@ config("optimize") {
+     # consistency with the other platforms.
+     cflags = [
+                "/O2",
+-               "/clang:-O2",
++               "/clang:-O3",
+              ] + common_optimize_on_cflags
+ 
+     # The `-O3` for clang turns on extra optimizations compared to the standard
+@@ -2829,7 +2883,7 @@ config("optimize") {
+     # vectorization while otherwise optimizing for size.
+     rustflags = [ "-Copt-level=s" ]
+   } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
+ 
+     # The `-O3` for clang turns on extra optimizations compared to the standard
+     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
+@@ -2881,10 +2935,13 @@ config("optimize_max") {
      # Favor speed over size, /O2 must be before the common flags.
      # /O2 implies /Ot, /Oi, and /GF.
      cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -141,6 +222,11 @@ index 7b1dd92cbe698..4c5ba034c2bfc 100644
    } else if (optimize_for_fuzzing) {
      cflags = [ "-O1" ] + common_optimize_on_cflags
    } else {
+-    cflags = [ "-O2" ] + common_optimize_on_cflags
++    cflags = [ "-O3" ] + common_optimize_on_cflags
+   }
+   rustflags = [ "-Copt-level=3" ]
+ }
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
 index 7f8aa872e66ce..30fa2e917c753 100644
 --- a/build/config/win/BUILD.gn
@@ -184,10 +270,10 @@ index aff0370044046..811529a08db83 100644
 +// #endif
  }  // extern "C"
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 24d1355fac575..fd89adec46e94 100644
+index 9018c21260515..c94a98cab42ff 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -228,25 +228,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
+@@ -229,25 +229,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
  #endif  // !BUILDFLAG(USE_PROPRIETARY_CODECS)
  
  bool IsDecoderHevcProfileSupported(const VideoType& type) {
@@ -217,7 +303,7 @@ index 24d1355fac575..fd89adec46e94 100644
  }
  
  bool IsDecoderVp9ProfileSupported(const VideoType& type) {
-@@ -579,7 +566,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
+@@ -581,7 +568,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
  
  bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -227,7 +313,7 @@ index 24d1355fac575..fd89adec46e94 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index 726a4bef3d480..a6e67ef020bd4 100644
+index eba1a21b3be2c..a4be993fc7c4b 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
 @@ -64,7 +64,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
@@ -272,10 +358,10 @@ index fef13f6b8ab58..2e967ac8c9214 100644
  
  FFmpegVideoDecoder::FFmpegVideoDecoder(MediaLog* media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
-index cbf84e8336b7c..c668565fbb5fe 100644
+index 8e650078a5816..6614714c08c78 100644
 --- a/media/webrtc/webrtc_features.cc
 +++ b/media/webrtc/webrtc_features.cc
-@@ -57,12 +57,12 @@ BASE_FEATURE(kWebRtcAllowH265Receive, base::FEATURE_ENABLED_BY_DEFAULT);
+@@ -59,12 +59,12 @@ BASE_FEATURE(kWebRtcAllowH265Receive, base::FEATURE_ENABLED_BY_DEFAULT);
  
  // When enabled, allows H.265 L1T2 to be used for sending WebRTC streams, if the
  // accelerator reports support of encoding in L1T2.
