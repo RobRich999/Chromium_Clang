@@ -24,7 +24,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v144.0.7507.0-r1539405
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v143.0.7453.0-r1525247-win64-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v143.0.7453.0-r1525247-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v144.0.7510.0-r1540236-win64-avx2
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v143.0.7464.0-r1528052-win64-avx512
 
