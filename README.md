@@ -14,9 +14,9 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v144.0.7507.0-r1539405
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v144.0.7507.0-r1539405-linux64-rpm-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v144.0.7507.0-r1539405-linux64-deb-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v145.0.7577.0-r1558037-linux64-deb-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v144.0.7507.0-r1539405-linux64-rpm-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v145.0.7577.0-r1558037-linux64-rpm-avx2
 
 ****
 
