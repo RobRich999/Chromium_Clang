@@ -270,34 +270,6 @@ index aff0370044046..811529a08db83 100644
 -#endif
 +// #endif
  }  // extern "C"
-diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
-index 3e5dbac1391de..f7c2ef87e9f57 100755
---- a/chrome/tools/build/win/create_installer_archive.py
-+++ b/chrome/tools/build/win/create_installer_archive.py
-@@ -91,13 +91,16 @@ def CompressUsingLZMA(build_dir,
-             # 26bit = 64MB. This results in an additional ~3.5MB decrease.
-             # Older 7zip versions can support these settings, as these changes
-             # rely on existing functionality in the lzma format.
--            '-m0=BCJ2',
--            '-m1=LZMA:d27:fb128',
--            '-m2=LZMA:d22:fb128:mf=bt2',
--            '-m3=LZMA:d22:fb128:mf=bt2',
--            '-mb0:1',
--            '-mb0s1:2',
--            '-mb0s2:3',
-+            # '-m0=BCJ2',
-+            # '-m1=LZMA:d27:fb128',
-+            # '-m2=LZMA:d22:fb128:mf=bt2',
-+            # '-m3=LZMA:d22:fb128:mf=bt2',
-+            # '-mb0:1',
-+            # '-mb0s1:2',
-+            # '-mb0s2:3',
-+            '-m0=lzma2',
-+            '-mx7',
-+            '-mmt',
-         ])
-     cmd.extend([
-         os.path.abspath(compressed_file),
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 117bb7eb6d499..c3839ab565458 100644
 --- a/media/base/supported_types.cc
