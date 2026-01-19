@@ -8,7 +8,7 @@ Implementation of various options are subject to change depending upon performan
 
 ****
 
-**Links to latest Linux build releases in deb package format:**
+**Links to latest Linux build releases in deb and rpm package formats:**
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v145.0.7577.0-r1558037-linux64-deb-avx
 
@@ -24,7 +24,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v145.0.7577.0-r1558037
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v145.0.7581.0-r1559302-win64-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v145.0.7581.0-r1559302-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v146.0.7644.0-r1571156-win64-avx2
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v145.0.7581.0-r1559302-win64-avx512
 
