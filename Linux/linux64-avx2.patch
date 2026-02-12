@@ -116,9 +116,9 @@ index dc845ccb055ec..5388817dbf949 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
+       ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
      }
 @@ -1309,7 +1316,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
