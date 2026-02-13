@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index c4dd235320b92..eaee5764c9d71 100644
+index dc845ccb055ec..b9b4320572e98 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -567,10 +567,10 @@ config("compiler") {
+@@ -536,10 +536,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index c4dd235320b92..eaee5764c9d71 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -646,13 +646,13 @@ config("compiler") {
+@@ -591,13 +591,13 @@ config("compiler") {
      # (https://crbug.com/829795).
      cflags += [ "-fmerge-all-constants" ]
  
@@ -35,7 +35,7 @@ index c4dd235320b92..eaee5764c9d71 100644
  
      if (diagnostics_print_source_range_info && !is_win) {
        cflags += [ "-fdiagnostics-print-source-range-info" ]
-@@ -705,23 +705,23 @@ config("compiler") {
+@@ -631,23 +631,23 @@ config("compiler") {
      # other problems.
      if (default_toolchain != "//build/toolchain/cros:target") {
        cflags += [
@@ -65,7 +65,7 @@ index c4dd235320b92..eaee5764c9d71 100644
      }
  
      # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF.
-@@ -833,6 +833,7 @@ config("compiler") {
+@@ -759,6 +759,7 @@ config("compiler") {
      cflags += [
        "-flto=thin",
        "-fsplit-lto-unit",
@@ -73,7 +73,7 @@ index c4dd235320b92..eaee5764c9d71 100644
      ]
  
      if (thin_lto_enable_cache) {
-@@ -877,9 +878,11 @@ config("compiler") {
+@@ -803,9 +804,11 @@ config("compiler") {
          "/opt:lldltojobs=all",
          "-mllvm:-import-instr-limit=$import_instr_limit",
          "-mllvm:-disable-auto-upgrade-debug-info",
@@ -85,7 +85,7 @@ index c4dd235320b92..eaee5764c9d71 100644
  
        # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
        # usage in crbug.com/1038040. Note this will increase build time in
-@@ -1146,6 +1149,10 @@ config("compiler") {
+@@ -974,6 +977,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -96,7 +96,7 @@ index c4dd235320b92..eaee5764c9d71 100644
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1214,7 +1221,7 @@ config("disallow_unstable_features") {
+@@ -1229,12 +1236,14 @@ config("disallow_unstable_features") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -105,7 +105,14 @@ index c4dd235320b92..eaee5764c9d71 100644
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
-@@ -1245,9 +1252,9 @@ config("thinlto_optimize_default") {
++      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
+     }
+ 
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1260,15 +1269,17 @@ config("thinlto_optimize_default") {
  config("thinlto_optimize_max") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
      if (thin_lto_enable_optimizations) {
@@ -117,17 +124,24 @@ index c4dd235320b92..eaee5764c9d71 100644
      }
  
      if (is_win) {
-@@ -1294,7 +1301,8 @@ config("compiler_cpu_abi") {
+       ldflags = [ "/opt:lldlto=" + lto_opt_level ]
++      ldflags += [ "-opt:lldltocgo=" + lto_opt_level ]
+     } else {
+       ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
+     }
+ 
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1309,7 +1320,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
 -      cflags += [ "-msse3" ]
 +      cflags += [ "-march=x86-64-v3", "-mtune=skylake-avx512", ]
-+
        if (target_os == "chromeos" && cros_target_cpu_arch != "" &&
            current_cpu == target_cpu) {
          cflags += [ "-march=$cros_target_cpu_arch" ]
-@@ -2667,6 +2675,15 @@ if (is_win) {
+@@ -2694,6 +2705,15 @@ if (is_win) {
    common_optimize_on_cflags = [
      "/Oy-",  # Disable omitting frame pointers, must be after /O2.
      "/Zc:inline",  # Remove unreferenced COMDAT (faster links).
@@ -143,7 +157,7 @@ index c4dd235320b92..eaee5764c9d71 100644
    ]
    if (!is_asan) {
      common_optimize_on_cflags += [
-@@ -2680,6 +2697,19 @@ if (is_win) {
+@@ -2707,6 +2727,19 @@ if (is_win) {
    }
    common_optimize_on_ldflags = []
  
@@ -163,7 +177,7 @@ index c4dd235320b92..eaee5764c9d71 100644
    # /OPT:ICF is not desirable in Debug builds, since code-folding can result in
    # misleading symbols in stack traces.
    if (!is_debug && !is_component_build) {
-@@ -2693,6 +2723,31 @@ if (is_win) {
+@@ -2720,6 +2753,33 @@ if (is_win) {
    common_optimize_on_cflags = []
    common_optimize_on_ldflags = []
  
@@ -177,6 +191,7 @@ index c4dd235320b92..eaee5764c9d71 100644
 +   "-mllvm", "-enable-unroll-and-jam",
 +   "-mllvm", "-enable-loop-flatten",
 +   "-mllvm", "-enable-loop-versioning-licm",
++   "-mllvm", "-sink-insts-to-avoid-spills",
 +  ]
 +
 +  common_optimize_on_ldflags += [
@@ -189,13 +204,14 @@ index c4dd235320b92..eaee5764c9d71 100644
 +   "-Wl,-mllvm,-enable-unroll-and-jam",
 +   "-Wl,-mllvm,-enable-loop-flatten",
 +   "-Wl,-mllvm,-enable-loop-versioning-licm",
++   "-Wl,-mllvm,-sink-insts-to-avoid-spills",
 +   # "-Wl,-mllvm,-pass-remarks=vector",
 +  ]
 +
    if (is_android) {
      # TODO(jdduke) Re-enable on mips after resolving linking
      # issues with libc++ (crbug.com/456380).
-@@ -2797,7 +2852,7 @@ config("optimize") {
+@@ -2824,7 +2884,7 @@ config("optimize") {
      # consistency with the other platforms.
      cflags = [
                 "/O2",
@@ -204,7 +220,7 @@ index c4dd235320b92..eaee5764c9d71 100644
               ] + common_optimize_on_cflags
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
-@@ -2829,7 +2884,7 @@ config("optimize") {
+@@ -2856,7 +2916,7 @@ config("optimize") {
      # vectorization while otherwise optimizing for size.
      rustflags = [ "-Copt-level=s" ]
    } else {
@@ -213,7 +229,7 @@ index c4dd235320b92..eaee5764c9d71 100644
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2881,10 +2936,13 @@ config("optimize_max") {
+@@ -2908,10 +2968,13 @@ config("optimize_max") {
      # Favor speed over size, /O2 must be before the common flags.
      # /O2 implies /Ot, /Oi, and /GF.
      cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -314,10 +330,10 @@ index 117bb7eb6d499..c3839ab565458 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index eba1a21b3be2c..a4be993fc7c4b 100644
+index f8af7057b111c..54893a27dac8b 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
-@@ -64,7 +64,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
+@@ -66,7 +66,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
  const char* GetAllowedVideoDecoders() {
    // This should match the configured lists in //third_party/ffmpeg.
  #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
@@ -327,7 +343,7 @@ index eba1a21b3be2c..a4be993fc7c4b 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index fef13f6b8ab58..2e967ac8c9214 100644
+index 7a63e7b64cdef..05783c6e8aed8 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -73,7 +73,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
