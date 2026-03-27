@@ -28,7 +28,7 @@ https://aur.archlinux.org/packages/chromium-clang-avx2-bin
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v147.0.7685.0-r1584191-win64-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v147.0.7685.0-r1584191-win64-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v148.0.7759.0-r1606362-win64-avx2
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v147.0.7685.0-r1584191-win64-avx512
 
