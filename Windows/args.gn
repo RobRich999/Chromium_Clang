@@ -44,3 +44,4 @@ toolchain_supports_rust_thin_lto = true
 dcheck_always_on = false
 use_siso = true
 use_remoteexec = false
+use_sized_deallocation = true
