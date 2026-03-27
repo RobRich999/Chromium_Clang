@@ -18,7 +18,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v147.0.7685.0-r1584191
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v147.0.7685.0-r1584191-linux64-rpm-avx2
 
-**Link for Arch Linux release (derived from RPM above) via AUR by s1mpleog:**
+**Link for Arch Linux release (derived from RPM above) via AUR by [@s1mpleog:]**
 
 https://aur.archlinux.org/packages/chromium-clang-avx2-bin
 
