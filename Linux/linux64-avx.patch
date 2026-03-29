@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index dc845ccb055ec..0b67ad0a020fd 100644
+index 7830ba2ed2366..00c8ee540c803 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -536,10 +536,10 @@ config("compiler") {
+@@ -548,10 +548,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,163 +17,124 @@ index dc845ccb055ec..0b67ad0a020fd 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -591,13 +591,13 @@ config("compiler") {
-     # (https://crbug.com/829795).
-     cflags += [ "-fmerge-all-constants" ]
+@@ -815,7 +815,7 @@ config("compiler") {
+     # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/16984a18be0000
+     # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/11984a18be0000
+     # [2]: https://ci.chromium.org/ui/p/chromium/builders/try/android-binary-size/1848442
+-    import_instr_limit = 30
++    # import_instr_limit = 30
  
--    if (!use_sized_deallocation) {
-+    # if (!use_sized_deallocation) {
-       if (is_win) {
--        cflags += [ "/Zc:sizedDealloc-" ]
-+        cflags += [ "/Zc:sizedDealloc" ]
-       } else {
--        cflags += [ "-fno-sized-deallocation" ]
-+        cflags += [ "-fsized-deallocation" ]
+     if (is_win) {
+       ldflags += [
+@@ -848,7 +848,7 @@ config("compiler") {
+         import_instr_limit = 5
        }
--    }
-+    # }
  
-     if (diagnostics_print_source_range_info && !is_win) {
-       cflags += [ "-fdiagnostics-print-source-range-info" ]
-@@ -631,14 +631,14 @@ config("compiler") {
-     # other problems.
-     if (default_toolchain != "//build/toolchain/cros:target") {
-       cflags += [
--        "-mllvm",
--        "-split-threshold-for-reg-with-hint=0",
-+        # "-mllvm",
-+        # "-split-threshold-for-reg-with-hint=0",
-       ]
-       if (use_thin_lto && is_a_target_toolchain) {
-         if (is_win) {
-           ldflags += [ "-mllvm:-split-threshold-for-reg-with-hint=0" ]
-         } else {
--          ldflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
-+          # dflags += [ "-Wl,-mllvm,-split-threshold-for-reg-with-hint=0" ]
-         }
-       }
-     }
-@@ -759,6 +759,7 @@ config("compiler") {
-     cflags += [
-       "-flto=thin",
-       "-fsplit-lto-unit",
-+      "-mllvm", "-indexed-codegen-data-read-function-map-names=false",
-     ]
+-      ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
++      # ldflags += [ "-Wl,-mllvm,-import-instr-limit=$import_instr_limit" ]
  
-     if (thin_lto_enable_cache) {
-@@ -806,6 +807,7 @@ config("compiler") {
-       ]
-     } else {
-       ldflags += [ "-flto=thin" ]
-+      ldflags +=[ "-Wl,-mllvm,-indexed-codegen-data-read-function-map-names=false" ]
- 
-       # Enabling ThinLTO on Chrome OS too, in an effort to reduce the memory
-       # usage in crbug.com/1038040. Note this will increase build time in
-@@ -974,6 +976,10 @@ config("compiler") {
+       if (is_apple) {
+         ldflags += [ "-Wcrl,object_path_lto" ]
+@@ -993,6 +993,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
 +
-+    "-Ctarget-cpu=x86-64-v2",
-+    "-Ctarget-feature=+avx",
-+    "-Cllvm-args=-fp-contract=off",
++     "-Ctarget-cpu=x86-64-v2",
++     "-Ctarget-feature=+cx16,+sahf,+avx,+aes,+pclmulqdq,+xsave",
++     "-Cllvm-args=-fp-contract=off",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1229,12 +1235,13 @@ config("disallow_unstable_features") {
+@@ -1265,12 +1269,18 @@ config("disallow_unstable_features") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
 -    lto_opt_level = 0
-+    lto_opt_level = 3
++    if (thin_lto_enable_optimizations) {
++      lto_opt_level = 2
++    } else {
++      lto_opt_level = 0
++    }
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-+      ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO3" ]
++      ldflags += [ "-Wl,-mllvm,-import-instr-limit=5" ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1260,13 +1267,14 @@ config("thinlto_optimize_default") {
- config("thinlto_optimize_max") {
-   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
-     if (thin_lto_enable_optimizations) {
--      lto_opt_level = 2
-+      lto_opt_level = 3
-     } else {
--      lto_opt_level = 0
-+      lto_opt_level = 3
-     }
- 
-     if (is_win) {
+@@ -1305,6 +1315,58 @@ config("thinlto_optimize_max") {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
-       ldflags += [ "-Wl,--lto-CGO" + lto_opt_level ]
++      ldflags += [ "-Wl,--lto-CGO3" ]
++      ldflags += [ "-Wl,-mllvm,-import-instr-limit=30" ]
++      ldflags += [
++        "-Wl,-mllvm,-memdep-block-scan-limit=1000",
++        "-Wl,-mllvm,-aggressive-ext-opt",
++        "-Wl,-mllvm,-costmodel-reduxcost",
++        "-Wl,-mllvm,-enable-cold-section",
++        "-Wl,-mllvm,-enable-cond-stores-vec",
++        "-Wl,-mllvm,-enable-dfa-jump-thread",
++        "-Wl,-mllvm,-enable-gvn-hoist",
++        "-Wl,-mllvm,-enable-gvn-sink",
++        "-Wl,-mllvm,-enable-interleaved-mem-accesses",
++        # "-Wl,-mllvm,-enable-ipra",
++        "-Wl,-mllvm,-enable-load-pre",
++        "-Wl,-mllvm,-enable-local-reassign",
++        "-Wl,-mllvm,-enable-loop-distribute",
++        "-Wl,-mllvm,-enable-loop-flatten",
++        "-Wl,-mllvm,-enable-loop-versioning-licm",
++        "-Wl,-mllvm,-enable-loopinterchange",
++        "-Wl,-mllvm,-x86-machine-combiner=true",
++        "-Wl,-mllvm,-enable-masked-interleaved-mem-accesses",
++        "-Wl,-mllvm,-enable-nontrivial-unswitch",
++        "-Wl,-mllvm,-enable-unroll-and-jam",
++        "-Wl,-mllvm,-exhaustive-register-search",
++        "-Wl,-mllvm,-force-precise-rotation-cost",
++        "-Wl,-mllvm,-force-vector-interleave=4",
++        "-Wl,-mllvm,-gvn-hoist-max-bbs=-1",
++        "-Wl,-mllvm,-gvn-hoist-max-chain-length=-1",
++        "-Wl,-mllvm,-gvn-hoist-max-depth=-1",
++        "-Wl,-mllvm,-inline-enable-cost-benefit-analysis",
++        "-Wl,-mllvm,-jump-threading-threshold=30",
++        "-Wl,-mllvm,-rotation-max-header-size=64",
++        "-Wl,-mllvm,-lsr-complexity-limit=2147483647",
++        "-Wl,-mllvm,-machine-sink-split",
++        "-Wl,-mllvm,-misched-cluster=true",
++        "-Wl,-mllvm,-phi-node-folding-threshold=3",
++        "-Wl,-mllvm,-precise-rotation-cost",
++        "-Wl,-mllvm,-scalar-evolution-max-add-rec-size=1000",
++        "-Wl,-mllvm,-simplifycfg-sink-common",
++        "-Wl,-mllvm,-sink-insts-to-avoid-spills",
++        "-Wl,-mllvm,-slp-vectorize-hor-store",
++        "-Wl,-mllvm,-spec-exec-max-speculation-cost=10",
++        "-Wl,-mllvm,-tail-merge-threshold=100",
++        "-Wl,-mllvm,-unroll-allow-partial",
++        "-Wl,-mllvm,-unroll-runtime-epilog",
++        "-Wl,-mllvm,-vectorizer-maximize-bandwidth",
++        "-Wl,-mllvm,-x86-cmov-converter",
++        "-Wl,-mllvm,-x86-early-ifcvt",
++        "-Wl,-mllvm,-x86-pad-for-align",
++        "-Wl,-mllvm,-scheditins",
++        "-Wl,-mllvm,-x86-use-vzeroupper",
++      ]
      }
-@@ -1309,7 +1317,7 @@ config("compiler_cpu_abi") {
+ 
+     if (toolchain_supports_rust_thin_lto) {
+@@ -1345,7 +1407,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-march=x86-64-v2", "-mavx", ]
++      cflags += [ "-march=x86-64-v2", "-mcx16", "-msahf", "-mavx", "-maes", "-mpclmul", "-mxsave", ]
        if (target_os == "chromeos" && cros_target_cpu_arch != "" &&
-           current_cpu == target_cpu) {
+           is_a_target_toolchain) {
          cflags += [ "-march=$cros_target_cpu_arch" ]
-@@ -1390,7 +1398,7 @@ config("compiler_cpu_abi") {
-         ldflags += [ "-mips32r2" ]
-         if (is_clang) {
-           cflags += [
--            "-march=mipsel",
-+            "-mipsel",
-             "-mcpu=mips32r2",
-           ]
-         } else {
-@@ -2720,6 +2728,33 @@ if (is_win) {
-   common_optimize_on_cflags = []
-   common_optimize_on_ldflags = []
- 
-+ common_optimize_on_cflags += [
-+  "-mllvm", "-adce-remove-loops",
-+  "-mllvm", "-enable-gvn-hoist",
-+  "-mllvm", "-enable-local-reassign",
-+  "-mllvm", "-enable-nontrivial-unswitch",
-+  "-mllvm", "-enable-loopinterchange",
-+  "-mllvm", "-enable-loop-distribute",
-+  "-mllvm", "-enable-unroll-and-jam",
-+  "-mllvm", "-enable-loop-flatten",
-+  "-mllvm", "-enable-loop-versioning-licm",
-+  "-mllvm", "-sink-insts-to-avoid-spills",
-+ ]
-+
-+ common_optimize_on_ldflags += [
-+  "-Wl,-mllvm,-adce-remove-loops",
-+  "-Wl,-mllvm,-enable-gvn-hoist",
-+  "-Wl,-mllvm,-enable-local-reassign",
-+  "-Wl,-mllvm,-enable-nontrivial-unswitch",
-+  "-Wl,-mllvm,-enable-loopinterchange",
-+  "-Wl,-mllvm,-enable-loop-distribute",
-+  "-Wl,-mllvm,-enable-unroll-and-jam",
-+  "-Wl,-mllvm,-enable-loop-flatten",
-+  "-Wl,-mllvm,-enable-loop-versioning-licm",
-+  "-Wl,-mllvm,-sink-insts-to-avoid-spills",
-+  # "-Wl,-mllvm,-pass-remarks=vector",
-+ ]
-+
-   if (is_android) {
-     # TODO(jdduke) Re-enable on mips after resolving linking
-     # issues with libc++ (crbug.com/456380).
-@@ -2856,7 +2891,7 @@ config("optimize") {
-     # vectorization while otherwise optimizing for size.
-     rustflags = [ "-Copt-level=s" ]
-   } else {
--    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    cflags = [ "-O3" ] + common_optimize_on_cflags
- 
-     # The `-O3` for clang turns on extra optimizations compared to the standard
-     # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
-@@ -2911,7 +2946,7 @@ config("optimize_max") {
+@@ -2987,7 +3049,7 @@ config("optimize_max") {
    } else if (optimize_for_fuzzing) {
      cflags = [ "-O1" ] + common_optimize_on_cflags
    } else {
@@ -196,10 +157,10 @@ index 5575c049b222f..8be111ca9ed9c 100644
    *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
    return true;
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
-index ef812b2d993d3..e69de29bb2d1d 100755
+index 571fb836f3ac1..e69de29bb2d1d 100755
 --- a/chrome/installer/linux/common/repo.cron
 +++ b/chrome/installer/linux/common/repo.cron
-@@ -1,44 +0,0 @@
+@@ -1,37 +0,0 @@
 -#!/bin/sh
 -#
 -# Copyright 2009 The Chromium Authors
@@ -215,9 +176,11 @@ index ef812b2d993d3..e69de29bb2d1d 100755
 -# for any other reason, this won't re-enable it.
 -#
 -# This functionality can be controlled by creating the $DEFAULTS_FILE and
--# setting "repo_add_once" and/or "repo_reenable_on_distupgrade" to "true" or
--# "false" as desired. An empty $DEFAULTS_FILE is the same as setting both values
--# to "false".
+-# setting "repo_reenable_on_distupgrade" to "true" or "false" as desired.
+-# An empty $DEFAULTS_FILE is the same as setting it to "false".
+-#
+-# The $DEFAULTS_FILE also has a setting "repo_add_once" which can be set
+-# to "false" to prevent the package install from adding the repo altogether.
 -
 -@@include@@../common/variables.include
 -
@@ -232,35 +195,309 @@ index ef812b2d993d3..e69de29bb2d1d 100755
 -
 -if [ "$repo_add_once" = "true" ]; then
 -  create_sources_lists
--  RES=$?
--  # Sources creation succeeded, so stop trying.
--  if [ $RES -ne 2 ]; then
--    sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' "$DEFAULTS_FILE"
--  fi
--else
--  update_bad_sources
+-elif [ "$repo_reenable_on_distupgrade" = "true" ]; then
+-  install_deb822_sources
+-fi
+diff --git a/chrome/installer/linux/common/rpmrepo.cron b/chrome/installer/linux/common/rpmrepo.cron
+index 90ff896ea5ede..e69de29bb2d1d 100755
+--- a/chrome/installer/linux/common/rpmrepo.cron
++++ b/chrome/installer/linux/common/rpmrepo.cron
+@@ -1,59 +0,0 @@
+-#!/bin/sh
+-#
+-# Copyright 2009 The Chromium Authors
+-# Use of this source code is governed by a BSD-style license that can be
+-# found in the LICENSE file.
+-#
+-# This script is part of the @@PACKAGE package.
+-#
+-# It creates the repository configuration file for package updates, since
+-# we cannot do this during the @@PACKAGE installation since the repository
+-# is locked.
+-#
+-# This functionality can be controlled by creating the $DEFAULTS_FILE and
+-# setting "repo_add_once" to "true" or "false" as desired. An empty
+-# $DEFAULTS_FILE is the same as setting the value to "false".
+-
+-@@include@@../common/variables.include
+-
+-@@include@@rpm.include
+-
+-## MAIN ##
+-if [ -r "$DEFAULTS_FILE" ]; then
+-  . "$DEFAULTS_FILE"
 -fi
 -
--if [ "$repo_reenable_on_distupgrade" = "true" ]; then
--  handle_distro_upgrade
+-install_rpm_key
+-
+-if [ "$repo_add_once" = "true" ]; then
+-  determine_rpm_package_manager
+-
+-  # Let's run through this for each supported package manager as detected...
+-  for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-  do
+-    # The initial install happens in the post-install scripts, but there have been
+-    # reports of configuration problems, so just verify that everything looks
+-    # good, and if not, try to install again.
+-    verify_install $PACKAGEMANAGER
+-    if [ $? -ne 0 ]; then
+-      install_${PACKAGEMANAGER}
+-    fi
+-  done
+-
+-  if [ $? -eq 0 ]; then
+-    # Do this for each supported package manager...
+-    for PACKAGEMANAGER in ${PACKAGEMANAGERS[*]}
+-    do
+-      # Before we quit auto-configuration, check that everything looks sane, since
+-      # part of this happened during package install and we don't have the return
+-      # value of that process.
+-      verify_install $PACKAGEMANAGER
+-      if [ $? -eq 0 ]; then
+-        sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' \
+-          "$DEFAULTS_FILE"
+-      fi
+-    done
+-  fi
+-else
+-  update_bad_repo
 -fi
 diff --git a/chrome/installer/linux/debian/build.py b/chrome/installer/linux/debian/build.py
-index 4c8c99046294d..61488cc746b36 100755
+index 2d023ed81b760..9ab90487cd1e3 100755
 --- a/chrome/installer/linux/debian/build.py
 +++ b/chrome/installer/linux/debian/build.py
-@@ -202,9 +202,10 @@ def main() -> None:
+@@ -209,9 +209,9 @@ def main() -> None:
              installer.run_command(["ar", "-x", pkg_basename], cwd=tmp_file_dir)
              installer.run_command([
                  "xz",
 -                "-z9",
 +                "-z6",
 +                "-e",
-                 "-T0",
+                 f"-T{args.xz_nthreads}",
 -                "--lzma2=dict=256MiB",
-+                # "--lzma2=dict=256MiB",
                  str(tmp_file_dir / "data.tar"),
              ])
              installer.run_command(
+diff --git a/chrome/installer/linux/debian/calculate_package_deps.py b/chrome/installer/linux/debian/calculate_package_deps.py
+index 383feecccd876..c30f2603180ba 100755
+--- a/chrome/installer/linux/debian/calculate_package_deps.py
++++ b/chrome/installer/linux/debian/calculate_package_deps.py
+@@ -1,152 +1,73 @@
+ #!/usr/bin/env python3
+-# Copyright 2017 The Chromium Authors
+-# Use of this source code is governed by a BSD-style license that can be
+-# found in the LICENSE file.
+-"""Given a binary, uses dpkg-shlibdeps to check that its package dependencies
+-are satisfiable on all supported debian-based distros.
+-"""
+-
+ import argparse
+-import json
+ import os
+-import subprocess
+ import sys
+ 
+-import deb_version
+-import package_version_interval
+-
+-parser = argparse.ArgumentParser()
+-parser.add_argument('binary')
+-parser.add_argument('sysroot')
+-parser.add_argument('arch')
+-parser.add_argument('dep_filename')
+-parser.add_argument('--distro-check', action='store_true')
+-args = parser.parse_args()
+-
+-binary = os.path.abspath(args.binary)
+-sysroot = os.path.abspath(args.sysroot)
+-arch = args.arch
+-dep_filename = os.path.abspath(args.dep_filename)
+-distro_check = args.distro_check
+-
+-script_dir = os.path.dirname(os.path.realpath(__file__))
+-dpkg_shlibdeps = os.path.join(script_dir, '..', '..', '..', '..', 'third_party',
+-                              'dpkg-shlibdeps', 'dpkg-shlibdeps.pl')
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument('binary')
++    parser.add_argument('sysroot')
++    parser.add_argument('arch')
++    parser.add_argument('dep_filename')
++    args = parser.parse_args()
+ 
+-cmd = [dpkg_shlibdeps, '--ignore-weak-undefined']
+-if arch == 'x64':
+-    cmd.extend([
+-        '-l%s/usr/lib/x86_64-linux-gnu' % sysroot,
+-        '-l%s/lib/x86_64-linux-gnu' % sysroot
+-    ])
+-elif arch == 'x86':
+-    cmd.extend([
+-        '-l%s/usr/lib/i386-linux-gnu' % sysroot,
+-        '-l%s/lib/i386-linux-gnu' % sysroot
+-    ])
+-elif arch == 'arm':
+-    cmd.extend([
+-        '-l%s/usr/lib/arm-linux-gnueabihf' % sysroot,
+-        '-l%s/lib/arm-linux-gnueabihf' % sysroot
+-    ])
+-elif arch == 'arm64':
+-    cmd.extend([
+-        '-l%s/usr/lib/aarch64-linux-gnu' % sysroot,
+-        '-l%s/lib/aarch64-linux-gnu' % sysroot
+-    ])
+-elif arch == 'mipsel':
+-    cmd.extend([
+-        '-l%s/usr/lib/mipsel-linux-gnu' % sysroot,
+-        '-l%s/lib/mipsel-linux-gnu' % sysroot
+-    ])
+-elif arch == 'mips64el':
+-    cmd.extend([
+-        '-l%s/usr/lib/mips64el-linux-gnuabi64' % sysroot,
+-        '-l%s/lib/mips64el-linux-gnuabi64' % sysroot
+-    ])
+-elif arch == 'riscv64':
+-    cmd.extend([
+-        '-l%s/usr/lib/riscv64-linux-gnu' % sysroot,
+-        '-l%s/lib/riscv64-linux-gnu' % sysroot
+-    ])
+-else:
+-    print('Unsupported architecture ' + arch)
+-    sys.exit(1)
+-cmd.extend(['-l%s/usr/lib' % sysroot, '-O', '-e', binary])
++    # Consolidated 2026 dependency baseline (Bullseye/Bookworm/Trixie compatible)
++    # Note: These must be newline-separated for merge_package_versions.py to parse them.
++    deps = [
++        "ca-certificates",
++        "fonts-liberation",
++        "libasound2 (>= 1.0.17)",
++        "libatk-bridge2.0-0 (>= 2.5.3)",
++        "libatk1.0-0 (>= 1.12.4)",
++        "libc6 (>= 2.28)",
++        "libcairo2 (>= 1.6.0)",
++        "libcups2 (>= 1.4.0)",
++        "libdbus-1-3 (>= 1.9.14)",
++        "libdrm2 (>= 2.4.3)",
++        "libexpat1 (>= 2.0.1)",
++        "libfontconfig1 (>= 2.12.6)",
++        "libgbm1 (>= 8.1)",
++        "libgcc-s1 (>= 4.8)",
++        "libglib2.0-0 (>= 2.31.8)",
++        "libgtk-3-0 (>= 3.9.10)",
++        "libnspr4 (>= 2:4.9.5-1~)",
++        "libnss3 (>= 2:3.26)",
++        "libpango-1.0-0 (>= 1.14.0)",
++        "libpangocairo-1.0-0 (>= 1.14.0)",
++        "libstdc++6 (>= 10)",
++        "libva-drm2",
++        "libva2",
++        "libvulkan1",
++        "libwayland-client0",
++        "libwayland-egl1",
++        "libx11-6 (>= 2:1.4.99.1)",
++        "libx11-xcb1 (>= 2:1.5.0)",
++        "libxcb1 (>= 1.6)",
++        "libxcomposite1 (>= 1:0.3-1)",
++        "libxdamage1 (>= 1:1.1)",
++        "libxext6",
++        "libxfixes3",
++        "libxkbcommon0 (>= 0.5.0)",
++        "libxrandr2 (>= 2:1.2.99.3)",
++        "libxshmfence1",
++        "xdg-utils (>= 1.0.2)"
++    ]
+ 
+-proc = subprocess.Popen(
+-    cmd,
+-    stdout=subprocess.PIPE,
+-    stderr=subprocess.PIPE,
+-    cwd=sysroot,
+-    encoding='utf-8')
+-(stdout, stderr) = proc.communicate()
+-exit_code = proc.wait()
+-if exit_code != 0:
+-    print('dpkg-shlibdeps failed with exit code %d' % exit_code)
+-    print('stderr was:\n%s' % stderr)
+-    sys.exit(1)
++    # Sort and join with newlines (Crucial for the merge script)
++    deps_string = '\n'.join(sorted(deps))
+ 
+-SHLIBS_DEPENDS_PREFIX = 'shlibs:Depends='
+-deps_str = ''
+-for line in stdout.split('\n'):
+-    if line.startswith(SHLIBS_DEPENDS_PREFIX):
+-        deps_str = line[len(SHLIBS_DEPENDS_PREFIX):]
+-deps = deps_str.split(', ')
+-interval_sets = []
+-if deps_str != '':
+-    for dep in deps:
+-        interval_set = package_version_interval.parse_interval_set(dep)
+-        # Chrome depends on libgcc_s, is from the package libgcc1.  However, in
+-        # Bullseye, the package was renamed to libgcc-s1.  To avoid adding a dep
+-        # on the newer package, this hack skips the dep.  This is safe because
+-        # libgcc-s1 is a dependency of libc6.  This hack can be removed once
+-        # support for Ubuntu Bionic is dropped.
+-        if interval_set.intervals[0].package == 'libgcc-s1':
+-            assert len(interval_set.intervals) == 1
+-            interval = interval_set.intervals[0]
+-            # Ensure there's not a maximum version.
+-            assert interval.end == (
+-                package_version_interval.PackageVersionIntervalEndpoint(
+-                    True, None, None))
+-            # The GCC version in Ubuntu Trusty is 4.8, so use that as the minimum.
+-            assert interval.contains(deb_version.DebVersion('4.8'))
+-            continue
+-        interval_sets.append(interval_set)
++    # Path into the Chromium build system for the atomic output helper
++    script_dir = os.path.dirname(os.path.abspath(__file__))
++    sys.path.append(os.path.join(script_dir, *([os.pardir] * 4), 'build'))
+ 
+-script_dir = os.path.dirname(os.path.abspath(__file__))
+-deps_file = os.path.join(script_dir, 'dist_package_versions.json')
+-distro_package_versions = json.load(open(deps_file))
++    try:
++        import action_helpers
++        with action_helpers.atomic_output(args.dep_filename, mode='w') as f:
++            f.write(deps_string + '\n')
++    except (ImportError, AttributeError):
++        # Fallback for execution outside the build system
++        with open(args.dep_filename, 'w') as f:
++            f.write(deps_string + '\n')
+ 
+-ret_code = 0
+-if distro_check:
+-    for distro in distro_package_versions:
+-        for interval_set in interval_sets:
+-            dep_satisfiable = False
+-            for interval in interval_set.intervals:
+-                package = interval.package
+-                if package not in distro_package_versions[distro]:
+-                    continue
+-                distro_version = deb_version.DebVersion(
+-                    distro_package_versions[distro][package])
+-                if interval.contains(distro_version):
+-                    dep_satisfiable = True
+-                    break
+-            if not dep_satisfiable:
+-                print(
+-                    'Dependency %s not satisfiable on distro %s caused by binary %s'
+-                    % (interval_set.formatted(), distro,
+-                       os.path.basename(binary)),
+-                    file=sys.stderr)
+-                ret_code = 1
+-if ret_code == 0:
+-    sys.path.append(
+-        os.path.join(script_dir, os.path.pardir, os.path.pardir, os.path.pardir,
+-                     os.path.pardir, 'build'))
+-    import action_helpers
+-    with action_helpers.atomic_output(dep_filename, mode='w') as dep_file:
+-        lines = [
+-            interval_set.formatted() + '\n' for interval_set in interval_sets
+-        ]
+-        dep_file.write(''.join(sorted(lines)))
+-sys.exit(ret_code)
++if __name__ == '__main__':
++    main()
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
 index 3e1cadc8296ca..0cb44dbf7ad77 100755
 --- a/chrome/installer/linux/debian/postrm
@@ -284,10 +521,10 @@ index 3e1cadc8296ca..0cb44dbf7ad77 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/chrome/installer/linux/rpm/build.py b/chrome/installer/linux/rpm/build.py
-index 8c414ab859072..fba9084efd98e 100755
+index 5cced7e815d64..3c422a75b4527 100755
 --- a/chrome/installer/linux/rpm/build.py
 +++ b/chrome/installer/linux/rpm/build.py
-@@ -124,7 +124,7 @@ def main() -> None:
+@@ -132,7 +132,7 @@ def main() -> None:
          (rpm_build_dir / "RPMS").mkdir(parents=True, exist_ok=True)
  
          if args.official:
@@ -363,10 +600,10 @@ index 117bb7eb6d499..c3839ab565458 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index f8af7057b111c..54893a27dac8b 100644
+index f4c481be6ab1f..cc72cd901b578 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
-@@ -66,7 +66,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
+@@ -69,7 +69,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
  const char* GetAllowedVideoDecoders() {
    // This should match the configured lists in //third_party/ffmpeg.
  #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
@@ -376,7 +613,7 @@ index f8af7057b111c..54893a27dac8b 100644
    return "";
  #endif
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index 7a63e7b64cdef..05783c6e8aed8 100644
+index 014924d33a6ea..40be23b63171b 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -73,7 +73,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -426,11 +663,18 @@ index 8e650078a5816..6614714c08c78 100644
  
  // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
  // platform accelerator supports encoding of AV1.
+diff --git a/third_party/ffmpeg b/third_party/ffmpeg
+index b5e18fb9da84e..ae11d2ba5c835 160000
+--- a/third_party/ffmpeg
++++ b/third_party/ffmpeg
+@@ -1 +1 @@
+-Subproject commit b5e18fb9da84e26ceef30d4e4886696bf59337c0
++Subproject commit ae11d2ba5c835b822a61d6a99eeb853ca30d41d8
 diff --git a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
-index 16eca09a2c304..64426fb8bebc4 100644
+index 2be9495aff424..d84b4ba524b43 100644
 --- a/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
 +++ b/ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc
-@@ -248,9 +248,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
+@@ -249,9 +249,9 @@ GLOzone* WaylandSurfaceFactory::GetGLOzone(
  std::unique_ptr<gpu::VulkanImplementation>
  WaylandSurfaceFactory::CreateVulkanImplementation(bool use_swiftshader,
                                                    bool allow_protected_memory) {
