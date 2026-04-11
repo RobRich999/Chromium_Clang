@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index 7830ba2ed2366..6d54a2c9ebb54 100644
+index b191cc72dd789..b026e7be85ac9 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -548,10 +548,10 @@ config("compiler") {
+@@ -549,10 +549,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,26 +17,30 @@ index 7830ba2ed2366..6d54a2c9ebb54 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -664,7 +664,7 @@ config("compiler") {
+@@ -665,9 +665,9 @@ config("compiler") {
  
      # TODO(crbug.com/40192287): Investigate why/if this should be needed.
      if (is_win) {
 -      cflags += [ "/clang:-ffp-contract=off" ]
 +      cflags += [ "/clang:-ffp-contract=fast" ]
      } else {
-       cflags += [ "-ffp-contract=off" ]
+-      cflags += [ "-ffp-contract=off" ]
++      cflags += [ "-ffp-contract=fast" ]
      }
-@@ -993,6 +993,9 @@ config("compiler") {
+ 
+     # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF.
+@@ -994,6 +994,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
 +
 +     "-Ctarget-cpu=x86-64-v3",
 +     "-Cllvm-args=-fp-contract=fast",
++     "-Ztune-cpu=skylake",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1265,12 +1268,18 @@ config("disallow_unstable_features") {
+@@ -1266,13 +1270,24 @@ config("disallow_unstable_features") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -50,90 +54,56 @@ index 7830ba2ed2366..6d54a2c9ebb54 100644
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      ldflags += [ "-opt:lldltocgo=3" ]
++      ldflags += [
++        "-mllvm:-adce-remove-loops=true",
++        "-mllvm:-x86-align-branch-boundary=32",
++        "-mllvm:-x86-align-branch=jcc+jmp+indirect",
++    ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
+-    }
 +      ldflags += [ "-Wl,--lto-CGO3" ]
-     }
++      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1303,8 +1312,10 @@ config("thinlto_optimize_max") {
+       # We always point Rust to a linker that performs LTO, so we don't want Rust
+@@ -1304,8 +1319,26 @@ config("thinlto_optimize_max") {
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
 +      ldflags += [ "-opt:lldltocgo=3" ]
++      ldflags += [
++        "-mllvm:-import-hot-multiplier=15",
++        "-mllvm:-adce-remove-loops=true",
++        "-mllvm:-enable-gvn-hoist",
++        "-mllvm:-enable-gvn-sink",
++        "-mllvm:-machine-sink-split",
++        "-mllvm:-phi-node-folding-threshold=4",
++        "-mllvm:-sink-insts-to-avoid-spills",
++        "-mllvm:-spec-exec-max-speculation-cost=15",
++        "-mllvm:-x86-align-branch-boundary=32",
++        "-mllvm:-x86-align-branch=jcc+jmp+indirect",
++        "-mllvm:-x86-cmov-converter",
++    ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
 +      ldflags += [ "-Wl,--lto-CGO3" ]
++      ldflags += [
++        "-Wl,-mllvm,-import-hot-multiplier=15",
++      ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1345,7 +1356,7 @@ config("compiler_cpu_abi") {
+@@ -1346,7 +1379,7 @@ config("compiler_cpu_abi") {
          cflags += [ "-m64" ]
          ldflags += [ "-m64" ]
        }
 -      cflags += [ "-msse3" ]
-+      cflags += [ "-march=x86-64-v3", ]
++      cflags += [ "-march=x86-64-v3", "-mtune=skylake", ]
        if (target_os == "chromeos" && cros_target_cpu_arch != "" &&
            is_a_target_toolchain) {
          cflags += [ "-march=$cros_target_cpu_arch" ]
-@@ -2782,6 +2793,56 @@ if (is_win) {
-     ]
-   }
-   common_optimize_on_ldflags = []
-+  common_optimize_on_ldflags += [
-+    "-mllvm:-memdep-block-scan-limit=1000",
-+    "-mllvm:-aggressive-ext-opt",
-+    "-mllvm:-costmodel-reduxcost",
-+    "-mllvm:-enable-cold-section",
-+    "-mllvm:-enable-cond-stores-vec",
-+    "-mllvm:-enable-dfa-jump-thread",
-+    "-mllvm:-enable-gvn-hoist",
-+    "-mllvm:-enable-gvn-sink",
-+    "-mllvm:-enable-interleaved-mem-accesses",
-+    "-mllvm:-enable-ipra",
-+    "-mllvm:-enable-load-pre",
-+    "-mllvm:-enable-local-reassign",
-+    "-mllvm:-enable-loop-distribute",
-+    "-mllvm:-enable-loop-flatten",
-+    "-mllvm:-enable-loop-versioning-licm",
-+    "-mllvm:-enable-loopinterchange",
-+    "-mllvm:-x86-machine-combiner=true",
-+    "-mllvm:-enable-masked-interleaved-mem-accesses",
-+    "-mllvm:-enable-nontrivial-unswitch",
-+    "-mllvm:-enable-unroll-and-jam",
-+    "-mllvm:-exhaustive-register-search",
-+    "-mllvm:-force-precise-rotation-cost",
-+    "-mllvm:-force-vector-interleave=4",
-+    "-mllvm:-gvn-hoist-max-bbs=-1",
-+    "-mllvm:-gvn-hoist-max-chain-length=-1",
-+    "-mllvm:-gvn-hoist-max-depth=-1",
-+    "-mllvm:-inline-enable-cost-benefit-analysis",
-+    "-mllvm:-jump-threading-threshold=30",
-+    "-mllvm:-rotation-max-header-size=64",
-+    "-mllvm:-lsr-complexity-limit=2147483647",
-+    "-mllvm:-machine-sink-split",
-+    "-mllvm:-misched-cluster=true",
-+    "-mllvm:-phi-node-folding-threshold=3",
-+    "-mllvm:-precise-rotation-cost",
-+    "-mllvm:-scalar-evolution-max-add-rec-size=1000",
-+    "-mllvm:-simplifycfg-sink-common",
-+    "-mllvm:-sink-insts-to-avoid-spills",
-+    "-mllvm:-slp-vectorize-hor-store",
-+    "-mllvm:-spec-exec-max-speculation-cost=10",
-+    "-mllvm:-tail-merge-threshold=100",
-+    "-mllvm:-unroll-allow-partial",
-+    "-mllvm:-unroll-runtime-epilog",
-+    "-mllvm:-vectorizer-maximize-bandwidth",
-+    "-mllvm:-x86-cmov-converter",
-+    "-mllvm:-x86-early-ifcvt",
-+    "-mllvm:-x86-pad-for-align",
-+    "-mllvm:-scheditins",
-+    "-mllvm:-x86-use-vzeroupper",
-+  ]
- 
-   # /OPT:ICF is not desirable in Debug builds, since code-folding can result in
-   # misleading symbols in stack traces.
-@@ -2898,10 +2959,8 @@ config("optimize") {
+@@ -2875,10 +2908,7 @@ config("optimize") {
    if (is_win) {
      # clang-cl's /O2 corresponds to clang's -O3, and really want -O2 for
      # consistency with the other platforms.
@@ -142,12 +112,21 @@ index 7830ba2ed2366..6d54a2c9ebb54 100644
 -               "/clang:-O2",
 -             ] + common_optimize_on_cflags
 +    cflags = [ "-O2" ] + common_optimize_on_cflags
-+    # cflags = [ "-mllvm", "-pgo-cold-func-opt=minsize", ]
  
      # The `-O3` for clang turns on extra optimizations compared to the standard
      # `-O2`. But for rust, `-Copt-level=3` is the default and is thus reliable
+@@ -2961,6 +2991,9 @@ config("optimize_max") {
+     # Favor speed over size, /O2 must be before the common flags.
+     # /O2 implies /Ot, /Oi, and /GF.
+     cflags = [ "/O2" ] + common_optimize_on_cflags
++    if (is_clang) {
++      cflags += [ "/clang:-O3" ]
++  }
+   } else if (optimize_for_fuzzing) {
+     cflags = [ "-O1" ] + common_optimize_on_cflags
+   } else {
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index eb25c10aca0bb..46d2919b37baa 100644
+index eb25c10aca0bb..23ee1ab6216b8 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -120,7 +120,13 @@ config("compiler") {
@@ -156,11 +135,11 @@ index eb25c10aca0bb..46d2919b37baa 100644
      if (current_cpu == "x86" || current_cpu == "x64") {
 -      cflags += [ "-msse3" ]
 +      cflags += [
-+        "-mtune=haswell",
++        "-mtune=skylake",
 +        "-msse3", "-mssse3", "-msse4.1", "-msse4.2",
 +        "-mavx", "-mavx2", "-mfma", "-mf16c",
-+        "-mlzcnt", "-mbmi2", "-mpopcnt", "-mmovbe",
-+        "/clang:-w",
++        "-mlzcnt", "-mbmi", "-mbmi2", "-mpopcnt",
++        "-mmovbe", "/clang:-w",
 +      ]
      }
  
@@ -194,6 +173,33 @@ index aff0370044046..811529a08db83 100644
 -#endif
 +// #endif
  }  // extern "C"
+diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
+index 3e5dbac1391de..65ac78d018bc3 100755
+--- a/chrome/tools/build/win/create_installer_archive.py
++++ b/chrome/tools/build/win/create_installer_archive.py
+@@ -83,21 +83,7 @@ def CompressUsingLZMA(build_dir,
+         cmd.append('-mx1')
+     else:
+         cmd.extend([
+-            # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
+-            # pre-filter). This results in a ~2.3MB decrease in installer size
+-            # on a 24MB installer.
+-            # Additionally, these settings reflect a 7zip 4.42 and up change in
+-            # the definition of -mx9, increasting the dictionary size moving to
+-            # 26bit = 64MB. This results in an additional ~3.5MB decrease.
+-            # Older 7zip versions can support these settings, as these changes
+-            # rely on existing functionality in the lzma format.
+-            '-m0=BCJ2',
+-            '-m1=LZMA:d27:fb128',
+-            '-m2=LZMA:d22:fb128:mf=bt2',
+-            '-m3=LZMA:d22:fb128:mf=bt2',
+-            '-mb0:1',
+-            '-mb0s1:2',
+-            '-mb0s2:3',
++            '-m0=LZMA2:d24:fb64',
+         ])
+     cmd.extend([
+         os.path.abspath(compressed_file),
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index 117bb7eb6d499..c3839ab565458 100644
 --- a/media/base/supported_types.cc
@@ -238,7 +244,7 @@ index 117bb7eb6d499..c3839ab565458 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index f4c481be6ab1f..cc72cd901b578 100644
+index 043513a51bb80..c507c16f94f85 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
 @@ -69,7 +69,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
@@ -301,10 +307,3 @@ index 8e650078a5816..6614714c08c78 100644
  
  // When enabled, allows AV1 HW encoding to be used for WebRTC streams, if the
  // platform accelerator supports encoding of AV1.
-diff --git a/third_party/ffmpeg b/third_party/ffmpeg
-index b5e18fb9da84e..ae11d2ba5c835 160000
---- a/third_party/ffmpeg
-+++ b/third_party/ffmpeg
-@@ -1 +1 @@
--Subproject commit b5e18fb9da84e26ceef30d4e4886696bf59337c0
-+Subproject commit ae11d2ba5c835b822a61d6a99eeb853ca30d41d8
