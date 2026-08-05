@@ -31,7 +31,6 @@ chrome_pgo_phase = 2
 win_enable_cfg_guards = true
 disable_fieldtrial_testing_config = true
 target_os = "win"
-enable_media_foundation_widevine_cdm = true
 enable_ffmpeg_video_decoders = true
 enable_platform_hevc = true
 enable_hevc_parser_and_hw_decoder = true
