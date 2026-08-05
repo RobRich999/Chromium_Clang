@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index e1da11405c1f6..95fbbd55f4970 100644
+index d0b6cb583053a..f930c23a036a2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -529,10 +529,10 @@ config("compiler") {
+@@ -533,10 +533,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index e1da11405c1f6..95fbbd55f4970 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -651,9 +651,9 @@ config("compiler") {
+@@ -659,9 +659,9 @@ config("compiler") {
  
      # TODO(crbug.com/40192287): Investigate why/if this should be needed.
      if (is_win) {
@@ -29,19 +29,19 @@ index e1da11405c1f6..95fbbd55f4970 100644
      }
  
      # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF.
-@@ -980,6 +980,11 @@ config("compiler") {
+@@ -988,6 +988,11 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
 +
 +    "-Ctarget-cpu=x86-64-v3",
-+    "-Cllvm-args=-fp-contract=fast",
 +    "-Ztune-cpu=skylake-avx512",
++    "-Cllvm-args=-fp-contract=fast",
 +    "-Ctarget-feature=-fast-gather,+prefer-no-gather,+prefer-no-scatter",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1260,12 +1265,31 @@ config("disallow_unstable_features") {
+@@ -1272,12 +1277,31 @@ config("disallow_unstable_features") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -59,7 +59,7 @@ index e1da11405c1f6..95fbbd55f4970 100644
 +        "-mllvm:-adce-remove-loops=true",
 +        "-mllvm:-x86-align-branch-boundary=32",
 +        "-mllvm:-x86-align-branch=jcc+jmp+indirect",
-+        "-mllvm:-polly",
++        # "-mllvm:-polly",
 +    ]
      } else {
        ldflags = [ "-Wl,--lto-O" + lto_opt_level ]
@@ -69,12 +69,12 @@ index e1da11405c1f6..95fbbd55f4970 100644
 +        "-Wl,-mllvm,-x86-align-branch-boundary=32",
 +        "-Wl,-mllvm,-x86-align-branch=jcc+jmp+indirect",
 +        "-Wl,-z,pack-relative-relocs",
-+        "-Wl,-mllvm,-polly",
++        # "-Wl,-mllvm,-polly",
 +      ]
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1299,8 +1323,39 @@ config("thinlto_optimize_max") {
+@@ -1311,8 +1335,39 @@ config("thinlto_optimize_max") {
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
@@ -114,7 +114,7 @@ index e1da11405c1f6..95fbbd55f4970 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1723,7 +1778,7 @@ config("runtime_library") {
+@@ -1736,7 +1791,7 @@ config("runtime_library") {
    }
  
    if (use_safe_libcxx) {
@@ -123,7 +123,7 @@ index e1da11405c1f6..95fbbd55f4970 100644
    } else {
      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
    }
-@@ -2642,10 +2697,13 @@ config("optimize_max") {
+@@ -2681,10 +2736,13 @@ config("optimize_max") {
      # Favor speed over size, /O2 must be before the common flags.
      # /O2 implies /Ot, /Oi, and /GF.
      cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -158,7 +158,7 @@ index ae62bab587e7d..052d296ef11d0 100644
          is_a_target_toolchain) {
        cpu_abi_cflags += [ "-march=$cros_target_cpu_arch" ]
 diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index 101c2339697ca..63a753e0cd295 100644
+index de1c0f1900262..8c39bb0b4f97d 100644
 --- a/build/config/win/BUILD.gn
 +++ b/build/config/win/BUILD.gn
 @@ -120,7 +120,13 @@ config("compiler") {
@@ -177,10 +177,10 @@ index 101c2339697ca..63a753e0cd295 100644
  
      # Enable ANSI escape codes if something emulating them is around (cmd.exe
 diff --git a/chrome/installer/mini_installer/mini_installer_exe_main.cc b/chrome/installer/mini_installer/mini_installer_exe_main.cc
-index aff0370044046..811529a08db83 100644
+index ba2febbbbb2b0..33a4dd690fbd0 100644
 --- a/chrome/installer/mini_installer/mini_installer_exe_main.cc
 +++ b/chrome/installer/mini_installer/mini_installer_exe_main.cc
-@@ -59,7 +59,7 @@ void* memset(void* dest, int c, size_t count) {
+@@ -55,7 +55,7 @@ void* memset(void* dest, int c, size_t count) {
    return dest;
  }
  
@@ -189,8 +189,8 @@ index aff0370044046..811529a08db83 100644
  // The compiler generates calls to memcpy for ARM64 debug builds so we need to
  // supply a memcpy implementation in that configuration.
  // See comments above for why we do this incantation.
-@@ -71,5 +71,5 @@ void* memcpy(void* destination, const void* source, size_t count) {
-     *dst++ = *src++;
+@@ -67,5 +67,5 @@ void* memcpy(void* destination, const void* source, size_t count) {
+     *UNSAFE_TODO(dst++) = *UNSAFE_TODO(src++);
    return destination;
  }
 -#endif
@@ -223,8 +223,21 @@ index 0b0835612a464..e71e370893052 100755
          ])
      cmd.extend([
          os.path.abspath(compressed_file),
+diff --git a/extensions/browser/manifest_v2_handler.cc b/extensions/browser/manifest_v2_handler.cc
+index 5841d3dfbc888..5e6b5c88e27c7 100644
+--- a/extensions/browser/manifest_v2_handler.cc
++++ b/extensions/browser/manifest_v2_handler.cc
+@@ -32,7 +32,7 @@ namespace extensions {
+ namespace {
+ 
+ // Whether to override the MV2 deprecation for testing purposes.
+-bool g_allow_mv2_for_testing = false;
++bool g_allow_mv2_for_testing = true;
+ 
+ // Returns the suffix to use for histograms related to the manifest location
+ // grouping.
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index c4d25f792f306..ab611e67ed793 100644
+index efc7246c8cd3e..24cfe5b479ed8 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
 @@ -229,25 +229,12 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
@@ -257,7 +270,7 @@ index c4d25f792f306..ab611e67ed793 100644
  }
  
  bool IsDecoderVp9ProfileSupported(const VideoType& type) {
-@@ -579,7 +566,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
+@@ -580,7 +567,7 @@ bool IsEncoderOptionalVideoType(const media::VideoType& type) {
  
  bool IsDecoderBuiltInVideoCodec(VideoCodec codec) {
  #if BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) && BUILDFLAG(USE_PROPRIETARY_CODECS)
@@ -267,10 +280,10 @@ index c4d25f792f306..ab611e67ed793 100644
    }
  #endif  // BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS) &&
 diff --git a/media/ffmpeg/ffmpeg_common.cc b/media/ffmpeg/ffmpeg_common.cc
-index 4bf77b0acb5ae..9a4c94a7dad11 100644
+index 280dce68853c1..fe27fd56dcd30 100644
 --- a/media/ffmpeg/ffmpeg_common.cc
 +++ b/media/ffmpeg/ffmpeg_common.cc
-@@ -70,7 +70,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
+@@ -69,7 +69,7 @@ VideoColorSpace GetGuessedColorSpace(const VideoColorSpace& color_space) {
  const char* GetAllowedVideoDecoders() {
    // This should match the configured lists in //third_party/ffmpeg.
  #if BUILDFLAG(USE_PROPRIETARY_CODECS) && BUILDFLAG(ENABLE_FFMPEG_VIDEO_DECODERS)
@@ -279,52 +292,8 @@ index 4bf77b0acb5ae..9a4c94a7dad11 100644
  #else
    return "";
  #endif
-diff --git a/media/filters/ffmpeg_demuxer.cc b/media/filters/ffmpeg_demuxer.cc
-index 45d82a351a1bc..48be2a4268269 100644
---- a/media/filters/ffmpeg_demuxer.cc
-+++ b/media/filters/ffmpeg_demuxer.cc
-@@ -57,6 +57,13 @@
- #include "media/filters/ffmpeg_h265_to_annex_b_bitstream_converter.h"
- #endif
- 
-+#ifndef AV_PKT_DATA_DYNAMIC_HDR_SMPTE_2094_APP5
-+#define AV_PKT_DATA_DYNAMIC_HDR_SMPTE_2094_APP5 100 // Safe dummy value
-+struct AVDynamicHDRSmpte2094App5 {
-+  uint8_t data[1]; // Minimum size
-+};
-+#endif
-+
- namespace media {
- 
- namespace {
-@@ -343,23 +350,8 @@ base::span<const uint8_t> GetMatroskaBlockAdditionalSideData(
- 
- std::vector<uint8_t> GetAgtmSideData(const AVPacket* packet) {
-   std::vector<uint8_t> data;
--  size_t side_data_size = 0;
--  AVDynamicHDRSmpte2094App5* side_data =
--      reinterpret_cast<AVDynamicHDRSmpte2094App5*>(av_packet_get_side_data(
--          packet, AV_PKT_DATA_DYNAMIC_HDR_SMPTE_2094_APP5, &side_data_size));
--  if (side_data == nullptr || side_data_size == 0) {
--    return data;
--  }
--  size_t size = 0;
--  if (av_dynamic_hdr_smpte2094_app5_to_t35(side_data, nullptr, &size) != 0) {
--    return data;
--  }
--  data.resize(size);
--  uint8_t* vector_data = data.data();
--  if (av_dynamic_hdr_smpte2094_app5_to_t35(side_data, &vector_data, &size) !=
--      0) {
--    data.clear();
--  }
-+  // We return empty 'data' immediately because our FFmpeg
-+  // doesn't support the SMPTE 2094 App5 metadata structures.
-   return data;
- }
- 
 diff --git a/media/filters/ffmpeg_video_decoder.cc b/media/filters/ffmpeg_video_decoder.cc
-index eaf9f1c3c4490..11c15546d316d 100644
+index 3e351538d12f0..51853cdeb39af 100644
 --- a/media/filters/ffmpeg_video_decoder.cc
 +++ b/media/filters/ffmpeg_video_decoder.cc
 @@ -73,7 +73,6 @@ static int GetFFmpegVideoDecoderThreadCount(const VideoDecoderConfig& config) {
@@ -356,10 +325,10 @@ index eaf9f1c3c4490..11c15546d316d 100644
  
  FFmpegVideoDecoder::FFmpegVideoDecoder(std::unique_ptr<MediaLog> media_log)
 diff --git a/media/webrtc/webrtc_features.cc b/media/webrtc/webrtc_features.cc
-index 9547366160bc7..5215339db9607 100644
+index 8115387f9f145..3c745f20e1917 100644
 --- a/media/webrtc/webrtc_features.cc
 +++ b/media/webrtc/webrtc_features.cc
-@@ -44,12 +44,12 @@ BASE_FEATURE(kWebRtcAllowH265Receive, base::FEATURE_ENABLED_BY_DEFAULT);
+@@ -51,12 +51,12 @@ BASE_FEATURE(kWebRtcAllowH265Receive, base::FEATURE_ENABLED_BY_DEFAULT);
  
  // When enabled, allows H.265 L1T2 to be used for sending WebRTC streams, if the
  // accelerator reports support of encoding in L1T2.
