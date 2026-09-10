@@ -14,9 +14,9 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8051.0-r1695130
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8051.0-r1695130-linux64-rpm-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/153.0.7993.0-r1673900-linux64-rpm-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8051.0-r1695130-linux64-deb-avx
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/153.0.7993.0-r1673900-linux64-rpm-avx
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8051.0-r1695130-linux64-rpm-avx
 
 **Link for Arch Linux build (derived from rpm above) via AUR by [notyusufkhalifa](https://github.com/notyusufkhalifa):**
 
