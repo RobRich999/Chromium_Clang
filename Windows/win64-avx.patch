@@ -1,8 +1,8 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index d0b6cb583053a..ed13ad418c865 100644
+index e4b70e960767a..20177675ff9bb 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -533,10 +533,10 @@ config("compiler") {
+@@ -539,10 +539,10 @@ config("compiler") {
    # Linux/Android/Fuchsia common flags setup.
    # ---------------------------------
    if (is_linux || is_chromeos || is_android || is_fuchsia) {
@@ -17,7 +17,7 @@ index d0b6cb583053a..ed13ad418c865 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -988,6 +988,11 @@ config("compiler") {
+@@ -996,6 +996,11 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
@@ -25,11 +25,11 @@ index d0b6cb583053a..ed13ad418c865 100644
 +    "-Ctarget-cpu=x86-64-v2",
 +    "-Ctarget-feature=+avx",
 +    "-Cllvm-args=-fp-contract=off",
-+    "-Ctarget-feature=-fast-gather,+prefer-no-gather,+prefer-no-scatter",
++    "-Ctarget-feature=+prefer-no-gather,+prefer-no-scatter",
    ]
  
    if (!is_win || force_rustc_color_output) {
-@@ -1272,12 +1277,31 @@ config("disallow_unstable_features") {
+@@ -1280,12 +1285,31 @@ config("disallow_unstable_features") {
  # building with ThinLTO, no optimization is performed in the link step.
  config("thinlto_optimize_default") {
    if (!is_debug && use_thin_lto && is_a_target_toolchain) {
@@ -62,7 +62,7 @@ index d0b6cb583053a..ed13ad418c865 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1311,8 +1335,39 @@ config("thinlto_optimize_max") {
+@@ -1319,8 +1343,39 @@ config("thinlto_optimize_max") {
  
      if (is_win) {
        ldflags = [ "/opt:lldlto=" + lto_opt_level ]
@@ -102,7 +102,7 @@ index d0b6cb583053a..ed13ad418c865 100644
      }
  
      if (toolchain_supports_rust_thin_lto) {
-@@ -1736,7 +1791,7 @@ config("runtime_library") {
+@@ -1743,7 +1798,7 @@ config("runtime_library") {
    }
  
    if (use_safe_libcxx) {
@@ -111,7 +111,7 @@ index d0b6cb583053a..ed13ad418c865 100644
    } else {
      defines += [ "_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_NONE" ]
    }
-@@ -2681,10 +2736,13 @@ config("optimize_max") {
+@@ -2698,10 +2753,13 @@ config("optimize_max") {
      # Favor speed over size, /O2 must be before the common flags.
      # /O2 implies /Ot, /Oi, and /GF.
      cflags = [ "/O2" ] + common_optimize_on_cflags
@@ -144,33 +144,6 @@ index ae62bab587e7d..4769d5bdec4ff 100644
      if (target_os == "chromeos" && cros_target_cpu_arch != "" &&
          is_a_target_toolchain) {
        cpu_abi_cflags += [ "-march=$cros_target_cpu_arch" ]
-diff --git a/build/config/win/BUILD.gn b/build/config/win/BUILD.gn
-index de1c0f1900262..62331c4ce25b4 100644
---- a/build/config/win/BUILD.gn
-+++ b/build/config/win/BUILD.gn
-@@ -120,7 +120,21 @@ config("compiler") {
-     # microarchitecture. MSVC only supports a subset of architectures, and the
-     # next step after SSE2 will be AVX.
-     if (current_cpu == "x86" || current_cpu == "x64") {
--      cflags += [ "-msse3" ]
-+      cflags += [
-+        "-mtune=sandybridge",
-+        "-msse3",
-+        "-mssse3",
-+        "-msse4.1",
-+        "-msse4.2",
-+        "-mpopcnt",
-+        "-mcx16",
-+        "-msahf",
-+        "-mavx",
-+        "-mxsave",
-+        "-mno-gather",
-+        "-mno-scatter",
-+        "/clang:-w",
-+      ]
-     }
- 
-     # Enable ANSI escape codes if something emulating them is around (cmd.exe
 diff --git a/chrome/installer/mini_installer/mini_installer_exe_main.cc b/chrome/installer/mini_installer/mini_installer_exe_main.cc
 index ba2febbbbb2b0..33a4dd690fbd0 100644
 --- a/chrome/installer/mini_installer/mini_installer_exe_main.cc
@@ -191,33 +164,6 @@ index ba2febbbbb2b0..33a4dd690fbd0 100644
 -#endif
 +// #endif
  }  // extern "C"
-diff --git a/chrome/tools/build/win/create_installer_archive.py b/chrome/tools/build/win/create_installer_archive.py
-index 0b0835612a464..e71e370893052 100755
---- a/chrome/tools/build/win/create_installer_archive.py
-+++ b/chrome/tools/build/win/create_installer_archive.py
-@@ -83,21 +83,7 @@ def CompressUsingLZMA(build_dir,
-         cmd.append('-mx1')
-     else:
-         cmd.extend([
--            # Flags equivalent to -mx9 (ultra) but with the bcj2 turned on (exe
--            # pre-filter). This results in a ~2.3MB decrease in installer size
--            # on a 24MB installer.
--            # Additionally, these settings reflect a 7zip 4.42 and up change in
--            # the definition of -mx9, increasting the dictionary size moving to
--            # 26bit = 64MB. This results in an additional ~3.5MB decrease.
--            # Older 7zip versions can support these settings, as these changes
--            # rely on existing functionality in the lzma format.
--            '-m0=BCJ2',
--            '-m1=LZMA:d27:fb128',
--            '-m2=LZMA:d22:fb128:mf=bt2',
--            '-m3=LZMA:d22:fb128:mf=bt2',
--            '-mb0:1',
--            '-mb0s1:2',
--            '-mb0s2:3',
-+            '-m0=LZMA2:d24:fb64',
-         ])
-     cmd.extend([
-         os.path.abspath(compressed_file),
 diff --git a/extensions/browser/manifest_v2_handler.cc b/extensions/browser/manifest_v2_handler.cc
 index 5841d3dfbc888..5e6b5c88e27c7 100644
 --- a/extensions/browser/manifest_v2_handler.cc
