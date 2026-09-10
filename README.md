@@ -18,7 +18,7 @@ https://github.com/RobRich999/Chromium_Clang/releases/tag/153.0.7993.0-r1673900-
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/153.0.7993.0-r1673900-linux64-rpm-avx
 
-**Link for Arch Linux build (derived from rpm above) via AUR by [s1mpleog](https://github.com/s1mpleog):**
+**Link for Arch Linux build (derived from rpm above) via AUR by [notyusufkhalifa](https://github.com/notyusufkhalifa):**
 
 https://aur.archlinux.org/packages/chromium-clang-avx2-bin
 
