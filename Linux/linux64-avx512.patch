@@ -128,6 +128,19 @@ index ae62bab587e7d..9142b9d24507b 100644
      if (target_os == "chromeos" && cros_target_cpu_arch != "" &&
          is_a_target_toolchain) {
        cpu_abi_cflags += [ "-march=$cros_target_cpu_arch" ]
+diff --git a/chrome/common/chrome_paths_linux.cc b/chrome/common/chrome_paths_linux.cc
+index 5575c049b222f..8be111ca9ed9c 100644
+--- a/chrome/common/chrome_paths_linux.cc
++++ b/chrome/common/chrome_paths_linux.cc
+@@ -95,7 +95,7 @@ bool GetDefaultUserDataDirectory(base::FilePath* result) {
+ #elif BUILDFLAG(GOOGLE_CHROME_BRANDING)
+   std::string data_dir_basename = "google-chrome";
+ #else
+-  std::string data_dir_basename = "chromium";
++  std::string data_dir_basename = "chromium-clang";
+ #endif
+   *result = config_dir.Append(data_dir_basename + GetChannelSuffixForDataDir());
+   return true;
 diff --git a/chrome/installer/linux/common/repo.cron b/chrome/installer/linux/common/repo.cron
 index 571fb836f3ac1..e69de29bb2d1d 100755
 --- a/chrome/installer/linux/common/repo.cron
