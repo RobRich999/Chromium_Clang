@@ -25,7 +25,7 @@ index 1c4c928b6d6ea..7c5200d862d73 100644
 +    "-Ctarget-cpu=x86-64-v2",
 +    "-Ctarget-feature=+avx",
 +    "-Cllvm-args=-fp-contract=off",
-+    "-Ctarget-feature=-fast-gather,+prefer-no-gather,+prefer-no-scatter",
++    "-Ctarget-feature=+prefer-no-gather,+prefer-no-scatter",
    ]
  
    if (!is_win || force_rustc_color_output) {
@@ -234,21 +234,22 @@ index 90ff896ea5ede..e69de29bb2d1d 100755
 -  update_bad_repo
 -fi
 diff --git a/chrome/installer/linux/debian/build.py b/chrome/installer/linux/debian/build.py
-index 2d023ed81b760..9ab90487cd1e3 100755
+index e9d12851e35b3..0ff3b6778780c 100755
 --- a/chrome/installer/linux/debian/build.py
 +++ b/chrome/installer/linux/debian/build.py
-@@ -209,9 +209,9 @@ def main() -> None:
-             installer.run_command(["ar", "-x", pkg_basename], cwd=tmp_file_dir)
-             installer.run_command([
-                 "xz",
--                "-z9",
-+                "-z6",
-+                "-e",
-                 f"-T{args.xz_nthreads}",
--                "--lzma2=dict=256MiB",
-                 str(tmp_file_dir / "data.tar"),
-             ])
+@@ -220,9 +220,10 @@ def main() -> None:
              installer.run_command(
+                 [
+                     "xz",
+-                    "-z9",
++                    "-z6",
++                    "-e",
+                     f"-T{args.xz_nthreads}",
+-                    "--lzma2=dict=256MiB",
++                    # "--lzma2=dict=256MiB",
+                     str(tmp_file_dir / "data.tar"),
+                 ]
+             )
 diff --git a/chrome/installer/linux/debian/postrm b/chrome/installer/linux/debian/postrm
 index 3e1cadc8296ca..0cb44dbf7ad77 100755
 --- a/chrome/installer/linux/debian/postrm
@@ -272,10 +273,10 @@ index 3e1cadc8296ca..0cb44dbf7ad77 100755
 -clean_sources_lists
 -uninstall_key
 diff --git a/chrome/installer/linux/rpm/build.py b/chrome/installer/linux/rpm/build.py
-index 5cced7e815d64..3c422a75b4527 100755
+index c66d3309dbf6c..b01d2c84b330e 100755
 --- a/chrome/installer/linux/rpm/build.py
 +++ b/chrome/installer/linux/rpm/build.py
-@@ -132,7 +132,7 @@ def main() -> None:
+@@ -137,7 +137,7 @@ def main() -> None:
          (rpm_build_dir / "RPMS").mkdir(parents=True, exist_ok=True)
  
          if args.official:
@@ -307,6 +308,19 @@ index 2e53794fa3374..1786fda6f463d 100644
        // Allow libglvnd files and libs.
        "/usr/share/glvnd/egl_vendor.d",
        "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+diff --git a/extensions/browser/manifest_v2_handler.cc b/extensions/browser/manifest_v2_handler.cc
+index 5841d3dfbc888..5e6b5c88e27c7 100644
+--- a/extensions/browser/manifest_v2_handler.cc
++++ b/extensions/browser/manifest_v2_handler.cc
+@@ -32,7 +32,7 @@ namespace extensions {
+ namespace {
+ 
+ // Whether to override the MV2 deprecation for testing purposes.
+-bool g_allow_mv2_for_testing = false;
++bool g_allow_mv2_for_testing = true;
+ 
+ // Returns the suffix to use for histograms related to the manifest location
+ // grouping.
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
 index efc7246c8cd3e..24cfe5b479ed8 100644
 --- a/media/base/supported_types.cc
