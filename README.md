@@ -10,9 +10,9 @@ Implementation of various options are subject to change depending upon performan
 
 **Links to latest Linux build releases in deb and rpReleasem package formats:**
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8051.0-r1695130-linux64-deb-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8054.0-r1696329-linux64-deb-avx2
 
-https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8051.0-r1695130-linux64-rpm-avx2
+https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8054.0-r1696329-linux64-rpm-avx2
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v155.0.8051.0-r1695130-linux64-deb-avx
 
