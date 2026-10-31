@@ -1,5 +1,5 @@
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index e39f7df884991..7cad0d6e90d2f 100644
+index e39f7df884991..c2933e56f4aa2 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -545,10 +545,10 @@ config("compiler") {
@@ -17,23 +17,14 @@ index e39f7df884991..7cad0d6e90d2f 100644
  
      if (!is_clang) {
        # Use pipes for communicating between sub-processes. Faster.
-@@ -673,7 +673,7 @@ config("compiler") {
-     if (is_win) {
-       cflags += [ "/clang:-ffp-contract=off" ]
-     } else {
--      cflags += [ "-ffp-contract=off" ]
-+      cflags += [ "-ffp-contract=fast" ]
-     }
- 
-     # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF.
 @@ -1004,6 +1004,10 @@ config("compiler") {
  
      # We use clang-rt sanitizer runtimes.
      "-Zexternal-clangrt",
 +
-+    "-Ctarget-cpu=x86-64-v3",
-+    "-Ztune-cpu=znver3",
-+    "-Ctarget-feature=-fast-gather,+prefer-no-gather,+prefer-no-scatter",
++    "-Ctarget-cpu=x86-64-v2",
++    "-Ctarget-feature=+avx",
++    "-Ctarget-feature=+prefer-no-gather,+prefer-no-scatter",
    ]
  
    if (!is_win || force_rustc_color_output) {
@@ -105,20 +96,19 @@ index e39f7df884991..7cad0d6e90d2f 100644
    rustflags = [ "-Copt-level=3" ]
  }
 diff --git a/build/config/compiler_cpu_abi.gn b/build/config/compiler_cpu_abi.gn
-index ae62bab587e7d..043b9f722331c 100644
+index ae62bab587e7d..4769d5bdec4ff 100644
 --- a/build/config/compiler_cpu_abi.gn
 +++ b/build/config/compiler_cpu_abi.gn
-@@ -55,7 +55,13 @@ if ((is_posix && !is_apple) || is_fuchsia) {
+@@ -55,7 +55,12 @@ if ((is_posix && !is_apple) || is_fuchsia) {
        cpu_abi_cflags += [ "-m64" ]
        cpu_abi_ldflags += [ "-m64" ]
      }
 -    cpu_abi_cflags += [ "-msse3" ]
 +    cpu_abi_cflags += [
-+      "-march=x86-64-v3",
-+      "-mtune=znver3",
++      "-march=x86-64-v2",
++      "-mavx",
 +      "-mno-gather",
 +      "-mno-scatter",
-+      # "-mno-bmi2",
 +    ]
      if (target_os == "chromeos" && cros_target_cpu_arch != "" &&
          is_a_target_toolchain) {
