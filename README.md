@@ -8,7 +8,7 @@ Implementation of various options are subject to change depending upon performan
 
 ****
 
-**Links to latest Linux build releases in deb and rpReleasem package formats:**
+**Links to latest Linux build releases in deb and rpm release package formats:**
 
 https://github.com/RobRich999/Chromium_Clang/releases/tag/v159.0.8134.0-r1731901-linux64-deb-avx2
 
